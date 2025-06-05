@@ -47,7 +47,7 @@ const Navbar = () => {
                   onClick={() => navigate("my-appointments")}
                   className="hover:text-black cursor-pointer"
                 >
-                  My Appintments{" "}
+                  My Appontments{" "}
                 </p>
                 <p className="hover:text-black cursor-pointer">Logout</p>
               </div>

@@ -5,7 +5,7 @@ import AboutUs from "@/common/About";
 import Contact from "@/common/Contact";
 import LoginForm from "@/features/auth/components/LoginForm";
 import MyProfile from "@/features/auth/components/pages/UserProfile";
-import MyAppointments from "@/pages/Appointments/Appointments";
+import MyAppointments from "@/pages/Appointments/AppointmentsBooked";
 const routes = (
   <Routes>
     <Route path="/" element={<HomePage />} />
