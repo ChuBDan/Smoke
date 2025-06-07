@@ -1,0 +1,431 @@
+/* Modern Prescripto-inspired Admin Design for Smoking Cessation Platform */
+
+.container {
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  background: #f8fafc;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+  min-width: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mainContent.expanded {
+  margin-left: 0;
+}
+
+.header {
+  height: 80px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  padding: 0 2rem;
+  justify-content: space-between;
+  z-index: 10;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menuButton {
+  padding: 10px;
+  border-radius: 8px;
+  color: #64748b;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+}
+
+.menuButton:hover {
+  color: #3b82f6;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.breadcrumbText {
+  font-weight: 500;
+}
+
+.breadcrumbSeparator {
+  color: #cbd5e1;
+}
+
+.breadcrumbCurrent {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  width: 20px;
+  height: 20px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.searchInput {
+  padding: 10px 12px 10px 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  min-width: 250px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  color: #1e293b;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.notificationButton {
+  position: relative;
+  padding: 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificationButton:hover {
+  background: #f1f5f9;
+  color: #3b82f6;
+  border-color: #cbd5e1;
+}
+
+.notificationBadge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
+  line-height: 1;
+}
+
+.profileDropdown {
+  position: relative;
+}
+
+.profileContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.profileContainer:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.profileImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  object-fit: cover;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.profileName {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.profileRole {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: #f8fafc;
+  position: relative;
+  min-height: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .header {
+    padding: 0 1rem;
+  }
+
+  .searchInput {
+    min-width: 200px;
+  }
+
+  .profileInfo {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .content {
+    padding: 16px;
+  }
+
+  .headerRight {
+    gap: 0.5rem;
+  }
+
+  .searchContainer {
+    display: none;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    position: relative;
+  }
+
+  .mainContent {
+    width: 100%;
+  }
+
+  .header {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .headerLeft {
+    gap: 0.5rem;
+  }
+
+  .menuButton {
+    height: 36px;
+    width: 36px;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .breadcrumbText {
+    display: none;
+  }
+
+  .breadcrumbSeparator {
+    display: none;
+  }
+
+  .headerRight {
+    gap: 0.25rem;
+  }
+
+  .notificationButton {
+    height: 36px;
+    width: 36px;
+  }
+
+  .profileContainer {
+    padding: 6px 8px;
+  }
+
+  .profileImage {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 0 0.75rem;
+    height: 56px;
+  }
+
+  .content {
+    padding: 8px;
+  }
+
+  .breadcrumbCurrent {
+    font-size: 12px;
+  }
+
+  .headerRight {
+    gap: 0.125rem;
+  }
+
+  .notificationButton,
+  .menuButton {
+    height: 32px;
+    width: 32px;
+  }
+
+  .profileContainer {
+    padding: 4px 6px;
+  }
+
+  .profileImage {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 0.5rem;
+    height: 52px;
+  }
+
+  .content {
+    padding: 6px;
+  }
+
+  .headerLeft {
+    gap: 0.25rem;
+  }
+
+  .breadcrumbCurrent {
+    font-size: 11px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .notificationButton,
+  .menuButton {
+    height: 28px;
+    width: 28px;
+  }
+
+  .notificationButton svg,
+  .menuButton svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .profileContainer {
+    padding: 2px 4px;
+  }
+
+  .profileImage {
+    width: 20px;
+    height: 20px;
+  }
+
+  .profileImage svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content > * {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Custom scrollbar for better design */
+.content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

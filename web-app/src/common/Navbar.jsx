@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { assets } from "@/assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [token, setToken] = useState(true);
+  // Mock user role - in real app this would come from auth context
+  const [userRole, setUserRole] = useState("user"); // "admin", "coach", "user"
+
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
       <img className="w-44 cursor-pointer" src={assets.logo} alt="" />
@@ -25,7 +28,35 @@ const Navbar = () => {
           <li className="py-1">Contact</li>
           <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
         </NavLink>
+
+        {/* Role-based navigation */}
+        {userRole === "admin" && (
+          <NavLink to="/admin">
+            <li className="py-1">Admin Panel</li>
+            <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
+          </NavLink>
+        )}
+        {userRole === "coach" && (
+          <NavLink to="/coach">
+            <li className="py-1">Coach Panel</li>
+            <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
+          </NavLink>
+        )}
       </ul>
+
+      {/* Role switcher for testing */}
+      <div className="flex items-center gap-2">
+        <select
+          value={userRole}
+          onChange={(e) => setUserRole(e.target.value)}
+          className="px-2 py-1 border rounded text-xs"
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+          <option value="coach">Coach</option>
+        </select>
+      </div>
+
       <div className="flex items-center gap-4">
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">

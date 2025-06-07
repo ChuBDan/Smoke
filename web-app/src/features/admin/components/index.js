@@ -1,0 +1,11 @@
+// Export all admin components for easy importing
+export { default as Sidebar } from "./Sidebar";
+export { default as Dashboard } from "./Dashboard";
+export { default as UsersPage } from "./Users";
+export { default as MembersPage } from "./Users/Members";
+export { default as CoachesPage } from "./Users/Coaches";
+export { default as AdminsPage } from "./Users/Admins";
+export { default as BadgesPage } from "./Badges";
+export { default as ReportsPage } from "./Reports";
+export { default as AppointmentsPage } from "./Appointments";
+export { default as SettingsPage } from "./Settings";
