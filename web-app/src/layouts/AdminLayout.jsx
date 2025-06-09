@@ -66,23 +66,7 @@ const AdminLayout = () => {
               <span className={styles.breadcrumbText}>SmokeFree Admin</span>
               <span className={styles.breadcrumbSeparator}>›</span>
               <span className={styles.breadcrumbCurrent}>{getPageTitle()}</span>
-            </div>
-          </div>
-
-          <div className={styles.headerRight}>
-            <div className={styles.userProfile}>
-              <div className={styles.userInfo}>
-                <span className={styles.userName}>Admin User</span>
-                <span className={styles.userRole}>Administrator</span>
-              </div>
-              <div className={styles.userAvatar}>
-                <img
-                  src="/api/placeholder/32/32"
-                  alt="Admin Avatar"
-                  className={styles.avatarImage}
-                />
-              </div>
-            </div>
+            </div>{" "}
           </div>
         </header>
 
