@@ -1,64 +1,28 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { login, signup ,coachLogin } from "@/redux/slices/authSlice";
-import { useNavigate } from "react-router-dom";
+import useLoginForm from "@/features/auth/hooks/useLoginForm ";
+
 const LoginForm = () => {
-  const [state, setState] = useState("Sign Up");
+  const {
+    state,
+    setState,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    fullName,
+    setName,
+    username,
+    setUsername,
+    phoneNumber,
+    setPhoneNumber,
+    gender,
+    setGender,
+    dob,
+    setDob,
+    role,
+    setRole,
+    onSubmitHandler,
+  } = useLoginForm();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [fullName, setName] = useState("");
-  const [username, setUsername] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [gender, setGender] = useState("");
-  const [dob, setDob] = useState("");
-
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const token = useSelector((state) => state.auth.token);
-  const [role, setRole] = useState("MEMBER");
-
-  useEffect(() => {
-    if (token) {
-      const role = localStorage.getItem("role");
-      if (role === "COACH") {
-        navigate("/coach/dashboard");
-      } else {
-        navigate("/");
-      }
-    }
-  }, [token, navigate]);
-
-  const onSubmitHandler = async (event) => {
-    event.preventDefault();
-
-    const userData =
-      state === "Sign Up"
-        ? {
-            email,
-            password,
-            fullName,
-            username,
-            phoneNumber,
-            gender,
-            dob,
-            role: "MEMBER",
-          }
-        : { email, password };
-
-      if (state === "Sign Up") {
-    const resultAction = await dispatch(signup(userData));
-    if (signup.fulfilled.match(resultAction)) {
-      setState("Login");
-    }
-  } else {
-    if (role === "COACH") {
-      dispatch(coachLogin(userData));
-    } else {
-      dispatch(login(userData));
-    }
-  }
-};
   return (
     <form className="min-h-[80vh] flex items-center" onSubmit={onSubmitHandler}>
       <div className="flex flex-col gap-3 m-auto items-start p-8 min-w-[340px] sm:min-w-96 border rounded-xl text-zinc-600 text-sm shadow-lg">
@@ -66,9 +30,9 @@ const LoginForm = () => {
           {state === "Sign Up" ? "Create Account" : "Login"}
         </p>
         <p>
-          Please {state === "Sign Up" ? "sign up" : "log in"} to book
-          appointment
+          Please {state === "Sign Up" ? "sign up" : "log in"} to book appointment
         </p>
+
         {state === "Login" && (
           <div className="w-full">
             <p>Login as</p>
