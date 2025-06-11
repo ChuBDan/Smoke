@@ -17,11 +17,16 @@ const useLoginForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
-
   useEffect(() => {
     if (token) {
       const role = localStorage.getItem("role");
-      navigate(role === "COACH" ? "/coach/dashboard" : "/");
+      if (role === "COACH") {
+        navigate("/coach/dashboard");
+      } else if (role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     }
   }, [token, navigate]);
 

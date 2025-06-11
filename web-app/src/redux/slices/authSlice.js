@@ -2,6 +2,7 @@ import { loginUser } from "@/features/auth/services/Login";
 import { registerUser } from "@/features/auth/services/Register";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loginCoach } from "@/features/coaches/services/LoginCoach";
+import { loginAdmin } from "@/features/admin/services/adminLoginApi";
 export const login = createAsyncThunk("auth/login", async (userData) => {
   const res = await loginUser({
     email: userData.email,
@@ -21,6 +22,17 @@ export const coachLogin = createAsyncThunk(
     const res = await loginCoach({
       email: coachData.email,
       password: coachData.password,
+    });
+    return res;
+  }
+);
+
+export const adminLogin = createAsyncThunk(
+  "auth/loginAdmin",
+  async (adminData) => {
+    const res = await loginAdmin({
+      email: adminData.email,
+      password: adminData.password,
     });
     return res;
   }
@@ -60,8 +72,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.rejected, (state) => {
         state.status = "failed";
-      })
-      .addCase(coachLogin.pending, (state) => {
+      })      .addCase(coachLogin.pending, (state) => {
         state.status = "loading";
       })
       .addCase(coachLogin.fulfilled, (state, action) => {
@@ -71,6 +82,18 @@ const authSlice = createSlice({
         localStorage.setItem("token", action.payload.token);
       })
       .addCase(coachLogin.rejected, (state) => {
+        state.status = "failed";
+      })
+      .addCase(adminLogin.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(adminLogin.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.token = action.payload.token;
+        localStorage.setItem("role", "ADMIN");
+        localStorage.setItem("token", action.payload.token);
+      })
+      .addCase(adminLogin.rejected, (state) => {
         state.status = "failed";
       });
   },

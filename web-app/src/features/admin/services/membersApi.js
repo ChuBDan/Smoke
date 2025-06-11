@@ -1,8 +1,7 @@
 // Members API service
 import { httpMethods } from "@/config/api";
 
-export const membersApi = {
-  // Get all users (members) from the public endpoint
+export const membersApi = {  // Get all users (members) from the public endpoint
   getAllUsers: async () => {
     try {
       const response = await httpMethods.get("/api/public/get-all-users");
@@ -22,8 +21,7 @@ export const membersApi = {
     }
   },
   // Test endpoint function that logs the response
-  testGetAllUsers: async () => {
-    console.log("🔍 Testing /api/public/get-all-users endpoint...");
+  testGetAllUsers: async () => {    console.log("🔍 Testing /api/public/get-all-users endpoint...");
     console.log(
       "📡 Full URL: https://deploy-smk.onrender.com/api/public/get-all-users"
     );

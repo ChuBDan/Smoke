@@ -17,6 +17,7 @@ import UsersPage from "@/pages/Admin/UsersPage";
 import SettingsPage from "@/pages/Admin/SettingsPage";
 import BadgesPage from "@/pages/Admin/BadgesPage";
 import ReportsPage from "@/pages/Admin/ReportsPage";
+import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
 
 // User Management Pages
 import {
@@ -42,9 +43,7 @@ const routes = (
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
       <Route path="my-appointments" element={<MyAppointments />} />{" "}
-    </Route>
-
-    {/* Admin Routes - No Navbar/Footer */}
+    </Route>    {/* Admin Routes - No Navbar/Footer */}
     <Route path="/admin" element={<AdminLayout />}>
       <Route index element={<DashboardPage />} />
       <Route path="dashboard" element={<DashboardPage />} />
@@ -57,6 +56,9 @@ const routes = (
       <Route path="reports" element={<ReportsPage />} />
       <Route path="settings" element={<SettingsPage />} />
     </Route>
+
+    {/* Admin Login Route - Standalone */}
+    <Route path="/admin/login" element={<AdminLoginPage />} />
 
     {/* Coach Routes - No Navbar/Footer */}
     <Route path="/coach" element={<CoachLayout />}>

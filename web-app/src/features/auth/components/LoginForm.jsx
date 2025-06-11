@@ -168,8 +168,7 @@ const LoginForm = () => {
               Login here
             </span>
           </p>
-        ) : (
-          <p>
+        ) : (          <p>
             Create a new account?{" "}
             <span
               onClick={() => setState("Sign Up")}
@@ -177,7 +176,31 @@ const LoginForm = () => {
             >
               Click here
             </span>
-          </p>
+          </p>        )}
+        
+        {state === "Login" && (
+          <div className="text-center mt-4 pt-4 border-t border-gray-200">
+            <p className="text-xs text-gray-500 mb-2">Administrative Access</p>
+            <a
+              href="/admin/login"
+              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            >
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+                />
+              </svg>
+              Admin Portal
+            </a>
+          </div>
         )}
       </div>
     </form>

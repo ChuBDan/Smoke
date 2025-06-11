@@ -1,67 +1,34 @@
 import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import styles from "./Members.module.css";
-import { membersApi } from "../../../services/membersApi";
+import { fetchAllMembers, clearError } from "@/redux/slices/membersSlice";
 
 const MembersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [apiMembers, setApiMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  
+  const dispatch = useDispatch();
+  const { members, loading, error } = useSelector((state) => state.members);
 
-  // Function to load API data
-  const loadApiData = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await membersApi.testGetAllUsers();
-
-      if (result.success && result.data) {
-        // Extract members array from the API response
-        const membersData = result.data.members || [];
-        // Map API data to component format with clean data mapping
-        const mappedMembers = membersData.map((member) => {
-          return {
-            id: member.id,
-            name: member.fullName,
-            username: member.username,
-            email: member.email,
-            phone: member.phoneNumber,
-            joinDate: member.join_Date,
-            status: member.status.toLowerCase(), // Convert "ACTIVE" to "active"
-            gender: member.gender,
-            dob: member.dob,
-            role: member.role,
-            dateCreated: member.dateCreated,
-            memberBadges: member.memberBadges || [],
-          };
-        });
-
-        setApiMembers(mappedMembers);
-        setError(null);
-        console.log(
-          `✅ Successfully mapped ${mappedMembers.length} members from API`
-        );
-      } else {
-        setError(result.message || "Failed to fetch data");
-        setApiMembers([]);
-      }
-    } catch (err) {
-      console.error("Error loading API data:", err);
-      setError("Failed to connect to API endpoint");
-      setApiMembers([]);
-    } finally {
-      setLoading(false);
-    }
+  // Function to load API data using Redux
+  const loadApiData = () => {
+    dispatch(fetchAllMembers());
   };
   // Load API data on component mount
   useEffect(() => {
-    loadApiData();
-  }, []);
+    dispatch(fetchAllMembers());
+  }, [dispatch]);
 
-  // Use API data instead of mock data
-  const members = apiMembers;
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      if (error) {
+        dispatch(clearError());
+      }
+    };
+  }, [dispatch, error]);
+
+  // Use Redux data
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
       member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
