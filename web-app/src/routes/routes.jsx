@@ -9,7 +9,8 @@ import LoginForm from "@/features/auth/components/LoginForm";
 import MyProfile from "@/features/auth/components/pages/UserProfile";
 import MyAppointments from "@/pages/Appointments/AppointmentsBooked";
 import NotFound from "@/pages/NotFound";
-
+import MembershipPage from "@/pages/Membership/Membership";
+import SmokingStatusForm from "@/pages/SmokingStatusForm/SmokingStatusForm";
 // Admin Pages
 import DashboardPage from "@/pages/Admin/DashboardPage";
 import AdminAppointmentsPage from "@/pages/Admin/AppointmentsPage";
@@ -41,7 +42,9 @@ const routes = (
       <Route path="contact" element={<Contact />} />
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
-      <Route path="my-appointments" element={<MyAppointments />} />{" "}
+      <Route path="my-appointments" element={<MyAppointments />} />
+      <Route path="membership" element={<MembershipPage />} />
+      <Route path="smokingstatusform" element={<SmokingStatusForm />} />{" "}
     </Route>
 
     {/* Admin Routes - No Navbar/Footer */}
