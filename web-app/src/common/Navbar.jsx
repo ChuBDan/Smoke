@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { assets } from "@/assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
+import { logout } from "@/redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [token, setToken] = useState(true);
+  const token = useSelector((state) => state.auth.token);
+  const dispatch = useDispatch();
+
   // Mock user role - in real app this would come from auth context
   const [userRole, setUserRole] = useState("user"); // "admin", "coach", "user"
 
@@ -80,7 +84,12 @@ const Navbar = () => {
                 >
                   My Appontments{" "}
                 </p>
-                <p className="hover:text-black cursor-pointer">Logout</p>
+                <p
+                  onClick={() => dispatch(logout()) &&  navigate("/")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  Logout
+                </p>
               </div>
             </div>
           </div>
