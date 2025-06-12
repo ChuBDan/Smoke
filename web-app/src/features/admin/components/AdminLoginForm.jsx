@@ -4,7 +4,7 @@ import { adminLogin } from "@/redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 
 const AdminLoginForm = () => {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,8 +26,9 @@ const AdminLoginForm = () => {
   const onSubmitHandler = async (event) => {
     event.preventDefault();
     setError("");
-    setLoading(true);    try {
-      const resultAction = await dispatch(adminLogin({ email, password }));
+    setLoading(true);
+    try {
+      const resultAction = await dispatch(adminLogin({ username, password }));
       if (adminLogin.fulfilled.match(resultAction)) {
         navigate("/admin/dashboard");
       } else {
@@ -76,25 +77,31 @@ const AdminLoginForm = () => {
           )}
 
           <div className="space-y-4">
+            {" "}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Admin Email
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Admin Username
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your admin email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your admin username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
-
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <input
