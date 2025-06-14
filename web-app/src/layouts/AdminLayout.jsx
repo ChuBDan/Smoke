@@ -14,7 +14,6 @@ const AdminLayout = () => {
       document.body.style.overflow = "unset";
     };
   }, []);
-
   // Get page title based on current route
   const getPageTitle = () => {
     const path = location.pathname;
@@ -26,9 +25,8 @@ const AdminLayout = () => {
       return "Users";
     }
     if (path.includes("/admin/appointments")) return "Appointments";
-    if (path.includes("/admin/reports")) return "Reports";
     if (path.includes("/admin/badges")) return "Badges";
-    if (path.includes("/admin/settings")) return "Settings";
+    if (path.includes("/admin/packages")) return "Packages";
     return "Admin";
   };
 

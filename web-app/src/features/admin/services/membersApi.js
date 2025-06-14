@@ -4,7 +4,7 @@ import { httpMethods } from "@/config/api";
 export const membersApi = {  // Get all users (members) from the public endpoint
   getAllUsers: async () => {
     try {
-      const response = await httpMethods.get("/api/public/get-all-users");
+      const response = await httpMethods.get("/api/user/get-all-users");
       return {
         success: true,
         data: response.data,
@@ -21,9 +21,10 @@ export const membersApi = {  // Get all users (members) from the public endpoint
     }
   },
   // Test endpoint function that logs the response
-  testGetAllUsers: async () => {    console.log("🔍 Testing /api/public/get-all-users endpoint...");
+  testGetAllUsers: async () => {
+    console.log("🔍 Testing /api/user/get-all-users endpoint...");
     console.log(
-      "📡 Full URL: https://deploy-smk.onrender.com/api/public/get-all-users"
+      "📡 Full URL: https://deploy-smk.onrender.com/api/user/get-all-users"
     );
 
     try {

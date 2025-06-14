@@ -14,9 +14,8 @@ import NotFound from "@/pages/NotFound";
 import DashboardPage from "@/pages/Admin/DashboardPage";
 import AdminAppointmentsPage from "@/pages/Admin/AppointmentsPage";
 import UsersPage from "@/pages/Admin/UsersPage";
-import SettingsPage from "@/pages/Admin/SettingsPage";
 import BadgesPage from "@/pages/Admin/BadgesPage";
-import ReportsPage from "@/pages/Admin/ReportsPage";
+import PackagesPage from "@/pages/Admin/PackagesPage";
 import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
 
 // User Management Pages
@@ -43,7 +42,8 @@ const routes = (
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
       <Route path="my-appointments" element={<MyAppointments />} />{" "}
-    </Route>    {/* Admin Routes - No Navbar/Footer */}
+    </Route>{" "}
+    {/* Admin Routes - No Navbar/Footer */}
     <Route path="/admin" element={<AdminLayout />}>
       <Route index element={<DashboardPage />} />
       <Route path="dashboard" element={<DashboardPage />} />
@@ -53,13 +53,10 @@ const routes = (
       <Route path="users/coaches" element={<CoachesPage />} />
       <Route path="users/admins" element={<AdminsPage />} />
       <Route path="badges" element={<BadgesPage />} />
-      <Route path="reports" element={<ReportsPage />} />
-      <Route path="settings" element={<SettingsPage />} />
+      <Route path="packages" element={<PackagesPage />} />
     </Route>
-
     {/* Admin Login Route - Standalone */}
     <Route path="/admin/login" element={<AdminLoginPage />} />
-
     {/* Coach Routes - No Navbar/Footer */}
     <Route path="/coach" element={<CoachLayout />}>
       <Route index element={<CoachDashBoard />} />
@@ -67,7 +64,6 @@ const routes = (
       <Route path="appointments" element={<CoachAppoiment />} />
       <Route path="profile" element={<CoachProfile />} />
     </Route>
-
     {/* 404 Not Found */}
     <Route path="*" element={<NotFound />} />
   </Routes>

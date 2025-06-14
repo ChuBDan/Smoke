@@ -1,18 +1,29 @@
 import { useState, useMemo, useEffect } from "react";
-import styles from "./Badges.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchAllPackages,
+  createPackage,
+  updatePackage,
+  deletePackage,
+  clearError,
+  setSearchTerm,
+  setFilterStatus,
+  setFilterCategory,
+} from "@/redux/slices/packagesSlice";
+import styles from "./Packages.module.css";
 
-const BadgesPage = () => {
+const PackagesPage = () => {
   const dispatch = useDispatch();
-  const { badges, loading, error, searchTerm, filterStatus, filterCategory } =
-    useSelector((state) => state.badges);
+  const { packages, loading, error, searchTerm, filterStatus, filterCategory } =
+    useSelector((state) => state.packages);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState(null);
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
-  // Fetch badges on component mount
+  // Fetch packages on component mount
   useEffect(() => {
-    dispatch(fetchAllBadges());
+    dispatch(fetchAllPackages());
   }, [dispatch]);
 
   // Clear error when component unmounts
@@ -22,88 +33,88 @@ const BadgesPage = () => {
     };
   }, [dispatch]);
 
-  // Filter badges based on search and filters
-  const filteredBadges = useMemo(() => {
-    return badges.filter((badge) => {
+  // Filter packages based on search and status
+  const filteredPackages = useMemo(() => {
+    return packages.filter((pkg) => {
       const matchesSearch =
-        badge.badgeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        badge.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        badge.category?.toLowerCase().includes(searchTerm.toLowerCase());
+        pkg.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        pkg.category?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory =
-        filterCategory === "all" ||
-        badge.category?.toLowerCase() === filterCategory.toLowerCase();
       const matchesStatus =
-        filterStatus === "all" || badge.status === filterStatus;
+        filterStatus === "all" || pkg.status === filterStatus;
+      const matchesCategory =
+        filterCategory === "all" || pkg.category === filterCategory;
 
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesStatus && matchesCategory;
     });
-  }, [badges, searchTerm, filterCategory, filterStatus]);
+  }, [packages, searchTerm, filterStatus, filterCategory]);
 
-  const handleAddBadge = async (badgeData) => {
+  const handleAddPackage = async (packageData) => {
     try {
-      await dispatch(createBadge(badgeData)).unwrap();
+      await dispatch(createPackage(packageData)).unwrap();
       setShowAddModal(false);
     } catch (error) {
-      console.error("Failed to create badge:", error);
+      console.error("Failed to create package:", error);
     }
   };
 
-  const handleEditBadge = async (badgeData) => {
+  const handleEditPackage = async (packageData) => {
     try {
-      await dispatch(updateBadge({ id: selectedBadge.id, badgeData })).unwrap();
+      await dispatch(
+        updatePackage({ id: selectedPackage.id, packageData })
+      ).unwrap();
       setShowEditModal(false);
-      setSelectedBadge(null);
+      setSelectedPackage(null);
     } catch (error) {
-      console.error("Failed to update badge:", error);
+      console.error("Failed to update package:", error);
     }
   };
 
-  const handleDeleteBadge = async (badgeId) => {
-    if (window.confirm("Are you sure you want to delete this badge?")) {
+  const handleDeletePackage = async (packageId) => {
+    if (window.confirm("Are you sure you want to delete this package?")) {
       try {
-        await dispatch(deleteBadge(badgeId)).unwrap();
+        await dispatch(deletePackage(packageId)).unwrap();
       } catch (error) {
-        console.error("Failed to delete badge:", error);
+        console.error("Failed to delete package:", error);
       }
     }
   };
 
   const getCategoryColor = (category) => {
     switch (category?.toLowerCase()) {
-      case "milestone":
-        return "milestone";
-      case "social":
-        return "social";
-      case "educational":
-        return "educational";
-      case "health":
-        return "health";
-      case "special":
-        return "special";
-      case "achievement":
-        return "achievement";
+      case "basic":
+        return "basic";
+      case "premium":
+        return "premium";
+      case "ultimate":
+        return "ultimate";
+      case "trial":
+        return "trial";
       default:
         return "default";
     }
   };
 
   const stats = {
-    totalBadges: badges.length,
-    activeBadges: badges.filter((badge) => badge.status === "active").length,
-    totalEarned: badges.reduce(
-      (sum, badge) => sum + (badge.earnersCount || 0),
+    totalPackages: packages.length,
+    activePackages: packages.filter((pkg) => pkg.status === "active").length,
+    totalMembers: packages.reduce(
+      (sum, pkg) => sum + (pkg.memberCount || 0),
       0
     ),
-    totalPoints: badges.reduce((sum, badge) => sum + (badge.points || 0), 0),
+    totalRevenue: packages.reduce(
+      (sum, pkg) => sum + pkg.price * (pkg.memberCount || 0),
+      0
+    ),
   };
 
-  if (loading && badges.length === 0) {
+  if (loading && packages.length === 0) {
     return (
       <div className={styles.container}>
         <div className={styles.loadingState}>
           <div className={styles.spinner}></div>
-          <p>Loading badges...</p>
+          <p>Loading packages...</p>
         </div>
       </div>
     );
@@ -132,8 +143,8 @@ const BadgesPage = () => {
       {/* Header Section */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <h1>Badges Management</h1>
-          <p>Manage achievement badges and recognition system</p>
+          <h1>Packages Management</h1>
+          <p>Manage membership packages and subscription plans</p>
         </div>
         <div className={styles.headerActions}>
           <button
@@ -155,7 +166,7 @@ const BadgesPage = () => {
                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
               />
             </svg>
-            Add Badge
+            Add Package
           </button>
         </div>
       </div>
@@ -164,8 +175,34 @@ const BadgesPage = () => {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Badges</span>
+            <span className={styles.statLabel}>Total Packages</span>
             <div className={`${styles.statIcon} ${styles.total}`}>
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"
+                />
+              </svg>
+            </div>
+          </div>
+          <div className={styles.statValue}>{stats.totalPackages}</div>
+          <div className={`${styles.statChange} ${styles.neutral}`}>
+            All available packages
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <span className={styles.statLabel}>Active Packages</span>
+            <div className={`${styles.statIcon} ${styles.active}`}>
               <svg
                 width="20"
                 height="20"
@@ -182,40 +219,16 @@ const BadgesPage = () => {
               </svg>
             </div>
           </div>
-          <div className={styles.statValue}>{stats.totalBadges}</div>
-          <div className={`${styles.statChange} ${styles.neutral}`}>
-            All available badges
+          <div className={styles.statValue}>{stats.activePackages}</div>
+          <div className={`${styles.statChange} ${styles.positive}`}>
+            <span>↗</span> Currently available
           </div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Active Badges</span>
-            <div className={`${styles.statIcon} ${styles.active}`}>
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className={styles.statValue}>{stats.activeBadges}</div>
-          <div className={`${styles.statChange} ${styles.positive}`}>
-            <span>↗</span> Currently earnable
-          </div>
-        </div>        <div className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Earned</span>
-            <div className={`${styles.statIcon} ${styles.earned}`}>
+            <span className={styles.statLabel}>Total Members</span>
+            <div className={`${styles.statIcon} ${styles.subscribers}`}>
               <svg
                 width="20"
                 height="20"
@@ -232,18 +245,16 @@ const BadgesPage = () => {
               </svg>
             </div>
           </div>
-          <div className={styles.statValue}>
-            {stats.totalEarned.toLocaleString()}
-          </div>
+          <div className={styles.statValue}>{stats.totalMembers}</div>
           <div className={`${styles.statChange} ${styles.positive}`}>
-            <span>↗</span> Total instances
+            <span>↗</span> Total subscribers
           </div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Points</span>
-            <div className={`${styles.statIcon} ${styles.points}`}>
+            <span className={styles.statLabel}>Revenue</span>
+            <div className={`${styles.statIcon} ${styles.revenue}`}>
               <svg
                 width="20"
                 height="20"
@@ -255,21 +266,21 @@ const BadgesPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
             </div>
           </div>
           <div className={styles.statValue}>
-            {stats.totalPoints.toLocaleString()}
+            ${stats.totalRevenue.toFixed(2)}
           </div>
           <div className={`${styles.statChange} ${styles.positive}`}>
-            <span>↗</span> Available points
+            <span>↗</span> Total earnings
           </div>
         </div>
       </div>
 
-      {/* Filters Section */}
+      {/* Filters and Search */}
       <div className={styles.filtersSection}>
         <div className={styles.searchBox}>
           <svg
@@ -289,7 +300,7 @@ const BadgesPage = () => {
           </svg>
           <input
             type="text"
-            placeholder="Search badges by name, description, or category..."
+            placeholder="Search packages by name, description, or category..."
             value={searchTerm}
             onChange={(e) => dispatch(setSearchTerm(e.target.value))}
             className={styles.searchInput}
@@ -297,20 +308,6 @@ const BadgesPage = () => {
         </div>
 
         <div className={styles.filters}>
-          <select
-            value={filterCategory}
-            onChange={(e) => dispatch(setFilterCategory(e.target.value))}
-            className={styles.filterSelect}
-          >
-            <option value="all">All Categories</option>
-            <option value="milestone">Milestone</option>
-            <option value="social">Social</option>
-            <option value="educational">Educational</option>
-            <option value="health">Health</option>
-            <option value="special">Special</option>
-            <option value="achievement">Achievement</option>
-          </select>
-
           <select
             value={filterStatus}
             onChange={(e) => dispatch(setFilterStatus(e.target.value))}
@@ -321,9 +318,21 @@ const BadgesPage = () => {
             <option value="inactive">Inactive</option>
           </select>
 
+          <select
+            value={filterCategory}
+            onChange={(e) => dispatch(setFilterCategory(e.target.value))}
+            className={styles.filterSelect}
+          >
+            <option value="all">All Categories</option>
+            <option value="basic">Basic</option>
+            <option value="premium">Premium</option>
+            <option value="ultimate">Ultimate</option>
+            <option value="trial">Trial</option>
+          </select>
+
           <button
             className={styles.refreshButton}
-            onClick={() => dispatch(fetchAllBadges())}
+            onClick={() => dispatch(fetchAllPackages())}
             disabled={loading}
           >
             <svg
@@ -346,9 +355,9 @@ const BadgesPage = () => {
         </div>
       </div>
 
-      {/* Badges Grid */}
-      <div className={styles.badgesGrid}>
-        {filteredBadges.length === 0 ? (
+      {/* Packages Grid */}
+      <div className={styles.packagesGrid}>
+        {filteredPackages.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
               <svg
@@ -362,15 +371,15 @@ const BadgesPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"
                 />
               </svg>
             </div>
-            <h3>No badges found</h3>
+            <h3>No packages found</h3>
             <p>
               {searchTerm || filterStatus !== "all" || filterCategory !== "all"
-                ? "No badges match your current filters."
-                : "Start by creating your first achievement badge."}
+                ? "No packages match your current filters."
+                : "Start by creating your first membership package."}
             </p>
             {!searchTerm &&
               filterStatus === "all" &&
@@ -379,28 +388,39 @@ const BadgesPage = () => {
                   className={styles.createFirstButton}
                   onClick={() => setShowAddModal(true)}
                 >
-                  Create First Badge
+                  Create First Package
                 </button>
               )}
           </div>
         ) : (
-          filteredBadges.map((badge) => (
-            <div key={badge.id} className={styles.badgeCard}>
-              <div className={styles.badgeHeader}>
-                <div
-                  className={styles.badgeIconContainer}
-                  style={{ backgroundColor: badge.color }}
-                >
-                  <span className={styles.badgeIcon}>{badge.icon}</span>
+          filteredPackages.map((pkg) => (
+            <div key={pkg.id} className={styles.packageCard}>
+              <div className={styles.packageHeader}>
+                <div className={styles.packageInfo}>
+                  <h3>{pkg.packageName}</h3>
+                  <div className={styles.packageMeta}>
+                    <span
+                      className={`${styles.statusBadge} ${styles[pkg.status]}`}
+                    >
+                      {pkg.status}
+                    </span>
+                    <span
+                      className={`${styles.categoryBadge} ${
+                        styles[getCategoryColor(pkg.category)]
+                      }`}
+                    >
+                      {pkg.category}
+                    </span>
+                  </div>
                 </div>
-                <div className={styles.badgeActions}>
+                <div className={styles.packageActions}>
                   <button
-                    className={`${styles.actionButton} ${styles.edit}`}
+                    className={styles.actionButton}
                     onClick={() => {
-                      setSelectedBadge(badge);
+                      setSelectedPackage(pkg);
                       setShowEditModal(true);
                     }}
-                    title="Edit Badge"
+                    title="Edit package"
                   >
                     <svg
                       width="16"
@@ -418,9 +438,9 @@ const BadgesPage = () => {
                     </svg>
                   </button>
                   <button
-                    className={`${styles.actionButton} ${styles.delete}`}
-                    onClick={() => handleDeleteBadge(badge.id)}
-                    title="Delete Badge"
+                    className={`${styles.actionButton} ${styles.deleteButton}`}
+                    onClick={() => handleDeletePackage(pkg.id)}
+                    title="Delete package"
                   >
                     <svg
                       width="16"
@@ -440,55 +460,48 @@ const BadgesPage = () => {
                 </div>
               </div>
 
-              <div className={styles.badgeContent}>
-                <h3 className={styles.badgeName}>{badge.badgeName}</h3>
-                <p className={styles.badgeDescription}>{badge.description}</p>
+              <div className={styles.packageContent}>
+                <p className={styles.packageDescription}>{pkg.description}</p>
 
-                <div className={styles.badgeMeta}>
-                  <span
-                    className={`${styles.categoryBadge} ${
-                      styles[getCategoryColor(badge.category)]
-                    }`}
-                  >
-                    {badge.category}
-                  </span>
-                  <span
-                    className={`${styles.statusBadge} ${styles[badge.status]}`}
-                  >
-                    {badge.status}
-                  </span>
-                </div>
-
-                <div className={styles.badgeDetails}>
-                  <div className={styles.badgeDetail}>
-                    <span className={styles.detailLabel}>Points:</span>
-                    <span className={styles.badgePoints}>
-                      {badge.points || 0}
-                    </span>
+                <div className={styles.packageDetails}>
+                  <div className={styles.priceSection}>
+                    <span className={styles.price}>${pkg.price}</span>
+                    <span className={styles.duration}>/{pkg.duration}</span>
                   </div>
 
-                  <div className={styles.badgeDetail}>
-                    <span className={styles.detailLabel}>Earned by:</span>
-                    <span className={styles.badgeEarners}>
-                      {badge.earnersCount || 0} members
-                    </span>
+                  <div className={styles.memberCount}>
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z"
+                      />
+                    </svg>
+                    <span>{pkg.memberCount || 0} members</span>
                   </div>
                 </div>
 
-                <div className={styles.badgeDates}>
+                <div className={styles.packageDates}>
                   <div className={styles.dateInfo}>
                     <span className={styles.dateLabel}>Created:</span>
                     <span className={styles.dateValue}>
-                      {badge.dateCreated
-                        ? new Date(badge.dateCreated).toLocaleDateString()
+                      {pkg.dateCreated
+                        ? new Date(pkg.dateCreated).toLocaleDateString()
                         : "N/A"}
                     </span>
                   </div>
-                  {badge.dateUpdated && (
+                  {pkg.dateUpdated && (
                     <div className={styles.dateInfo}>
                       <span className={styles.dateLabel}>Updated:</span>
                       <span className={styles.dateValue}>
-                        {new Date(badge.dateUpdated).toLocaleDateString()}
+                        {new Date(pkg.dateUpdated).toLocaleDateString()}
                       </span>
                     </div>
                   )}
@@ -499,28 +512,28 @@ const BadgesPage = () => {
         )}
       </div>
 
-      {/* Add Badge Modal */}
+      {/* Add Package Modal */}
       {showAddModal && (
-        <BadgeModal
+        <PackageModal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
-          onSubmit={handleAddBadge}
-          title="Add New Badge"
+          onSubmit={handleAddPackage}
+          title="Add New Package"
           loading={loading}
         />
       )}
 
-      {/* Edit Badge Modal */}
-      {showEditModal && selectedBadge && (
-        <BadgeModal
+      {/* Edit Package Modal */}
+      {showEditModal && selectedPackage && (
+        <PackageModal
           isOpen={showEditModal}
           onClose={() => {
             setShowEditModal(false);
-            setSelectedBadge(null);
+            setSelectedPackage(null);
           }}
-          onSubmit={handleEditBadge}
-          title="Edit Badge"
-          initialData={selectedBadge}
+          onSubmit={handleEditPackage}
+          title="Edit Package"
+          initialData={selectedPackage}
           loading={loading}
         />
       )}
@@ -528,8 +541,8 @@ const BadgesPage = () => {
   );
 };
 
-// Badge Form Modal Component
-const BadgeModal = ({
+// Package Form Modal Component
+const PackageModal = ({
   isOpen,
   onClose,
   onSubmit,
@@ -538,13 +551,12 @@ const BadgeModal = ({
   loading = false,
 }) => {
   const [formData, setFormData] = useState({
-    badgeName: initialData?.badgeName || "",
+    packageName: initialData?.packageName || "",
     description: initialData?.description || "",
-    category: initialData?.category || "Achievement",
-    points: initialData?.points || 0,
-    icon: initialData?.icon || "🏆",
-    color: initialData?.color || "#3b82f6",
+    price: initialData?.price || "",
     status: initialData?.status || "active",
+    category: initialData?.category || "Premium",
+    duration: initialData?.duration || "1 month",
   });
 
   const [errors, setErrors] = useState({});
@@ -560,16 +572,16 @@ const BadgeModal = ({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.badgeName.trim()) {
-      newErrors.badgeName = "Badge name is required";
+    if (!formData.packageName.trim()) {
+      newErrors.packageName = "Package name is required";
     }
 
     if (!formData.description.trim()) {
       newErrors.description = "Description is required";
     }
 
-    if (formData.points < 0) {
-      newErrors.points = "Points cannot be negative";
+    if (!formData.price || formData.price <= 0) {
+      newErrors.price = "Price must be greater than 0";
     }
 
     setErrors(newErrors);
@@ -581,7 +593,7 @@ const BadgeModal = ({
     if (validateForm()) {
       onSubmit({
         ...formData,
-        points: parseInt(formData.points) || 0,
+        price: parseFloat(formData.price),
       });
     }
   };
@@ -618,36 +630,38 @@ const BadgeModal = ({
         <form onSubmit={handleSubmit} className={styles.modalForm}>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label htmlFor="badgeName">Badge Name *</label>
+              <label htmlFor="packageName">Package Name *</label>
               <input
                 type="text"
-                id="badgeName"
-                name="badgeName"
-                value={formData.badgeName}
+                id="packageName"
+                name="packageName"
+                value={formData.packageName}
                 onChange={handleChange}
-                className={errors.badgeName ? styles.error : ""}
-                placeholder="Enter badge name"
+                className={errors.packageName ? styles.error : ""}
+                placeholder="Enter package name"
                 required
               />
-              {errors.badgeName && (
-                <span className={styles.errorText}>{errors.badgeName}</span>
+              {errors.packageName && (
+                <span className={styles.errorText}>{errors.packageName}</span>
               )}
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="points">Points</label>
+              <label htmlFor="price">Price *</label>
               <input
                 type="number"
-                id="points"
-                name="points"
-                value={formData.points}
+                id="price"
+                name="price"
+                value={formData.price}
                 onChange={handleChange}
-                className={errors.points ? styles.error : ""}
-                placeholder="0"
+                className={errors.price ? styles.error : ""}
+                placeholder="0.00"
                 min="0"
+                step="0.01"
+                required
               />
-              {errors.points && (
-                <span className={styles.errorText}>{errors.points}</span>
+              {errors.price && (
+                <span className={styles.errorText}>{errors.price}</span>
               )}
             </div>
           </div>
@@ -660,7 +674,7 @@ const BadgeModal = ({
               value={formData.description}
               onChange={handleChange}
               className={errors.description ? styles.error : ""}
-              placeholder="Enter badge description"
+              placeholder="Enter package description"
               rows="3"
               required
             />
@@ -678,53 +692,41 @@ const BadgeModal = ({
                 value={formData.category}
                 onChange={handleChange}
               >
-                <option value="Achievement">Achievement</option>
-                <option value="Milestone">Milestone</option>
-                <option value="Social">Social</option>
-                <option value="Educational">Educational</option>
-                <option value="Health">Health</option>
-                <option value="Special">Special</option>
+                <option value="Basic">Basic</option>
+                <option value="Premium">Premium</option>
+                <option value="Ultimate">Ultimate</option>
+                <option value="Trial">Trial</option>
               </select>
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="status">Status</label>
+              <label htmlFor="duration">Duration</label>
               <select
-                id="status"
-                name="status"
-                value={formData.status}
+                id="duration"
+                name="duration"
+                value={formData.duration}
                 onChange={handleChange}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="7 days">7 days</option>
+                <option value="1 month">1 month</option>
+                <option value="3 months">3 months</option>
+                <option value="6 months">6 months</option>
+                <option value="1 year">1 year</option>
               </select>
             </div>
           </div>
 
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="icon">Icon</label>
-              <input
-                type="text"
-                id="icon"
-                name="icon"
-                value={formData.icon}
-                onChange={handleChange}
-                placeholder="🏆"
-                maxLength="2"
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="color">Color</label>
-              <input
-                type="color"
-                id="color"
-                name="color"
-                value={formData.color}
-                onChange={handleChange}
-              />
-            </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="status">Status</label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+            >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
 
           <div className={styles.modalActions}>
@@ -747,9 +749,9 @@ const BadgeModal = ({
                   {initialData ? "Updating..." : "Creating..."}
                 </>
               ) : initialData ? (
-                "Update Badge"
+                "Update Package"
               ) : (
-                "Create Badge"
+                "Create Package"
               )}
             </button>
           </div>
@@ -759,4 +761,4 @@ const BadgeModal = ({
   );
 };
 
-export default BadgesPage;
+export default PackagesPage;
