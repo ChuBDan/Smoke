@@ -20,10 +20,12 @@ const PackagesPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
-
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   // Fetch packages on component mount
   useEffect(() => {
-    dispatch(fetchAllPackages());
+    dispatch(fetchAllPackages()).finally(() => {
+      setIsInitialLoad(false);
+    });
   }, [dispatch]);
 
   // Clear error when component unmounts
@@ -108,8 +110,7 @@ const PackagesPage = () => {
       0
     ),
   };
-
-  if (loading && packages.length === 0) {
+  if (loading && packages.length === 0 && isInitialLoad) {
     return (
       <div className={styles.container}>
         <div className={styles.loadingState}>
@@ -175,7 +176,7 @@ const PackagesPage = () => {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Packages</span>
+            <span className={styles.statLabel}>Total Packages</span>{" "}
             <div className={`${styles.statIcon} ${styles.total}`}>
               <svg
                 width="20"
@@ -227,7 +228,7 @@ const PackagesPage = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Members</span>
+            <span className={styles.statLabel}>Total Members</span>{" "}
             <div className={`${styles.statIcon} ${styles.subscribers}`}>
               <svg
                 width="20"
@@ -240,7 +241,7 @@ const PackagesPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
             </div>
@@ -253,7 +254,7 @@ const PackagesPage = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Revenue</span>
+            <span className={styles.statLabel}>Revenue</span>{" "}
             <div className={`${styles.statIcon} ${styles.revenue}`}>
               <svg
                 width="20"
@@ -317,7 +318,6 @@ const PackagesPage = () => {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-
           <select
             value={filterCategory}
             onChange={(e) => dispatch(setFilterCategory(e.target.value))}
@@ -328,8 +328,7 @@ const PackagesPage = () => {
             <option value="premium">Premium</option>
             <option value="ultimate">Ultimate</option>
             <option value="trial">Trial</option>
-          </select>
-
+          </select>{" "}
           <button
             className={styles.refreshButton}
             onClick={() => dispatch(fetchAllPackages())}
@@ -347,7 +346,13 @@ const PackagesPage = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0V9a8 8 0 1115.356 2m-15.356 0H9"
+                d="M1 4v6h6M23 20v-6h-6"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"
               />
             </svg>
             Refresh
@@ -359,6 +364,7 @@ const PackagesPage = () => {
       <div className={styles.packagesGrid}>
         {filteredPackages.length === 0 ? (
           <div className={styles.emptyState}>
+            {" "}
             <div className={styles.emptyIcon}>
               <svg
                 width="64"
@@ -370,7 +376,7 @@ const PackagesPage = () => {
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={1}
+                  strokeWidth={2}
                   d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"
                 />
               </svg>
@@ -470,6 +476,7 @@ const PackagesPage = () => {
                   </div>
 
                   <div className={styles.memberCount}>
+                    {" "}
                     <svg
                       width="16"
                       height="16"
@@ -481,7 +488,7 @@ const PackagesPage = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a4 4 0 11-8 0 4 4 0 018 0z"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                       />
                     </svg>
                     <span>{pkg.memberCount || 0} members</span>
