@@ -117,14 +117,26 @@ const BadgesPage = () => {
 
   return (
     <div className={styles.container}>
+      {" "}
       {/* Error Display */}
-      {error && (
+      {(error?.fetch ||
+        error?.create ||
+        error?.update ||
+        error?.delete ||
+        error?.fetchById) && (
         <div className={styles.errorBanner}>
           <div className={styles.errorContent}>
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg>
-            <span>{error}</span>
+            <span>
+              {error?.fetch?.message ||
+                error?.create?.message ||
+                error?.update?.message ||
+                error?.delete?.message ||
+                error?.fetchById?.message ||
+                "An error occurred"}
+            </span>
             <button
               onClick={() => dispatch(clearError())}
               className={styles.closeError}
@@ -134,7 +146,6 @@ const BadgesPage = () => {
           </div>
         </div>
       )}
-
       {/* Header Section */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
@@ -165,7 +176,6 @@ const BadgesPage = () => {
           </button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
@@ -272,7 +282,6 @@ const BadgesPage = () => {
           </div>
         </div>
       </div>
-
       {/* Filters and Search */}
       <div className={styles.filtersSection}>
         <div className={styles.searchBox}>
@@ -340,7 +349,6 @@ const BadgesPage = () => {
           </button>
         </div>
       </div>
-
       {/* Badges Grid */}
       <div className={styles.badgesGrid}>
         {filteredBadges.length === 0 ? (
@@ -466,7 +474,6 @@ const BadgesPage = () => {
           ))
         )}
       </div>
-
       {/* Modals */}
       {showAddModal && (
         <BadgeForm
@@ -475,7 +482,6 @@ const BadgesPage = () => {
           isEditing={false}
         />
       )}
-
       {showEditModal && selectedBadge && (
         <BadgeForm
           badge={selectedBadge}
