@@ -20,8 +20,8 @@ const Navbar = () => {
           <li className="py-1">Home</li>
           <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
         </NavLink>
-        <NavLink to="/doctors">
-          <li className="py-1">All Doctors</li>
+        <NavLink to="/smokingcessation">
+          <li className="py-1">Smoking Cessation</li>
           <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
         </NavLink>
         <NavLink to="/about">

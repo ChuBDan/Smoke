@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import MainLayout from "@/layouts/MainLayout";
 import AdminLayout from "@/layouts/AdminLayout";
 import HomePage from "@/pages/Home/HomePage";
-import Doctors from "@/pages/Doctors/Doctors";
+import SmokingCessation from "@/pages/SmokingCessation/SmokingCessation";
 import AboutUs from "@/common/About";
 import Contact from "@/common/Contact";
 import LoginForm from "@/features/auth/components/LoginForm";
@@ -11,6 +11,7 @@ import MyAppointments from "@/pages/Appointments/AppointmentsBooked";
 import NotFound from "@/pages/NotFound";
 import MembershipPage from "@/pages/Membership/Membership";
 import SmokingStatusForm from "@/pages/SmokingStatusForm/SmokingStatusForm";
+
 // Admin Pages
 import DashboardPage from "@/pages/Admin/DashboardPage";
 import AdminAppointmentsPage from "@/pages/Admin/AppointmentsPage";
@@ -31,13 +32,13 @@ import CoachLayout from "@/layouts/CoachLayout";
 import CoachDashBoard from "@/pages/Coach/CoachesDBPage/CoachDashBoard";
 import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
 import CoachProfile from "@/pages/Coach/CoachesAppoimentPage/CoachProfile";
+
 const routes = (
   <Routes>
     {/* Main Application Routes with Navbar and Footer */}
     <Route path="/" element={<MainLayout />}>
       <Route index element={<HomePage />} />
-      <Route path="doctors" element={<Doctors />} />
-      <Route path="doctors/:speciality" element={<Doctors />} />
+      
       <Route path="about" element={<AboutUs />} />
       <Route path="contact" element={<Contact />} />
       <Route path="login" element={<LoginForm />} />
@@ -45,6 +46,7 @@ const routes = (
       <Route path="my-appointments" element={<MyAppointments />} />
       <Route path="membership" element={<MembershipPage />} />
       <Route path="smokingstatusform" element={<SmokingStatusForm />} />{" "}
+      <Route path="smokingcessation" element={<SmokingCessation />} />
     </Route>
 
     {/* Admin Routes - No Navbar/Footer */}

@@ -1,7 +1,9 @@
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loginUser } from "@/features/auth/services/Login";
 import { registerUser } from "@/features/auth/services/Register";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loginCoach } from "@/features/coaches/services/LoginCoach";
+
+// Định nghĩa các action
 export const login = createAsyncThunk("auth/login", async (userData) => {
   const res = await loginUser({
     email: userData.email,
@@ -26,16 +28,42 @@ export const coachLogin = createAsyncThunk(
   }
 );
 
+export const updateUserProfile = createAsyncThunk("auth/updateUserProfile", async (userData, { getState }) => {
+  const { auth } = getState();
+  const token = auth.token;
+  const userId = auth.userId;
+
+  const response = await fetch(`https://deploy-smk.onrender.com/api/user/update-member-by-id/${userId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update profile: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.member;
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     token: localStorage.getItem("token") || null,
+    userId: localStorage.getItem("userId") || null,
   },
   reducers: {
     logout: (state) => {
       state.token = null;
+      state.userId = null;
       localStorage.removeItem("token");
       localStorage.removeItem("role");
+      localStorage.removeItem("userId");
     },
   },
   extraReducers: (builder) => {
@@ -46,7 +74,9 @@ const authSlice = createSlice({
       .addCase(login.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.token = action.payload.token;
+        state.userId = action.payload.member?.id || action.payload.id;
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("userId", state.userId);
       })
       .addCase(login.rejected, (state) => {
         state.status = "failed";
@@ -57,6 +87,9 @@ const authSlice = createSlice({
       .addCase(signup.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.token = action.payload.token;
+        state.userId = action.payload.member?.id || action.payload.id;
+        localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("userId", state.userId);
       })
       .addCase(signup.rejected, (state) => {
         state.status = "failed";
@@ -67,11 +100,16 @@ const authSlice = createSlice({
       .addCase(coachLogin.fulfilled, (state, action) => {
         state.status = "succeeded";
         state.token = action.payload.token;
+        state.userId = action.payload.member?.id || action.payload.id;
         localStorage.setItem("role", "COACH");
         localStorage.setItem("token", action.payload.token);
+        localStorage.setItem("userId", state.userId);
       })
       .addCase(coachLogin.rejected, (state) => {
         state.status = "failed";
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.userId = action.payload.id; // Điều chỉnh theo cấu trúc phản hồi
       });
   },
 });

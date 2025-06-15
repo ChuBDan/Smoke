@@ -16,14 +16,14 @@ const useLoginForm = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector((state) => state.auth.token);
+  const { token, userId } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (token) {
-      const role = localStorage.getItem("role");
-      navigate(role === "COACH" ? "/coach/dashboard" : "/");
+      const storedRole = localStorage.getItem("role");
+      navigate(storedRole === "COACH" ? "/coach/dashboard" : "/"); // Điều hướng về home (/)
     }
-  }, [token, navigate]);
+  }, [token, navigate]); // Loại bỏ userId khỏi dependency array nếu không cần
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();

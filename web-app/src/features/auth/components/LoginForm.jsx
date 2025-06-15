@@ -1,4 +1,4 @@
-import useLoginForm from "@/features/auth/hooks/useLoginForm ";
+import useLoginForm from "@/features/auth/hooks/useLoginForm";
 
 const LoginForm = () => {
   const {
