@@ -1,12 +1,21 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import PropTypes from "prop-types";
+import { logout } from "@/redux/slices/authSlice";
 import styles from "./Sidebar.module.css";
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isMobile, setIsMobile] = useState(false);
   const [usersDropdownOpen, setUsersDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/admin/login");
+  };
 
   // Check if screen is mobile size
   useEffect(() => {
@@ -400,8 +409,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <div className={styles.userName}>Admin</div>
                 <div className={styles.userRole}>Administrator</div>
               </div>
-            </div>
-            <button className={styles.logoutButton}>
+            </div>            <button className={styles.logoutButton} onClick={handleLogout}>
               <svg
                 width="18"
                 height="18"
