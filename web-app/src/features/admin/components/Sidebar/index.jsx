@@ -409,7 +409,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <div className={styles.userName}>Admin</div>
                 <div className={styles.userRole}>Administrator</div>
               </div>
-            </div>            <button className={styles.logoutButton} onClick={handleLogout}>
+            </div>{" "}
+            <button className={styles.logoutButton} onClick={handleLogout}>
               <svg
                 width="18"
                 height="18"
