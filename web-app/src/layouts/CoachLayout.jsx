@@ -1,20 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, Link, useNavigate } from "react-router-dom";
 import { logout } from "@/redux/slices/authSlice";
+
 const CoachLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-
-
   const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
+
+  // Check authentication and role
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (!token || role !== "COACH") {
+      navigate("/login");
+      return;
+    }
+  }, [token, navigate]);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
+
+  // Don't render content if not authenticated
+  const role = localStorage.getItem("role");
+  if (!token || role !== "COACH") {
+    return <div>Redirecting to login...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100">

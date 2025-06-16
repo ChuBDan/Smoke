@@ -31,7 +31,7 @@ export const adminLogin = createAsyncThunk(
   "auth/loginAdmin",
   async (adminData) => {
     const res = await loginAdmin({
-      email: adminData.email,
+      username: adminData.username,
       password: adminData.password,
     });
     return res;
@@ -72,7 +72,8 @@ const authSlice = createSlice({
       })
       .addCase(signup.rejected, (state) => {
         state.status = "failed";
-      })      .addCase(coachLogin.pending, (state) => {
+      })
+      .addCase(coachLogin.pending, (state) => {
         state.status = "loading";
       })
       .addCase(coachLogin.fulfilled, (state, action) => {

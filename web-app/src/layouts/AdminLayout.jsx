@@ -1,11 +1,23 @@
 import { useState, useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Sidebar } from "../features/admin/components";
 import styles from "../pages/Admin/AdminPage/AdminPage.module.css";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const token = useSelector((state) => state.auth.token);
+
+  // Check authentication and role
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (!token || role !== "ADMIN") {
+      navigate("/admin/login");
+      return;
+    }
+  }, [token, navigate]);
 
   // Prevent body scroll when admin layout is mounted
   useEffect(() => {
@@ -14,6 +26,12 @@ const AdminLayout = () => {
       document.body.style.overflow = "unset";
     };
   }, []);
+
+  // Don't render content if not authenticated
+  const role = localStorage.getItem("role");
+  if (!token || role !== "ADMIN") {
+    return <div>Redirecting to login...</div>;
+  }
   // Get page title based on current route
   const getPageTitle = () => {
     const path = location.pathname;
