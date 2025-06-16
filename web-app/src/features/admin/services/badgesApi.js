@@ -183,7 +183,6 @@ export const badgesApi = {
         description: badgeData.description.toString().trim(),
         status: badgeData.status || "active",
       };
-
       const response = await api.post(
         "/api/public/create-badge",
         sanitizedData

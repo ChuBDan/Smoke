@@ -11,10 +11,28 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const dispatch = useDispatch();
   const [isMobile, setIsMobile] = useState(false);
   const [usersDropdownOpen, setUsersDropdownOpen] = useState(false);
+  const [tooltip, setTooltip] = useState({ show: false, text: "", x: 0, y: 0 });
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/admin/login");
+  };
+
+  // Handle tooltip visibility
+  const showTooltip = (e, text) => {
+    if (!isOpen && text) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setTooltip({
+        show: true,
+        text,
+        x: rect.right + 12,
+        y: rect.top + rect.height / 2,
+      });
+    }
+  };
+
+  const hideTooltip = () => {
+    setTooltip({ show: false, text: "", x: 0, y: 0 });
   };
 
   // Check if screen is mobile size
@@ -30,6 +48,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       window.removeEventListener("resize", checkScreenSize);
     };
   }, []);
+
+  // Auto-open Users dropdown when on users pages
+  useEffect(() => {
+    if (location.pathname.startsWith("/admin/users")) {
+      setUsersDropdownOpen(true);
+    }
+  }, [location.pathname]);
+
   const navItems = [
     {
       path: "/admin",
@@ -294,12 +320,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 {item.hasDropdown ? (
                   // Dropdown item
                   <>
+                    {" "}
                     <button
                       className={`${styles.navItem} ${styles.dropdownToggle} ${
                         isUsersPathActive() ? styles.navItemActive : ""
                       }`}
                       onClick={toggleUsersDropdown}
-                      title={item.label}
+                      onMouseEnter={(e) => showTooltip(e, item.label)}
+                      onMouseLeave={hideTooltip}
                     >
                       <div className={styles.navIcon}>{item.icon}</div>
                       {isOpen && (
@@ -363,10 +391,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   // Regular item
                   <Link
                     to={item.path}
-                    title={item.label}
                     className={`${styles.navItem} ${
                       isActive(item.path) ? styles.navItemActive : ""
                     }`}
+                    onMouseEnter={(e) => showTooltip(e, item.label)}
+                    onMouseLeave={hideTooltip}
                     onClick={() => {
                       if (isMobile && isOpen) {
                         toggleSidebar();
@@ -428,8 +457,26 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               Logout
             </button>{" "}
           </div>
-        )}
+        )}{" "}
       </aside>
+
+      {/* Custom Tooltip */}
+      {tooltip.show && (
+        <div
+          className={styles.customTooltip}
+          style={{
+            position: "fixed",
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: "translateY(-50%)",
+            zIndex: 999999,
+            pointerEvents: "none",
+          }}
+        >
+          <div className={styles.tooltipArrow} />
+          <div className={styles.tooltipContent}>{tooltip.text}</div>
+        </div>
+      )}
     </>
   );
 };

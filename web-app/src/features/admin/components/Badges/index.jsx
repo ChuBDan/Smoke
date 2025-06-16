@@ -9,19 +9,19 @@ import {
   setSearchTerm,
   setFilterStatus,
 } from "@/redux/slices/badgesSlice";
-import BadgeForm from "./BadgeForm";
 import styles from "./Badges.module.css";
+import BadgeModal from "./BadgeModal"; // Import the new BadgeModal component
 
 const BadgesPage = () => {
   const dispatch = useDispatch();
   const { badges, loading, error, searchTerm, filterStatus } = useSelector(
     (state) => state.badges
   );
-
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch badges on component mount
   useEffect(() => {
@@ -52,22 +52,37 @@ const BadgesPage = () => {
   }, [badges, searchTerm, filterStatus]);
 
   const handleAddBadge = async (badgeData) => {
+    setIsSubmitting(true);
     try {
       await dispatch(createBadge(badgeData)).unwrap();
       setShowAddModal(false);
     } catch (error) {
       console.error("Failed to create badge:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleEditBadge = async (badgeData) => {
+    setIsSubmitting(true);
     try {
       await dispatch(updateBadge({ id: selectedBadge.id, badgeData })).unwrap();
       setShowEditModal(false);
       setSelectedBadge(null);
     } catch (error) {
       console.error("Failed to update badge:", error);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
+  const openAddModal = () => {
+    setSelectedBadge(null); // Clear any selected badge
+    setShowAddModal(true);
+  };
+
+  const openEditModal = (badge) => {
+    setSelectedBadge(badge);
+    setShowEditModal(true);
   };
 
   const handleDeleteBadge = async (badgeId) => {
@@ -151,11 +166,11 @@ const BadgesPage = () => {
         <div className={styles.headerLeft}>
           <h1>Badges Management</h1>
           <p>Manage user badges and achievements</p>
-        </div>
+        </div>{" "}
         <div className={styles.headerActions}>
           <button
             className={styles.addButton}
-            onClick={() => setShowAddModal(true)}
+            onClick={openAddModal}
             disabled={loading}
           >
             <svg
@@ -401,12 +416,10 @@ const BadgesPage = () => {
                   </div>
                 </div>
                 <div className={styles.badgeActions}>
+                  {" "}
                   <button
                     className={styles.actionButton}
-                    onClick={() => {
-                      setSelectedBadge(badge);
-                      setShowEditModal(true);
-                    }}
+                    onClick={() => openEditModal(badge)}
                     title="Edit badge"
                   >
                     <svg
@@ -473,26 +486,27 @@ const BadgesPage = () => {
             </div>
           ))
         )}
-      </div>
-      {/* Modals */}
-      {showAddModal && (
-        <BadgeForm
-          onSave={handleAddBadge}
-          onCancel={() => setShowAddModal(false)}
-          isEditing={false}
-        />
-      )}
-      {showEditModal && selectedBadge && (
-        <BadgeForm
-          badge={selectedBadge}
-          onSave={handleEditBadge}
-          onCancel={() => {
-            setShowEditModal(false);
-            setSelectedBadge(null);
-          }}
-          isEditing={true}
-        />
-      )}
+      </div>{" "}
+      {/* Add Badge Modal */}
+      <BadgeModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddBadge}
+        title="Add New Badge"
+        loading={isSubmitting}
+      />
+      {/* Edit Badge Modal */}
+      <BadgeModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedBadge(null);
+        }}
+        onSubmit={handleEditBadge}
+        title="Edit Badge"
+        initialData={selectedBadge}
+        loading={isSubmitting}
+      />
     </div>
   );
 };

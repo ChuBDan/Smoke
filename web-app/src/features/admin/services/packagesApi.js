@@ -4,7 +4,8 @@ import api from "@/config/api";
  * Membership Packages API Service
  * Handles all CRUD operations for membership packages
  */
-export const packagesApi = {  /**
+export const packagesApi = {
+  /**
    * Get all membership packages
    * @returns {Promise} API response
    */
@@ -103,7 +104,6 @@ export const packagesApi = {  /**
       };
     }
   },
-
   /**
    * Get package by ID
    * @param {string} id - Package ID
@@ -111,7 +111,9 @@ export const packagesApi = {  /**
    */
   async getPackageById(id) {
     try {
-      const response = await api.get(`/api/admin/membership-package/${id}`);
+      const response = await api.get(
+        `/api/user/get-membership-package-by-id/${id}`
+      );
       return {
         success: true,
         data: response.data,
@@ -126,6 +128,31 @@ export const packagesApi = {  /**
       };
     }
   },
+  /**
+   * Buy membership package for a member
+   * @param {string} packageId - Package ID
+   * @param {string} memberId - Member ID
+   * @returns {Promise} API response
+   */
+  async buyMembershipPackage(packageId, memberId) {
+    try {
+      const response = await api.post(
+        `/api/user/buy-membership-package/${packageId}/member/${memberId}`
+      );
+      return {
+        success: true,
+        data: response.data,
+        message: "Package purchased successfully",
+      };
+    } catch (error) {
+      console.error("Error purchasing package:", error);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to purchase package",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
 
   /**
    * Test API connection
@@ -133,7 +160,7 @@ export const packagesApi = {  /**
    */
   async testConnection() {
     try {
-      const response = await api.get("/api/admin/membership-packages");
+      const response = await api.get("/api/user/get-all-membership-packages");
       return {
         success: true,
         message: "API connection successful",

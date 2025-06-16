@@ -125,6 +125,30 @@ export const testPackagesApi = createAsyncThunk(
   }
 );
 
+// Async thunk for buying a membership package
+export const buyMembershipPackage = createAsyncThunk(
+  "packages/buyMembership",
+  async ({ packageId, memberId }, { rejectWithValue }) => {
+    try {
+      const result = await packagesApi.buyMembershipPackage(
+        packageId,
+        memberId
+      );
+      if (result.success) {
+        return {
+          packageId,
+          memberId,
+          purchaseData: result.data,
+        };
+      } else {
+        return rejectWithValue(result.message || "Failed to purchase package");
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to purchase package");
+    }
+  }
+);
+
 const packagesSlice = createSlice({
   name: "packages",
   initialState: {
@@ -135,6 +159,7 @@ const packagesSlice = createSlice({
     searchTerm: "",
     filterStatus: "all",
     filterCategory: "all",
+    purchaseLoading: false,
   },
   reducers: {
     clearError: (state) => {
@@ -231,6 +256,19 @@ const packagesSlice = createSlice({
       })
       .addCase(testPackagesApi.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      }) // Buy membership package
+      .addCase(buyMembershipPackage.pending, (state) => {
+        state.purchaseLoading = true;
+        state.error = null;
+      })
+      .addCase(buyMembershipPackage.fulfilled, (state) => {
+        state.purchaseLoading = false;
+        // Optionally, handle successful purchase (e.g., update state or show a message)
+        state.error = null;
+      })
+      .addCase(buyMembershipPackage.rejected, (state, action) => {
+        state.purchaseLoading = false;
         state.error = action.payload;
       });
   },

@@ -161,6 +161,11 @@
   flex-shrink: 0;
 }
 
+.navIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
 .navLabel {
   margin-left: 12px;
   white-space: nowrap;
@@ -273,41 +278,71 @@
   display: none;
 }
 
-/* Tooltip for collapsed sidebar */
-.sidebarClosed .navItem:hover::after {
+/* Disabled - Using JS tooltip instead
+.sidebarClosed [title]:not([title=""]):hover::after {
   content: attr(title);
-  position: fixed;
-  left: 88px;
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
   transform: translateY(-50%);
   background: #1e293b;
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
-  z-index: 9999;
+  z-index: 99999;
   opacity: 0;
-  animation: fadeIn 0.2s ease forwards;
+  animation: fadeInTooltip 0.2s ease forwards;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  min-width: fit-content;
+  max-width: 200px;
 }
 
-.sidebarClosed .navItem:hover::before {
+.sidebarClosed [title]:not([title=""]):hover::before {
   content: "";
-  position: fixed;
-  left: 80px;
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
   transform: translateY(-50%);
   width: 0;
   height: 0;
   border-top: 6px solid transparent;
   border-bottom: 6px solid transparent;
   border-right: 8px solid #1e293b;
-  z-index: 9999;
+  z-index: 99999;
   opacity: 0;
-  animation: fadeIn 0.2s ease forwards;
+  animation: fadeInTooltip 0.2s ease forwards;
+  pointer-events: none;
+}
+*/
+
+/* Adjust dropdown toggle positioning in collapsed sidebar */
+.sidebarClosed .dropdownToggle {
+  justify-content: center;
+  padding: 12px;
+  position: relative;
+}
+
+.sidebarClosed .dropdownToggle .navIcon {
+  margin: 0;
 }
 
 @keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+@keyframes fadeInTooltip {
   from {
     opacity: 0;
     transform: translateY(-50%) translateX(-4px);
@@ -344,6 +379,12 @@
   text-align: left;
   cursor: pointer;
   position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 2px 0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   justify-content: space-between;
   font-weight: 500 !important;
   font-size: 14px;
@@ -353,7 +394,13 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.dropdownToggle:hover {
+  background: #f1f5f9;
+  color: #3b82f6;
+}
+
 .dropdownToggle.navItemActive {
+  background: #eff6ff;
   font-weight: 600 !important;
   color: #3b82f6;
 }
@@ -362,6 +409,11 @@
   margin-left: auto;
   transition: transform 0.2s ease;
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .dropdownArrowOpen {
@@ -374,6 +426,7 @@
   margin: 4px 0 8px 0;
   padding: 4px 0;
   border-left: 2px solid #e2e8f0;
+  overflow: hidden;
 }
 
 .subNavItem {
@@ -386,6 +439,8 @@
   position: relative;
   border-radius: 6px;
   margin: 2px 8px;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .subNavItem:hover {
@@ -424,6 +479,34 @@
   height: 6px;
   background: #3b82f6;
   border-radius: 50%;
+}
+
+/* Additional improvements for dropdown toggle */
+.dropdownToggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.dropdownToggle .navIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdownToggle .navLabel {
+  flex: 1;
+  margin-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Ensure proper spacing between dropdown items */
+.dropdownMenu .subNavItem:first-child {
+  margin-top: 4px;
+}
+
+.dropdownMenu .subNavItem:last-child {
+  margin-bottom: 4px;
 }
 
 /* Mobile responsiveness */
@@ -624,4 +707,34 @@
     padding: 6px 10px;
     font-size: 12px;
   }
+}
+
+/* Custom Tooltip Component */
+.customTooltip {
+  display: flex;
+  align-items: center;
+  animation: fadeInTooltip 0.2s ease forwards;
+}
+
+.tooltipArrow {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 8px solid #1e293b;
+  margin-right: -1px;
+}
+
+.tooltipContent {
+  background: #1e293b;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: fit-content;
+  max-width: 200px;
 }
