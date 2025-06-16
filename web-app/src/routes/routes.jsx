@@ -32,6 +32,7 @@ import CoachLayout from "@/layouts/CoachLayout";
 import CoachDashBoard from "@/pages/Coach/CoachesDBPage/CoachDashBoard";
 import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
 import CoachProfile from "@/pages/Coach/CoachesAppoimentPage/CoachProfile";
+import SmokingCessationProgress from "@/pages/SmokingCessationProgress/SmokingCessationProgress";
 
 const routes = (
   <Routes>
@@ -47,6 +48,7 @@ const routes = (
       <Route path="membership" element={<MembershipPage />} />
       <Route path="smokingstatusform" element={<SmokingStatusForm />} />{" "}
       <Route path="smokingcessation" element={<SmokingCessation />} />
+      <Route path="smokingprogress" element={<SmokingCessationProgress />} />
     </Route>
 
     {/* Admin Routes - No Navbar/Footer */}

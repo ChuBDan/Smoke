@@ -84,6 +84,12 @@ const Navbar = () => {
                 >
                   My Appontments{" "}
                 </p>
+                  <p
+                  onClick={() => navigate("smokingprogress")}
+                  className="hover:text-black cursor-pointer"
+                >
+                  Smoking Progress{" "}
+                </p>
                 <p
                   onClick={() => dispatch(logout()) &&  navigate("/")}
                   className="hover:text-black cursor-pointer"
