@@ -600,13 +600,19 @@ const PackageModal = ({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      // Note: Only send backend-supported fields (packageName, description, price, status)
+      // category and duration are frontend-only for UI filtering and display
       onSubmit({
-        ...formData,
+        packageName: formData.packageName,
+        description: formData.description,
         price: parseFloat(formData.price),
+        status: formData.status,
+        // Keep category and duration for frontend state management
+        category: formData.category,
+        duration: formData.duration,
       });
     }
   };

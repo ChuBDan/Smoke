@@ -22,8 +22,9 @@ export const fetchAllPackages = createAsyncThunk(
           members: pkg.members || [],
           // Additional fields for component display
           memberCount: pkg.members?.length || 0,
-          category: pkg.category || "Premium", // Default category if not provided
-          duration: pkg.duration || "1 month", // Default duration if not provided
+          // Note: category and duration are frontend-only fields for UI filtering
+          category: pkg.category || "Premium", // Frontend display only
+          duration: pkg.duration || "1 month", // Frontend display only
         }));
         return mappedPackages;
       } else {
@@ -42,7 +43,15 @@ export const createPackage = createAsyncThunk(
   "packages/create",
   async (packageData, { rejectWithValue }) => {
     try {
-      const result = await packagesApi.createPackage(packageData);
+      // Transform data for backend - convert status to uppercase and remove frontend-only fields
+      const backendData = {
+        packageName: packageData.packageName,
+        description: packageData.description,
+        price: packageData.price,
+        status: packageData.status?.toUpperCase() || "ACTIVE", // Convert to backend format
+      };
+
+      const result = await packagesApi.createPackage(backendData);
       if (result.success) {
         return {
           id: result.data.id,
@@ -71,7 +80,15 @@ export const updatePackage = createAsyncThunk(
   "packages/update",
   async ({ id, packageData }, { rejectWithValue }) => {
     try {
-      const result = await packagesApi.updatePackage(id, packageData);
+      // Transform data for backend - convert status to uppercase and remove frontend-only fields
+      const backendData = {
+        packageName: packageData.packageName,
+        description: packageData.description,
+        price: packageData.price,
+        status: packageData.status?.toUpperCase() || "ACTIVE", // Convert to backend format
+      };
+
+      const result = await packagesApi.updatePackage(id, backendData);
       if (result.success) {
         return {
           id: result.data.id,
