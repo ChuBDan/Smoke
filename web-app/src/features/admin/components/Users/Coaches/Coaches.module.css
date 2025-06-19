@@ -269,12 +269,6 @@
   background: #94a3b8;
 }
 
-/* Firefox scrollbar */
-.tableWrapper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
-}
-
 .tableHeader {
   padding: 1.75rem;
   border-bottom: 1px solid #f1f5f9;
@@ -324,21 +318,18 @@
 }
 
 .table th:nth-child(1) {
-  width: 25%;
-} /* Name/Info */
+  width: 30%;
+} /* Coach Info */
 .table th:nth-child(2) {
-  width: 20%;
+  width: 25%;
 } /* Contact */
 .table th:nth-child(3) {
-  width: 15%;
-} /* Specialization */
+  width: 20%;
+} /* Expertise */
 .table th:nth-child(4) {
   width: 15%;
-} /* Experience */
-.table th:nth-child(5) {
-  width: 15%;
 } /* Status */
-.table th:nth-child(6) {
+.table th:nth-child(5) {
   width: 10%;
 } /* Actions */
 
@@ -371,6 +362,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .coachAvatar {
@@ -384,6 +377,12 @@
   color: white;
   font-weight: 600;
   font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.coachDetails {
+  min-width: 0;
+  flex: 1;
 }
 
 .coachDetails h4 {
@@ -391,19 +390,32 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .coachDetails p {
   margin: 0;
   font-size: 0.75rem;
   color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Contact Info */
+.contactInfo {
+  min-width: 0;
+}
+
 .contactInfo div {
   font-size: 0.875rem;
   color: #1e293b;
   margin-bottom: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .contactInfo div:last-child {
@@ -730,19 +742,26 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1400px) {
+  .container {
+    padding: 1rem;
+  }
+}
+
 @media (max-width: 1200px) {
   .tableWrapper {
     overflow-x: auto;
     overflow-y: visible;
   }
-
   .table {
-    min-width: 1000px;
+    min-width: 800px;
+    font-size: 0.875rem;
     white-space: nowrap;
   }
 
   .tableHead th,
   .tableBody td {
+    padding: 0.875rem 1rem;
     min-width: 120px;
   }
 
