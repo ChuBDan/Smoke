@@ -9,27 +9,68 @@ export const fetchAllMembers = createAsyncThunk(
       const result = await membersApi.getAllUsers();
       if (result.success) {
         // Extract members array from the API response
-        const membersData = result.data.members || [];
+        const membersData = result.data?.members || result.data || [];
+
+        // Validate that membersData is an array
+        if (!Array.isArray(membersData)) {
+          console.error("Invalid members data format:", membersData);
+          return rejectWithValue("Invalid data format received from server");
+        }
+
         // Map API data to component format with clean data mapping
-        const mappedMembers = membersData.map((member) => ({
-          id: member.id,
-          name: member.fullName,
-          username: member.username,
-          email: member.email,
-          phone: member.phoneNumber,
-          joinDate: member.join_Date,
-          status: member.status.toLowerCase(), // Convert "ACTIVE" to "active"
-          gender: member.gender,
-          dob: member.dob,
-          role: member.role,
-          dateCreated: member.dateCreated,
-          memberBadges: member.memberBadges || [],
-        }));
+        const mappedMembers = membersData.map((member) => {
+          try {
+            return {
+              id: member.id || Math.random().toString(36).substr(2, 9),
+              name: member.fullName || member.name || "Unknown",
+              fullName: member.fullName || member.name || "Unknown",
+              username: member.username || "unknown",
+              email: member.email || "",
+              phone: member.phoneNumber || member.phone || "",
+              phoneNumber: member.phoneNumber || member.phone || "",
+              joinDate:
+                member.join_Date ||
+                member.joinDate ||
+                member.dateCreated ||
+                new Date().toISOString(),
+              status: member.status ? member.status.toLowerCase() : "active",
+              gender: member.gender || "",
+              dob: member.dob || "",
+              role: member.role || "member",
+              dateCreated:
+                member.dateCreated ||
+                member.createdAt ||
+                new Date().toISOString(),
+              memberBadges: Array.isArray(member.memberBadges)
+                ? member.memberBadges
+                : [],
+            };
+          } catch (mappingError) {
+            console.error("Error mapping member data:", member, mappingError);
+            return {
+              id: Math.random().toString(36).substr(2, 9),
+              name: "Unknown Member",
+              fullName: "Unknown Member",
+              username: "unknown",
+              email: "",
+              phone: "",
+              phoneNumber: "",
+              joinDate: new Date().toISOString(),
+              status: "active",
+              gender: "",
+              dob: "",
+              role: "member",
+              dateCreated: new Date().toISOString(),
+              memberBadges: [],
+            };
+          }
+        });
         return mappedMembers;
       } else {
         return rejectWithValue(result.message || "Failed to fetch members");
       }
     } catch (error) {
+      console.error("Network or parsing error:", error);
       return rejectWithValue(
         error.message || "Failed to connect to API endpoint"
       );

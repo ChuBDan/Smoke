@@ -9,27 +9,61 @@ export const fetchAllCoaches = createAsyncThunk(
       const result = await coachesApi.getAllCoaches();
       if (result.success) {
         // Extract coaches array from the API response
-        const coachesData = result.data.coaches || result.data || [];
+        const coachesData = result.data?.coaches || result.data || [];
+
+        // Validate that coachesData is an array
+        if (!Array.isArray(coachesData)) {
+          console.error("Invalid coaches data format:", coachesData);
+          return rejectWithValue("Invalid data format received from server");
+        }
+
         // Map API data to component format with clean data mapping
-        const mappedCoaches = coachesData.map((coach) => ({
-          id: coach.id,
-          name: coach.name || coach.fullName,
-          username: coach.username,
-          email: coach.email,
-          phoneNumber: coach.phoneNumber,
-          expertise: coach.expertise,
-          status: coach.status ? coach.status.toLowerCase() : "active",
-          gender: coach.gender,
-          dob: coach.dob,
-          role: coach.role,
-          dateCreated: coach.dateCreated,
-          dateUpdated: coach.dateUpdated,
-        }));
+        const mappedCoaches = coachesData.map((coach) => {
+          try {
+            return {
+              id: coach.id || Math.random().toString(36).substr(2, 9),
+              name: coach.name || coach.fullName || "Unknown",
+              username: coach.username || "unknown",
+              email: coach.email || "",
+              phoneNumber: coach.phoneNumber || "",
+              expertise: coach.expertise || "",
+              status: coach.status ? coach.status.toLowerCase() : "active",
+              gender: coach.gender || "",
+              dob: coach.dob || "",
+              role: coach.role || "coach",
+              dateCreated:
+                coach.dateCreated ||
+                coach.createdAt ||
+                new Date().toISOString(),
+              dateUpdated:
+                coach.dateUpdated ||
+                coach.updatedAt ||
+                new Date().toISOString(),
+            };
+          } catch (mappingError) {
+            console.error("Error mapping coach data:", coach, mappingError);
+            return {
+              id: Math.random().toString(36).substr(2, 9),
+              name: "Unknown Coach",
+              username: "unknown",
+              email: "",
+              phoneNumber: "",
+              expertise: "",
+              status: "active",
+              gender: "",
+              dob: "",
+              role: "coach",
+              dateCreated: new Date().toISOString(),
+              dateUpdated: new Date().toISOString(),
+            };
+          }
+        });
         return mappedCoaches;
       } else {
         return rejectWithValue(result.message || "Failed to fetch coaches");
       }
     } catch (error) {
+      console.error("Network or parsing error:", error);
       return rejectWithValue(
         error.message || "Failed to connect to API endpoint"
       );

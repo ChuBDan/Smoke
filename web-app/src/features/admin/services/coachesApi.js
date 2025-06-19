@@ -6,17 +6,47 @@ export const coachesApi = {
   getAllCoaches: async () => {
     try {
       const response = await httpMethods.get("/api/user/get-all-coaches");
+
+      // Validate response data
+      if (!response || !response.data) {
+        throw new Error("Empty response from server");
+      }
+
+      // Handle cases where response might be a string that needs parsing
+      let responseData = response.data;
+      if (typeof responseData === "string") {
+        try {
+          responseData = JSON.parse(responseData);
+        } catch (parseError) {
+          console.error("JSON parsing error:", parseError);
+          throw new Error("Invalid JSON response from server");
+        }
+      }
+
       return {
         success: true,
-        data: response.data,
+        data: responseData,
         message: "Coaches fetched successfully",
       };
     } catch (error) {
       console.error("Error fetching all coaches:", error);
+
+      // Handle different types of errors
+      let errorMessage = "Failed to fetch coaches";
+      if (error.message.includes("JSON")) {
+        errorMessage = "Server returned invalid data format";
+      } else if (error.message.includes("Network")) {
+        errorMessage = "Network connection failed";
+      } else if (error.response?.status >= 500) {
+        errorMessage = "Server error occurred";
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       return {
         success: false,
         data: null,
-        message: error.response?.data?.message || "Failed to fetch coaches",
+        message: errorMessage,
         error: error.response?.data || error.message,
       };
     }

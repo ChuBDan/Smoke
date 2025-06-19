@@ -567,28 +567,94 @@
   color: #7c3aed;
 }
 
-/* Empty State */
-.emptyState {
+/* Loading States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loadingSpinner {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+.loadingTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.loadingText {
+  font-size: 0.875rem;
   color: #64748b;
+  margin: 0;
+}
+
+.tableWrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
 }
 
 .emptyState svg {
-  margin: 0 auto 1.5rem auto;
-  opacity: 0.5;
+  color: #94a3b8;
+  margin-bottom: 1rem;
 }
 
 .emptyState h3 {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #374151;
+  color: #1e293b;
   margin: 0 0 0.5rem 0;
 }
 
 .emptyState p {
-  margin: 0 0 1.5rem 0;
   font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.testButton {
+  transition: all 0.2s ease;
+}
+
+.testButton:hover {
+  background: #2563eb !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Pagination */
@@ -644,7 +710,7 @@
     overflow-x: auto;
     overflow-y: visible;
   }
-  
+
   .table {
     min-width: 1000px;
     white-space: nowrap;
@@ -700,12 +766,12 @@
   .statsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .tableWrapper {
     overflow-x: auto;
     overflow-y: visible;
   }
-  
+
   .table {
     min-width: 800px;
   }

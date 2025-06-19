@@ -7,9 +7,62 @@ export const fetchAllAdmins = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await adminsApi.getAllAdmins();
-      return response;
+
+      // Validate response structure
+      if (!response || typeof response !== "object") {
+        console.error("Invalid admins response format:", response);
+        return rejectWithValue("Invalid data format received from server");
+      }
+
+      // Handle both direct array and wrapped response formats
+      let adminsData;
+      if (Array.isArray(response)) {
+        adminsData = response;
+      } else if (response.data && Array.isArray(response.data)) {
+        adminsData = response.data;
+      } else if (
+        response.data &&
+        response.data.admins &&
+        Array.isArray(response.data.admins)
+      ) {
+        adminsData = response.data.admins;
+      } else {
+        console.error("Could not find admins array in response:", response);
+        return rejectWithValue("Invalid data structure received from server");
+      }
+
+      // Map and validate each admin
+      const mappedAdmins = adminsData.map((admin) => {
+        try {
+          return {
+            id: admin.id || Math.random().toString(36).substr(2, 9),
+            username: admin.username || "unknown",
+            role: admin.role || "admin",
+            status: admin.status ? admin.status.toLowerCase() : "active",
+            dateCreated:
+              admin.dateCreated || admin.createdAt || new Date().toISOString(),
+            dateUpdated:
+              admin.dateUpdated || admin.updatedAt || new Date().toISOString(),
+          };
+        } catch (mappingError) {
+          console.error("Error mapping admin data:", admin, mappingError);
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            username: "unknown",
+            role: "admin",
+            status: "active",
+            dateCreated: new Date().toISOString(),
+            dateUpdated: new Date().toISOString(),
+          };
+        }
+      });
+
+      return mappedAdmins;
     } catch (error) {
-      return rejectWithValue(error.message);
+      console.error("Network or parsing error:", error);
+      return rejectWithValue(
+        error.message || "Failed to connect to API endpoint"
+      );
     }
   }
 );

@@ -109,8 +109,10 @@ const CoachesPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-  if (loading) return <div className="flex justify-center p-8">Loading...</div>;
-  if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
+  // Function to reload API data
+  const loadApiData = () => {
+    dispatch(fetchAllCoaches());
+  };
 
   return (
     <div className={styles.container}>
@@ -142,7 +144,6 @@ const CoachesPage = () => {
           </button>
         </div>
       </div>
-
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
@@ -218,7 +219,6 @@ const CoachesPage = () => {
           </div>
         </div>
       </div>
-
       {/* Search and Filters */}
       <div className={styles.filtersContainer}>
         <div className={styles.searchBox}>
@@ -257,114 +257,172 @@ const CoachesPage = () => {
             <option value="inactive">Inactive</option>
           </select>
         </div>
-      </div>
-
+      </div>{" "}
       {/* Coaches Table */}
       <div className={styles.tableContainer}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Coach Info</th>
-              <th>Contact</th>
-              <th>Expertise</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredCoaches.length > 0 ? (
-              filteredCoaches.map((coach) => (
-                <tr key={coach.id}>
-                  <td>
-                    <div className={styles.userInfo}>
-                      <div className={styles.avatar}>
-                        {coach.name?.charAt(0).toUpperCase() || "C"}
-                      </div>
-                      <div>
-                        <div className={styles.userName}>{coach.name}</div>
-                        <div className={styles.userMeta}>@{coach.username}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className={styles.contactInfo}>
-                      <div>{coach.email}</div>
-                      <div className={styles.phone}>{coach.phoneNumber}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={styles.expertise}>
-                      {coach.expertise || "General"}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`${styles.status} ${
-                        styles[
-                          coach.status === "active" ? "active" : "inactive"
-                        ]
-                      }`}
-                    >
-                      {coach.status || "active"}
-                    </span>
-                  </td>
-                  <td>
-                    <div className={styles.actions}>
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(coach.id)}
-                        title="Delete Coach"
-                      >
+        {loading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}>⏳</div>
+            <h3 className={styles.loadingTitle}>Loading coaches...</h3>
+            <p className={styles.loadingText}>
+              Fetching latest data from API endpoint
+            </p>
+          </div>
+        ) : (
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Coach Info</th>
+                  <th>Contact</th>
+                  <th>Expertise</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCoaches.length > 0 ? (
+                  filteredCoaches.map((coach) => (
+                    <tr key={coach.id}>
+                      <td>
+                        <div className={styles.userInfo}>
+                          <div className={styles.avatar}>
+                            {coach.name?.charAt(0).toUpperCase() || "C"}
+                          </div>
+                          <div>
+                            <div className={styles.userName}>{coach.name}</div>
+                            <div className={styles.userMeta}>
+                              @{coach.username}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={styles.contactInfo}>
+                          <div>{coach.email}</div>
+                          <div className={styles.phone}>
+                            {coach.phoneNumber}
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={styles.expertise}>
+                          {coach.expertise || "General"}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.status} ${
+                            styles[
+                              coach.status === "active" ? "active" : "inactive"
+                            ]
+                          }`}
+                        >
+                          {coach.status || "active"}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.actions}>
+                          <button
+                            className={styles.deleteButton}
+                            onClick={() => handleDelete(coach.id)}
+                            title="Delete Coach"
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className={styles.emptyState}>
+                      <div className={styles.emptyStateContent}>
+                        {" "}
                         <svg
-                          width="16"
-                          height="16"
+                          width="48"
+                          height="48"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
+                          className={styles.emptyIcon}
                         >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            strokeWidth={1}
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
                           />
                         </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className={styles.emptyState}>
-                  <div className={styles.emptyStateContent}>
-                    <svg
-                      width="48"
-                      height="48"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      className={styles.emptyIcon}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1}
-                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                      />
-                    </svg>
-                    <h3>No coaches found</h3>
-                    <p>
-                      Get started by adding your first coach to the platform.
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                        <h3>No coaches found</h3>
+                        <p>
+                          Get started by adding your first coach to the
+                          platform.
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
+      {/* Empty state with error handling */}
+      {filteredCoaches.length === 0 && !loading && (
+        <div className={styles.emptyState}>
+          <svg
+            width="64"
+            height="64"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1}
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+            />
+          </svg>
+          <h3>{error ? "Failed to load coaches" : "No coaches found"}</h3>
+          <p>
+            {error
+              ? "Check API connection and try again"
+              : "Get started by adding your first coach to the platform."}
+          </p>
+          {error && (
+            <button
+              className={styles.testButton}
+              onClick={loadApiData}
+              style={{
+                background: "#3B82F6",
+                color: "white",
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                border: "none",
+                marginTop: "1rem",
+                cursor: "pointer",
+              }}
+            >
+              Retry Loading
+            </button>
+          )}
+        </div>
+      )}
       {/* Add Coach Modal */}
       {showAddForm && (
         <div className={styles.modal}>
