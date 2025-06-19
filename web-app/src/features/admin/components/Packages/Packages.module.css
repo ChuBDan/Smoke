@@ -225,7 +225,7 @@
 /* Packages Grid */
 .packagesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
 }
 
@@ -1021,5 +1021,12 @@
 
   .formGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet view - 2 columns */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .packagesGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

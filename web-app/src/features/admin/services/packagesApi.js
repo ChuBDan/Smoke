@@ -84,12 +84,12 @@ export const packagesApi = {
    * Delete a membership package
    * @param {string} id - Package ID to delete
    * @returns {Promise} API response
-   */
-  async deletePackage(id) {
+   */ async deletePackage(id) {
     try {
       const response = await api.delete(
         `/api/admin/delete-membership-package/${id}`
       );
+      console.log("Delete API Response:", response.data); // Debug log
       return {
         success: true,
         data: response.data,

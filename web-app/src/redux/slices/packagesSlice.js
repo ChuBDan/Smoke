@@ -7,9 +7,47 @@ export const fetchAllPackages = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const result = await packagesApi.getAllPackages();
+      console.log("API Response:", result); // Debug log
       if (result.success) {
         // Extract packages array from the API response
-        const packagesData = result.data.packages || result.data || [];
+        // API returns data with 'membership_Packages' field name
+        const packagesData =
+          result.data.membership_Packages ||
+          result.data.packages ||
+          result.data ||
+          [];
+        console.log("Extracted packages data:", packagesData); // Debug log
+
+        // Helper function to convert DD-MM-YYYY to a proper Date object
+        const parseCustomDate = (dateString) => {
+          if (!dateString) return null;
+          try {
+            // Check if it's already a valid date string in ISO format
+            if (
+              dateString.includes("T") ||
+              dateString.match(/^\d{4}-\d{2}-\d{2}$/)
+            ) {
+              return new Date(dateString).toISOString(); // Return ISO string instead of Date object
+            }
+
+            // Handle DD-MM-YYYY format
+            const [day, month, year] = dateString.split("-");
+            if (!day || !month || !year) {
+              console.warn(`Invalid date format: ${dateString}`);
+              return null;
+            }
+
+            const parsedDate = new Date(year, month - 1, day); // month is 0-indexed
+            console.log(
+              `Parsing date: ${dateString} -> ${parsedDate.toLocaleDateString()}`
+            ); // Debug log
+            return parsedDate.toISOString(); // Return ISO string instead of Date object
+          } catch (error) {
+            console.error(`Error parsing date: ${dateString}`, error);
+            return null;
+          }
+        };
+
         // Map API data to component format with clean data mapping
         const mappedPackages = packagesData.map((pkg) => ({
           id: pkg.id,
@@ -17,16 +55,37 @@ export const fetchAllPackages = createAsyncThunk(
           price: pkg.price,
           description: pkg.description,
           status: pkg.status?.toLowerCase() || "active", // Convert "ACTIVE" to "active"
-          dateCreated: pkg.dateCreated,
-          dateUpdated: pkg.dateUpdated,
-          members: pkg.members || [],
-          // Additional fields for component display
+          dateCreated: parseCustomDate(pkg.dateCreated),
+          dateUpdated: parseCustomDate(pkg.dateUpdated),
+          members: pkg.members || [], // Additional fields for component display
           memberCount: pkg.members?.length || 0,
           // Note: category and duration are frontend-only fields for UI filtering
-          category: pkg.category || "Premium", // Frontend display only
-          duration: pkg.duration || "1 month", // Frontend display only
+          // Infer category from package name or description for better UI display
+          category:
+            pkg.category ||
+            (pkg.packageName?.toLowerCase().includes("basic")
+              ? "basic"
+              : pkg.packageName?.toLowerCase().includes("premium")
+              ? "premium"
+              : pkg.packageName?.toLowerCase().includes("ultimate")
+              ? "ultimate"
+              : pkg.description?.toLowerCase().includes("basic")
+              ? "basic"
+              : pkg.description?.toLowerCase().includes("premium")
+              ? "premium"
+              : pkg.description?.toLowerCase().includes("ultimate")
+              ? "ultimate"
+              : "basic"),
+          duration: pkg.duration || "month", // Frontend display only
         }));
-        return mappedPackages;
+
+        // Filter out deleted packages
+        const activePackages = mappedPackages.filter(
+          (pkg) => pkg.status !== "deleted"
+        );
+        console.log("Mapped packages:", mappedPackages); // Debug log
+        console.log("Active packages (filtered):", activePackages); // Debug log
+        return activePackages;
       } else {
         return rejectWithValue(result.message || "Failed to fetch packages");
       }
@@ -117,8 +176,11 @@ export const deletePackage = createAsyncThunk(
   "packages/delete",
   async (id, { rejectWithValue }) => {
     try {
+      console.log("Delete package called with ID:", id, "Type:", typeof id); // Debug log
       const result = await packagesApi.deletePackage(id);
+      console.log("Delete package API result:", result); // Debug log
       if (result.success) {
+        console.log("Returning ID:", id, "Type:", typeof id); // Debug log
         return id;
       } else {
         return rejectWithValue(result.message || "Failed to delete package");
@@ -254,9 +316,12 @@ const packagesSlice = createSlice({
       })
       .addCase(deletePackage.fulfilled, (state, action) => {
         state.loading = false;
+        console.log("Delete fulfilled - Package ID:", action.payload); // Debug log
+        console.log("Packages before filter:", state.packages.length); // Debug log
         state.packages = state.packages.filter(
           (pkg) => pkg.id !== action.payload
         );
+        console.log("Packages after filter:", state.packages.length); // Debug log
         state.error = null;
       })
       .addCase(deletePackage.rejected, (state, action) => {
