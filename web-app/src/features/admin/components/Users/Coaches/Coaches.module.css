@@ -240,10 +240,13 @@
   overflow: hidden;
 }
 
-/* Table Wrapper for scrollable content */
+/* Table Wrapper for scrollable content with enhanced scrolling */
 .tableWrapper {
   overflow-x: auto;
   overflow-y: visible;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 /* Custom Scrollbar Styles */
@@ -315,9 +318,29 @@
 /* Table Styles */
 .table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 1000px;
   border-collapse: collapse;
+  table-layout: fixed;
 }
+
+.table th:nth-child(1) {
+  width: 25%;
+} /* Name/Info */
+.table th:nth-child(2) {
+  width: 20%;
+} /* Contact */
+.table th:nth-child(3) {
+  width: 15%;
+} /* Specialization */
+.table th:nth-child(4) {
+  width: 15%;
+} /* Experience */
+.table th:nth-child(5) {
+  width: 15%;
+} /* Status */
+.table th:nth-child(6) {
+  width: 10%;
+} /* Actions */
 
 .tableHead th {
   background: #f8fafc;
@@ -335,6 +358,8 @@
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .tableBody tr:hover {
@@ -771,9 +796,14 @@
     overflow-x: auto;
     overflow-y: visible;
   }
-
   .table {
     min-width: 800px;
+    font-size: 0.875rem;
+  }
+
+  .tableHead th,
+  .tableBody td {
+    padding: 0.875rem 1rem;
   }
 
   .pagination {

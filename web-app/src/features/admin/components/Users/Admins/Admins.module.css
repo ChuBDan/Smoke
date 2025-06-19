@@ -267,13 +267,14 @@
   overflow: hidden;
 }
 
-/* Table Wrapper for Scrolling */
+/* Table Wrapper for Scrolling with Firefox scrollbar support */
 .tableWrapper {
   overflow-x: auto;
   overflow-y: visible;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
-/* Custom Scrollbar Styles */
 .tableWrapper::-webkit-scrollbar {
   height: 8px;
 }
@@ -291,12 +292,6 @@
 
 .tableWrapper::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-}
-
-/* Firefox scrollbar */
-.tableWrapper {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
 .tableHeader {
@@ -342,8 +337,9 @@
 /* Table Styles */
 .table {
   width: 100%;
-  min-width: 1200px;
+  min-width: 1000px;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .tableHead th {
@@ -362,6 +358,9 @@
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 0;
 }
 
 .tableBody tr:hover {
@@ -572,6 +571,9 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
 }
 
 /* Empty State */
@@ -672,6 +674,26 @@
   border-color: #3b82f6;
 }
 
+/* Table column width distribution */
+.table th:nth-child(1) {
+  width: 25%;
+} /* Name */
+.table th:nth-child(2) {
+  width: 20%;
+} /* Email */
+.table th:nth-child(3) {
+  width: 15%;
+} /* Phone */
+.table th:nth-child(4) {
+  width: 15%;
+} /* Status */
+.table th:nth-child(5) {
+  width: 15%;
+} /* Created */
+.table th:nth-child(6) {
+  width: 10%;
+} /* Actions */
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .filtersGrid {
@@ -711,9 +733,14 @@
     overflow-x: auto;
     overflow-y: visible;
   }
-
   .table {
     min-width: 800px;
+    font-size: 0.875rem;
+  }
+
+  .tableHead th,
+  .tableBody td {
+    padding: 0.875rem 1rem;
   }
 
   .pagination {

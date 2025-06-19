@@ -296,7 +296,6 @@
 .packageActions {
   display: flex;
   gap: 0.5rem;
-  margin-top: auto;
   padding-top: 1rem;
 }
 
@@ -355,6 +354,7 @@
   -webkit-box-orient: vertical;
   word-wrap: break-word;
   position: relative;
+  flex-shrink: 0;
 }
 
 .packageDescription:hover {
@@ -883,6 +883,9 @@
 
 .packageContent {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .packageDescription {
@@ -897,6 +900,7 @@
   -webkit-box-orient: vertical;
   word-wrap: break-word;
   position: relative;
+  flex-shrink: 0;
 }
 
 .packageDescription:hover {
@@ -944,6 +948,7 @@
   padding: 1rem;
   background: #f8fafc;
   border-radius: 12px;
+  margin-top: auto;
 }
 
 .priceSection {
@@ -978,6 +983,7 @@
   padding-top: 1rem;
   border-top: 1px solid #f1f5f9;
   gap: 1rem;
+  margin-top: 0;
 }
 
 .dateInfo {
@@ -1124,4 +1130,12 @@
   .packagesGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* Package card bottom section - ensures consistent alignment */
+.packageBottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
