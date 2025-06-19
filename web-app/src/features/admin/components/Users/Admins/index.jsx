@@ -95,11 +95,6 @@ const AdminsPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Function to reload API data
-  const loadApiData = () => {
-    dispatch(fetchAllAdmins());
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -136,6 +131,7 @@ const AdminsPage = () => {
           <div className={styles.statHeader}>
             <span className={styles.statLabel}>Total Admins</span>
             <div className={`${styles.statIcon} ${styles.total}`}>
+              {" "}
               <svg
                 width="20"
                 height="20"
@@ -147,7 +143,7 @@ const AdminsPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                 />
               </svg>
             </div>
@@ -177,31 +173,6 @@ const AdminsPage = () => {
           </div>
           <div className={styles.statValue}>
             {admins.filter((admin) => admin.status === "active").length}
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Super Admins</span>
-            <div className={`${styles.statIcon} ${styles.superAdmin}`}>
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className={styles.statValue}>
-            {admins.filter((admin) => admin.role === "super_admin").length}
           </div>
         </div>
       </div>
@@ -353,8 +324,7 @@ const AdminsPage = () => {
                   <tr>
                     <td colSpan="5" className={styles.emptyState}>
                       <div className={styles.emptyStateContent}>
-                        {" "}
-                        <svg
+                        {" "}                        <svg
                           width="48"
                           height="48"
                           fill="none"
@@ -365,8 +335,8 @@ const AdminsPage = () => {
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                            strokeWidth={1.5}
+                            d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
                           />
                         </svg>
                         <h3>No admins found</h3>
@@ -382,48 +352,6 @@ const AdminsPage = () => {
           </div>
         )}
       </div>
-      {/* Empty state with error handling */}
-      {filteredAdmins.length === 0 && !loading && (
-        <div className={styles.emptyState}>
-          <svg
-            width="64"
-            height="64"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          <h3>{error ? "Failed to load admins" : "No admins found"}</h3>
-          <p>
-            {error
-              ? "Check API connection and try again"
-              : "Get started by adding your first admin to the system."}
-          </p>
-          {error && (
-            <button
-              className={styles.testButton}
-              onClick={loadApiData}
-              style={{
-                background: "#3B82F6",
-                color: "white",
-                padding: "0.5rem 1rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                marginTop: "1rem",
-                cursor: "pointer",
-              }}
-            >
-              Retry Loading
-            </button>
-          )}
-        </div>
-      )}
       {/* Add Admin Modal */}
       {showAddForm && (
         <div className={styles.modal}>
@@ -484,7 +412,6 @@ const AdminsPage = () => {
                     className={styles.formSelect}
                   >
                     <option value="admin">Admin</option>
-                    <option value="super_admin">Super Admin</option>
                   </select>
                 </div>
               </div>

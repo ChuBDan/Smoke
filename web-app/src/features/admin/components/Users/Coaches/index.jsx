@@ -109,11 +109,6 @@ const CoachesPage = () => {
     return matchesSearch && matchesFilter;
   });
 
-  // Function to reload API data
-  const loadApiData = () => {
-    dispatch(fetchAllCoaches());
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -150,6 +145,7 @@ const CoachesPage = () => {
           <div className={styles.statHeader}>
             <span className={styles.statLabel}>Total Coaches</span>
             <div className={`${styles.statIcon} ${styles.total}`}>
+              {" "}
               <svg
                 width="20"
                 height="20"
@@ -161,7 +157,7 @@ const CoachesPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
             </div>
@@ -191,32 +187,7 @@ const CoachesPage = () => {
           </div>
           <div className={styles.statValue}>
             {coaches.filter((coach) => coach.status === "active").length}
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Inactive Coaches</span>
-            <div className={`${styles.statIcon} ${styles.inactive}`}>
-              <svg
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className={styles.statValue}>
-            {coaches.filter((coach) => coach.status === "inactive").length}
-          </div>
+          </div>{" "}
         </div>
       </div>
       {/* Search and Filters */}
@@ -351,8 +322,7 @@ const CoachesPage = () => {
                   <tr>
                     <td colSpan="5" className={styles.emptyState}>
                       <div className={styles.emptyStateContent}>
-                        {" "}
-                        <svg
+                        {" "}                        <svg
                           width="48"
                           height="48"
                           fill="none"
@@ -363,8 +333,8 @@ const CoachesPage = () => {
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+                            strokeWidth={1.5}
+                            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
                           />
                         </svg>
                         <h3>No coaches found</h3>
@@ -381,48 +351,6 @@ const CoachesPage = () => {
           </div>
         )}
       </div>
-      {/* Empty state with error handling */}
-      {filteredCoaches.length === 0 && !loading && (
-        <div className={styles.emptyState}>
-          <svg
-            width="64"
-            height="64"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1}
-              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-            />
-          </svg>
-          <h3>{error ? "Failed to load coaches" : "No coaches found"}</h3>
-          <p>
-            {error
-              ? "Check API connection and try again"
-              : "Get started by adding your first coach to the platform."}
-          </p>
-          {error && (
-            <button
-              className={styles.testButton}
-              onClick={loadApiData}
-              style={{
-                background: "#3B82F6",
-                color: "white",
-                padding: "0.5rem 1rem",
-                borderRadius: "0.5rem",
-                border: "none",
-                marginTop: "1rem",
-                cursor: "pointer",
-              }}
-            >
-              Retry Loading
-            </button>
-          )}
-        </div>
-      )}
       {/* Add Coach Modal */}
       {showAddForm && (
         <div className={styles.modal}>

@@ -230,7 +230,7 @@
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-  background: #ffffff;
+  background: #f8fafc;
   font-size: 0.875rem;
   transition: all 0.2s ease;
   color: #1e293b;
@@ -240,6 +240,7 @@
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: white;
 }
 
 .searchInput::placeholder {
@@ -728,34 +729,26 @@
 
 /* Empty State */
 .emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-top: 2rem;
+  color: #64748b;
 }
 
 .emptyState svg {
-  color: #94a3b8;
-  margin-bottom: 1rem;
+  margin: 0 auto 1.5rem auto;
+  opacity: 0.5;
 }
 
 .emptyState h3 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #374151;
   margin: 0 0 0.5rem 0;
 }
 
 .emptyState p {
-  font-size: 0.875rem;
-  color: #64748b;
   margin: 0;
+  font-size: 0.875rem;
 }
 
 .testButton {

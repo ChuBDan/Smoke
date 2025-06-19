@@ -79,7 +79,7 @@
 .searchContainer {
   position: relative;
   flex: 1;
-  max-width: 400px;
+  min-width: 250px;
 }
 
 .searchIcon {
