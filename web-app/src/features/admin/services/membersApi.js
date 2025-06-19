@@ -22,7 +22,6 @@ export const membersApi = {
           throw new Error("Invalid JSON response from server");
         }
       }
-
       return {
         success: true,
         data: responseData,

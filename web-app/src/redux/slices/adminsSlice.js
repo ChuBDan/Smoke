@@ -57,7 +57,12 @@ export const fetchAllAdmins = createAsyncThunk(
         }
       });
 
-      return mappedAdmins;
+      // Filter out deleted admins
+      const activeAdmins = mappedAdmins.filter(
+        (admin) => admin.status !== "deleted"
+      );
+
+      return activeAdmins;
     } catch (error) {
       console.error("Network or parsing error:", error);
       return rejectWithValue(

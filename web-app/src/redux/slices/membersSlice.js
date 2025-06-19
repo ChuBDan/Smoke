@@ -65,7 +65,13 @@ export const fetchAllMembers = createAsyncThunk(
             };
           }
         });
-        return mappedMembers;
+
+        // Filter out deleted members
+        const activeMembers = mappedMembers.filter(
+          (member) => member.status !== "deleted"
+        );
+
+        return activeMembers;
       } else {
         return rejectWithValue(result.message || "Failed to fetch members");
       }

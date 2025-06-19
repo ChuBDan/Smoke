@@ -58,7 +58,13 @@ export const fetchAllCoaches = createAsyncThunk(
             };
           }
         });
-        return mappedCoaches;
+
+        // Filter out deleted coaches
+        const activeCoaches = mappedCoaches.filter(
+          (coach) => coach.status !== "deleted"
+        );
+
+        return activeCoaches;
       } else {
         return rejectWithValue(result.message || "Failed to fetch coaches");
       }
