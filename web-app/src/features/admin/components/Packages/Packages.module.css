@@ -237,6 +237,9 @@
   border: 1px solid #f1f5f9;
   transition: all 0.2s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .packageCard:hover {
@@ -293,6 +296,8 @@
 .packageActions {
   display: flex;
   gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 1rem;
 }
 
 .actionButton {
@@ -342,6 +347,51 @@
   color: #64748b;
   margin-bottom: 1.5rem;
   line-height: 1.6;
+  max-height: 4.8rem; /* Approximately 3 lines */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.packageDescription:hover {
+  max-height: none;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: -0.75rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Fade-out effect for truncated text */
+.packageDescription::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 1.6rem;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 1)
+  );
+  pointer-events: none;
+}
+
+.packageDescription:hover::after {
+  display: none;
 }
 
 .packageFeatures {
@@ -839,6 +889,51 @@
   color: #64748b;
   margin-bottom: 1.5rem;
   line-height: 1.6;
+  max-height: 4.8rem; /* Approximately 3 lines */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.packageDescription:hover {
+  max-height: none;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: -0.75rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Fade-out effect for truncated text */
+.packageDescription::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 1.6rem;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 1)
+  );
+  pointer-events: none;
+}
+
+.packageDescription:hover::after {
+  display: none;
 }
 
 .packageDetails {
