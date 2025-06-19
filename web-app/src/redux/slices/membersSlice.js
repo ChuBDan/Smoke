@@ -30,7 +30,9 @@ export const fetchAllMembers = createAsyncThunk(
         return rejectWithValue(result.message || "Failed to fetch members");
       }
     } catch (error) {
-      return rejectWithValue(error.message || "Failed to connect to API endpoint");
+      return rejectWithValue(
+        error.message || "Failed to connect to API endpoint"
+      );
     }
   }
 );
@@ -44,6 +46,23 @@ export const testMembersApi = createAsyncThunk(
       return result;
     } catch (error) {
       return rejectWithValue(error.message || "API test failed");
+    }
+  }
+);
+
+// Delete a member
+export const deleteMember = createAsyncThunk(
+  "members/delete",
+  async (memberId, { rejectWithValue }) => {
+    try {
+      const result = await membersApi.deleteUser(memberId);
+      if (result.success) {
+        return memberId; // Return the deleted member ID
+      } else {
+        return rejectWithValue(result.message || "Failed to delete member");
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to delete member");
     }
   }
 );
@@ -83,8 +102,7 @@ const membersSlice = createSlice({
       .addCase(fetchAllMembers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-      // Test API
+      }) // Test API
       .addCase(testMembersApi.pending, (state) => {
         state.loading = true;
       })
@@ -95,9 +113,27 @@ const membersSlice = createSlice({
       .addCase(testMembersApi.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // Delete member
+      .addCase(deleteMember.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteMember.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the deleted member from the state
+        state.members = state.members.filter(
+          (member) => member.id !== action.payload
+        );
+        state.error = null;
+      })
+      .addCase(deleteMember.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const { clearError, setSearchTerm, setFilterStatus } = membersSlice.actions;
+export const { clearError, setSearchTerm, setFilterStatus } =
+  membersSlice.actions;
 export default membersSlice.reducer;

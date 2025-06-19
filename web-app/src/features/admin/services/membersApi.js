@@ -1,7 +1,8 @@
 // Members API service
 import { httpMethods } from "@/config/api";
 
-export const membersApi = {  // Get all users (members) from the public endpoint
+export const membersApi = {
+  // Get all users (members) from the public endpoint
   getAllUsers: async () => {
     try {
       const response = await httpMethods.get("/api/user/get-all-users");
@@ -52,6 +53,26 @@ export const membersApi = {  // Get all users (members) from the public endpoint
         data: null,
         message: "Unexpected error occurred",
         error: error.message,
+      };
+    }
+  },
+
+  // Delete a user/member
+  deleteUser: async (userId) => {
+    try {
+      const response = await httpMethods.delete(`/api/user/delete/${userId}`);
+      return {
+        success: true,
+        data: response.data,
+        message: "User deleted successfully",
+      };
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || "Failed to delete user",
+        error: error.response?.data || error.message,
       };
     }
   },

@@ -1,19 +1,90 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./Members.module.css";
-import { fetchAllMembers, clearError } from "@/redux/slices/membersSlice";
+import {
+  fetchAllMembers,
+  deleteMember,
+  clearError,
+} from "@/redux/slices/membersSlice";
+import { signup } from "@/redux/slices/authSlice";
+import { toast } from "react-toastify";
 
 const MembersPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    dob: "",
+    gender: "male",
+  });
+
   const dispatch = useDispatch();
   const { members, loading, error } = useSelector((state) => state.members);
-
+  const { loading: authLoading } = useSelector((state) => state.auth);
   // Function to load API data using Redux
   const loadApiData = () => {
     dispatch(fetchAllMembers());
   };
+
+  // Handle delete member
+  const handleDelete = (id) => {
+    if (window.confirm("Are you sure you want to delete this member?")) {
+      dispatch(deleteMember(id))
+        .unwrap()
+        .then(() => {
+          toast.success("Member deleted successfully");
+        })
+        .catch((error) => {
+          toast.error(error.message || "Failed to delete member");
+          console.error("Failed to delete member:", error);
+        });
+    }
+  };
+
+  // Handle input change for add form
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // Handle form submission for adding member
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await dispatch(
+        signup({
+          ...formData,
+          role: "member",
+        })
+      ).unwrap();
+      toast.success("Member created successfully");
+      setShowAddForm(false);
+      setFormData({
+        username: "",
+        fullName: "",
+        email: "",
+        password: "",
+        phoneNumber: "",
+        dob: "",
+        gender: "male",
+      });
+
+      // Refresh the members list
+      dispatch(fetchAllMembers());
+    } catch (error) {
+      toast.error(error.message || "Failed to create member");
+      console.error("Failed to create member:", error);
+    }
+  };
+
   // Load API data on component mount
   useEffect(() => {
     dispatch(fetchAllMembers());
@@ -28,11 +99,17 @@ const MembersPage = () => {
     };
   }, [dispatch, error]);
 
-  // Use Redux data
+  // Use Redux data - Updated to match API DTO structure
   const filteredMembers = members.filter((member) => {
-    const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchFields = [
+      member.fullName || member.name || "",
+      member.username || "",
+      member.email || "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const matchesSearch = searchFields.includes(searchTerm.toLowerCase());
     const matchesFilter =
       filterStatus === "all" || member.status === filterStatus;
     return matchesSearch && matchesFilter;
@@ -51,7 +128,10 @@ const MembersPage = () => {
           <p>Manage and track all platform members</p>
         </div>{" "}
         <div className={styles.headerActions}>
-          <button className={styles.addButton}>
+          <button
+            className={styles.addButton}
+            onClick={() => setShowAddForm(true)}
+          >
             <svg
               width="20"
               height="20"
@@ -251,7 +331,9 @@ const MembersPage = () => {
                             boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)",
                           }}
                         >
-                          {member.name.charAt(0).toUpperCase()}
+                          {(member.fullName || member.name || "Unknown")
+                            .charAt(0)
+                            .toUpperCase()}
                         </div>
                         <div>
                           <div
@@ -262,7 +344,7 @@ const MembersPage = () => {
                               marginBottom: "0.25rem",
                             }}
                           >
-                            {member.name}
+                            {member.fullName || member.name || "Unknown"}
                           </div>
                           <div
                             style={{
@@ -271,7 +353,7 @@ const MembersPage = () => {
                               fontFamily: "monospace",
                             }}
                           >
-                            @{member.username}
+                            @{member.username || "N/A"}
                           </div>
                           <div
                             style={{
@@ -313,7 +395,7 @@ const MembersPage = () => {
                           >
                             <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                           </svg>
-                          {member.phone}
+                          {member.phoneNumber || "N/A"}
                         </div>
                       </div>
                     </td>
@@ -328,13 +410,17 @@ const MembersPage = () => {
                               textTransform: "capitalize",
                             }}
                           >
-                            {member.gender.toLowerCase()}
+                            {member.gender
+                              ? member.gender.toLowerCase()
+                              : "N/A"}
                           </span>
                         </div>
                         <div style={{ marginBottom: "0.25rem" }}>
                           <span style={{ color: "#64748b" }}>DOB:</span>{" "}
                           <span style={{ color: "#1e293b", fontWeight: "500" }}>
-                            {new Date(member.dob).toLocaleDateString()}
+                            {member.dob
+                              ? new Date(member.dob).toLocaleDateString()
+                              : "N/A"}
                           </span>
                         </div>
                         <div>
@@ -400,7 +486,11 @@ const MembersPage = () => {
                             marginBottom: "0.25rem",
                           }}
                         >
-                          {new Date(member.joinDate).toLocaleDateString()}
+                          {member.join_date
+                            ? new Date(member.join_date).toLocaleDateString()
+                            : member.dateCreated
+                            ? new Date(member.dateCreated).toLocaleDateString()
+                            : "N/A"}
                         </div>
                         <div
                           style={{
@@ -413,6 +503,7 @@ const MembersPage = () => {
                       </div>
                     </td>
                     <td style={{ padding: "1.25rem 1.5rem" }}>
+                      {" "}
                       <div
                         style={{
                           display: "flex",
@@ -422,94 +513,7 @@ const MembersPage = () => {
                         }}
                       >
                         <button
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "0.5rem",
-                            border: "1px solid #e2e8f0",
-                            background: "white",
-                            color: "#64748b",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#f8fafc";
-                            e.target.style.color = "#3b82f6";
-                            e.target.style.borderColor = "#3b82f6";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "white";
-                            e.target.style.color = "#64748b";
-                            e.target.style.borderColor = "#e2e8f0";
-                          }}
-                          title="View Details"
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "0.5rem",
-                            border: "1px solid #e2e8f0",
-                            background: "white",
-                            color: "#64748b",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#f8fafc";
-                            e.target.style.color = "#059669";
-                            e.target.style.borderColor = "#059669";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "white";
-                            e.target.style.color = "#64748b";
-                            e.target.style.borderColor = "#e2e8f0";
-                          }}
-                          title="Edit"
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
-                        <button
+                          onClick={() => handleDelete(member.id)}
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -533,7 +537,7 @@ const MembersPage = () => {
                             e.target.style.color = "#64748b";
                             e.target.style.borderColor = "#e2e8f0";
                           }}
-                          title="Delete"
+                          title="Delete Member"
                         >
                           <svg
                             width="16"
@@ -599,6 +603,433 @@ const MembersPage = () => {
               Retry API Call
             </button>
           )}
+        </div>
+      )}
+      {/* Add Member Modal */}
+      {showAddForm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "white",
+              borderRadius: "12px",
+              padding: "2rem",
+              width: "90%",
+              maxWidth: "500px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "600",
+                  color: "#1e293b",
+                  margin: 0,
+                }}
+              >
+                Add New Member
+              </h2>
+              <button
+                onClick={() => setShowAddForm(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#64748b",
+                  cursor: "pointer",
+                  padding: "0.5rem",
+                  borderRadius: "0.5rem",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "#f1f5f9";
+                  e.target.style.color = "#1e293b";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "none";
+                  e.target.style.color = "#64748b";
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+            >
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Username *
+                </label>
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Password *
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </div>
+
+              <div>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    transition: "all 0.2s ease",
+                    boxSizing: "border-box",
+                    backgroundColor: "white",
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow =
+                      "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#d1d5db";
+                    e.target.style.boxShadow = "none";
+                  }}
+                >
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "1rem",
+                  marginTop: "1.5rem",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(false)}
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem 1.5rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "#374151",
+                    backgroundColor: "white",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = "#f9fafb";
+                    e.target.style.borderColor = "#9ca3af";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = "white";
+                    e.target.style.borderColor = "#d1d5db";
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={authLoading}
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem 1.5rem",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    color: "white",
+                    backgroundColor: authLoading ? "#9ca3af" : "#3b82f6",
+                    cursor: authLoading ? "not-allowed" : "pointer",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!authLoading) {
+                      e.target.style.backgroundColor = "#2563eb";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!authLoading) {
+                      e.target.style.backgroundColor = "#3b82f6";
+                    }
+                  }}
+                >
+                  {authLoading ? "Creating..." : "Create Member"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
