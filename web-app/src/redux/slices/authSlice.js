@@ -54,16 +54,23 @@ export const updateUserProfile = createAsyncThunk("auth/updateUserProfile", asyn
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    token: localStorage.getItem("token") || null,
-    userId: localStorage.getItem("userId") || null,
-  },
+  token: localStorage.getItem("token") || null,
+  userId: localStorage.getItem("userId") || null,
+  successMessage: "",
+  errorMessage: "",
+  status: "idle",
+},
   reducers: {
     logout: (state) => {
       state.token = null;
       state.userId = null;
+      state.successMessage = "";
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("userId");
+    },
+    clearMessages: (state) => {
+      state.successMessage = "";
     },
   },
   extraReducers: (builder) => {
@@ -75,12 +82,15 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.successMessage = "Login successful!";
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
       })
-      .addCase(login.rejected, (state) => {
-        state.status = "failed";
-      })
+     .addCase(login.rejected, (state, action) => {
+  state.status = "failed";
+  state.successMessage = "";
+  state.errorMessage = "Email or password is incorrect";
+})
       .addCase(signup.pending, (state) => {
         state.status = "loading";
       })
@@ -88,12 +98,15 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.successMessage = "Sign up successful! Please login.";
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
       })
       .addCase(signup.rejected, (state) => {
-        state.status = "failed";
-      })
+  state.status = "failed";
+  state.successMessage = "";
+  state.errorMessage = "Sign up failed. Please try again.";
+})
       .addCase(coachLogin.pending, (state) => {
         state.status = "loading";
       })
@@ -101,18 +114,22 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.successMessage = "Login successful!";
         localStorage.setItem("role", "COACH");
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
       })
       .addCase(coachLogin.rejected, (state) => {
-        state.status = "failed";
+  state.status = "failed";
+  state.successMessage = "";
+  state.errorMessage = "Email or password is incorrect";
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.userId = action.payload.id; // Điều chỉnh theo cấu trúc phản hồi
+        state.userId = action.payload.id;
+        state.successMessage = "Profile updated successfully!";
       });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearMessages } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,16 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { assets } from "@/assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
-import { logout } from "@/redux/slices/authSlice";
+import { logout, clearMessages } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const token = useSelector((state) => state.auth.token);
+  const { token, successMessage } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const [userRole, setUserRole] = useState("user"); // Mock user role
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-  // Mock user role - in real app this would come from auth context
-  const [userRole, setUserRole] = useState("user"); // "admin", "coach", "user"
+  // Show success message temporarily
+  useEffect(() => {
+    if (successMessage) {
+      setShowSuccessMessage(true);
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false);
+        dispatch(clearMessages()); // Clear message in Redux
+      }, 3000); // Hide after 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage, dispatch]);
 
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
@@ -62,10 +73,15 @@ const Navbar = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        {showSuccessMessage && (
+          <span className="text-green-600 text-xs animate-fade-in">
+            {successMessage}
+          </span>
+        )}
         {token ? (
           <div className="flex items-center gap-2 cursor-pointer group relative">
             <img
-              className="w-8  rounded-full"
+              className="w-8 rounded-full"
               src={assets.profile_pic}
               alt=""
             />
@@ -76,22 +92,22 @@ const Navbar = () => {
                   onClick={() => navigate("profile")}
                   className="hover:text-black cursor-pointer"
                 >
-                  My Profile{" "}
+                  My Profile
                 </p>
                 <p
                   onClick={() => navigate("my-appointments")}
                   className="hover:text-black cursor-pointer"
                 >
-                  My Appontments{" "}
+                  My Appointments
                 </p>
-                  <p
+                <p
                   onClick={() => navigate("smokingprogress")}
                   className="hover:text-black cursor-pointer"
                 >
-                  Smoking Progress{" "}
+                  Smoking Progress
                 </p>
                 <p
-                  onClick={() => dispatch(logout()) &&  navigate("/")}
+                  onClick={() => dispatch(logout())}
                   className="hover:text-black cursor-pointer"
                 >
                   Logout
@@ -111,4 +127,5 @@ const Navbar = () => {
     </div>
   );
 };
+
 export default Navbar;

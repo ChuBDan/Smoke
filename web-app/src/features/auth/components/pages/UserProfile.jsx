@@ -1,33 +1,46 @@
 import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { updateUserProfile } from "@/redux/slices/authSlice"; // Giả sử bạn sẽ tạo action này
+import { useSelector } from "react-redux";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const MyProfile = () => {
   const [userData, setUserData] = useState({
-    name: "",
+    fullName: "",
+    username: "",
+    password: "", 
     email: "",
-    phone: "",
-    address: { line1: "", line2: "" },
+    phoneNumber: "",
     gender: "",
     dob: "",
+    role: "MEMBER",
   });
+
   const [isEdit, setIsEdit] = useState(false);
   const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const { userId, token } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // Mock data cho huy hiệu
+  useEffect(() => {
+  console.log("userId:", userId);
+  console.log("token:", token);
+}, []);
+
+  // 🚫 Redirect nếu chưa đăng nhập
+  useEffect(() => {
+    if (!userId || !token) {
+      navigate("/signup");
+    }
+  }, [userId, token, navigate]);
+
+  // 🏅 Fake badge
   useEffect(() => {
     const mockBadges = [
       { id: 1, title: "1-Day Smoking Free", date: "11/06/2025", description: "Chúc mừng bạn!", icon: "🚭" },
       { id: 2, title: "100K Money Save", date: "12/06/2025", description: "Tiết kiệm 100K!", icon: "💰" },
       { id: 3, title: "1-Week Milestone", date: "18/06/2025", description: "Kiên trì 1 tuần!", icon: "🏆" },
-      { id: 4, title: "Health Improvement", date: "25/06/2025", description: "Cải thiện sức khỏe!", icon: "❤️" },
-      { id: 5, title: "1-Month Achievement", date: "20/07/2025", description: "1 tháng không thuốc!", icon: "🎯" },
-      { id: 6, title: "2-Month Champion", date: "20/08/2025", description: "Nhà vô địch!", icon: "🏅" },
     ];
 
     setTimeout(() => {
@@ -36,43 +49,40 @@ const MyProfile = () => {
     }, 1000);
   }, []);
 
-  // Lấy dữ liệu người dùng từ API
+  // 📥 Lấy thông tin user
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        if (!userId || !token) throw new Error("No userId or token found, please log in first");
-
-        const response = await fetch(`https://deploy-smk.onrender.com/api/user/get-member-by-id/${userId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to fetch user data: ${response.status} - ${errorText}`);
-        }
-
-        const data = await response.json();
-        const member = data.member;
+        const res = await axios.get(
+          `https://deploy-smk.onrender.com/api/user/get-member-by-id/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const member = res.data.member;
         setUserData({
-          name: member.fullName || member.username || "",
+          fullName: member.fullName || "",
+          username: member.username || "",
+          password: "",
           email: member.email || "",
-          phone: member.phoneNumber || "",
-          address: { line1: "", line2: "" }, // Thêm logic nếu API có address
+          phoneNumber: member.phoneNumber || "",
           gender: member.gender || "",
           dob: member.dob || "",
+          role: member.role || "MEMBER",
         });
       } catch (err) {
-        setError(err.message);
+        console.error("Error fetching profile:", err);
+        setError("Không thể tải thông tin người dùng.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
+    if (userId && token) {
+      fetchUserData();
+    }
   }, [userId, token]);
 
   const handleInputChange = (e) => {
@@ -80,77 +90,69 @@ const MyProfile = () => {
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddressChange = (e, line) => {
-    const { value } = e.target;
-    setUserData((prev) => ({
-      ...prev,
-      address: { ...prev.address, [line]: value },
-    }));
-  };
-
   const handleSaveChanges = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://deploy-smk.onrender.com/api/user/update-member-by-id/${userId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          fullName: userData.name,
-          email: userData.email,
-          phoneNumber: userData.phone,
-          gender: userData.gender,
-          dob: userData.dob,
-        }),
-      });
+      const dataToSend = {
+        fullName: userData.fullName,
+        username: userData.username,
+        password: userData.password,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        gender: userData.gender,
+        dob: userData.dob,
+        role: userData.role,
+      };
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update user data: ${response.status} - ${errorText}`);
-      }
+      console.log("Sending data:", dataToSend);
 
-      const data = await response.json();
+      const res = await axios.put(
+        `https://deploy-smk.onrender.com/api/user/update-member-by-id/${userId}`,
+        dataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updated = res.data.member;
       setUserData((prev) => ({
         ...prev,
-        ...data.member, // Cập nhật state với dữ liệu mới từ server
+        ...updated,
       }));
       setIsEdit(false);
-      // Tùy chọn: Dispatch action để cập nhật Redux state nếu cần
-      // dispatch(updateUserProfile(data.member));
     } catch (err) {
-      setError(err.message);
+      console.error("Lỗi cập nhật:", err);
+      setError("Không thể cập nhật thông tin.");
     } finally {
       setLoading(false);
     }
   };
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (error) return <div className="text-red-500 text-center h-screen">Error: {error}</div>;
+  if (error) return <div className="text-red-500 text-center h-screen">{error}</div>;
 
   return (
     <div className="container mx-auto p-4 flex flex-col md:flex-row gap-8">
       <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-3xl">
-            👤
-          </div>
+          <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-3xl">👤</div>
           {isEdit ? (
             <input
               type="text"
-              name="name"
-              value={userData.name}
+              name="fullName"
+              value={userData.fullName}
               onChange={handleInputChange}
               className="text-2xl font-bold border-b border-gray-300 focus:outline-none focus:border-black"
             />
           ) : (
-            <h1 className="text-2xl font-bold">{userData.name}</h1>
+            <h1 className="text-2xl font-bold">{userData.fullName}</h1>
           )}
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Contact Information</h2>
+          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin liên hệ</h2>
           <div className="space-y-3">
             <div>
               <label className="text-gray-600 block">Email:</label>
@@ -171,45 +173,20 @@ const MyProfile = () => {
               {isEdit ? (
                 <input
                   type="tel"
-                  name="phone"
-                  value={userData.phone}
+                  name="phoneNumber"
+                  value={userData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 />
               ) : (
-                <p>{userData.phone}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-gray-600 block">Address:</label>
-              {isEdit ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={userData.address.line1}
-                    onChange={(e) => handleAddressChange(e, "line1")}
-                    className="w-full p-2 border rounded"
-                  />
-                  <input
-                    type="text"
-                    value={userData.address.line2}
-                    onChange={(e) => handleAddressChange(e, "line2")}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-              ) : (
-                <p>
-                  {userData.address.line1}
-                  <br />
-                  {userData.address.line2}
-                </p>
+                <p>{userData.phoneNumber}</p>
               )}
             </div>
           </div>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Basic Information</h2>
+          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin cơ bản</h2>
           <div className="space-y-3">
             <div>
               <label className="text-gray-600 block">Gender:</label>
@@ -248,10 +225,12 @@ const MyProfile = () => {
         <button
           onClick={isEdit ? handleSaveChanges : () => setIsEdit(true)}
           className={`px-6 py-2 rounded-full ${
-            isEdit ? "bg-green-600 hover:bg-green-700 text-white" : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+            isEdit
+              ? "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-gray-200 hover:bg-gray-300 text-gray-800"
           } transition-colors`}
         >
-          {isEdit ? "Save Changes" : "Edit Profile"}
+          {isEdit ? "Lưu thông tin" : "Chỉnh sửa"}
         </button>
       </div>
 
