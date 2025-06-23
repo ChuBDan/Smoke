@@ -125,13 +125,8 @@ const BadgesPage = () => {
       badges?.filter((badge) => badge.status === "active").length || 0,
     inactiveBadges:
       badges?.filter((badge) => badge.status === "inactive").length || 0,
-    recentBadges:
-      badges?.filter((badge) => {
-        const createdDate = new Date(badge.dateCreated);
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return createdDate > thirtyDaysAgo;
-      }).length || 0,
+    totalMembersAchieved:
+      badges?.reduce((sum, badge) => sum + (badge.memberCount || 0), 0) || 0,
   };
   if (loading && (!badges || badges.length === 0)) {
     return (
@@ -231,7 +226,6 @@ const BadgesPage = () => {
             All available badges
           </div>
         </div>
-
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <span className={styles.statLabel}>Active Badges</span>
@@ -257,7 +251,6 @@ const BadgesPage = () => {
             <span>↗</span> Currently available
           </div>
         </div>
-
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <span className={styles.statLabel}>Inactive Badges</span>
@@ -282,12 +275,11 @@ const BadgesPage = () => {
           <div className={`${styles.statChange} ${styles.negative}`}>
             <span>↓</span> Not available
           </div>
-        </div>
-
+        </div>{" "}
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Recent Badges</span>
-            <div className={`${styles.statIcon} ${styles.recent}`}>
+            <span className={styles.statLabel}>Total Achievements</span>
+            <div className={`${styles.statIcon} ${styles.achievements}`}>
               <svg
                 width="20"
                 height="20"
@@ -299,14 +291,14 @@ const BadgesPage = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                 />
               </svg>
             </div>
           </div>
-          <div className={styles.statValue}>{stats.recentBadges}</div>
+          <div className={styles.statValue}>{stats.totalMembersAchieved}</div>
           <div className={`${styles.statChange} ${styles.positive}`}>
-            <span>↗</span> Last 30 days
+            <span>↗</span> Total achievements
           </div>
         </div>
       </div>
@@ -470,29 +462,62 @@ const BadgesPage = () => {
                     </svg>
                   </button>
                 </div>
-              </div>
-
+              </div>{" "}
               <div className={styles.badgeContent}>
-                <p className={styles.badgeDescription}>{badge.description}</p>
-
+                <p className={styles.badgeDescription}>{badge.description}</p>{" "}
+                <div className={styles.badgeDetails}>
+                  <div></div>{" "}
+                  {/* Empty left section to match packages layout */}
+                  <div
+                    className={
+                      badge.memberCount && badge.memberCount > 0
+                        ? styles.memberCount
+                        : styles.memberCountEmpty
+                    }
+                  >
+                    {" "}
+                    <svg
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
+                    </svg>
+                    <span>
+                      {badge.memberCount && badge.memberCount > 0
+                        ? `${badge.memberCount} members`
+                        : "No members yet"}
+                    </span>
+                  </div>
+                </div>
                 <div className={styles.badgeDates}>
                   <div className={styles.dateInfo}>
                     <span className={styles.dateLabel}>Created:</span>
                     <span className={styles.dateValue}>
                       {badge.dateCreated
-                        ? new Date(badge.dateCreated).toLocaleDateString()
+                        ? new Date(badge.dateCreated).toLocaleDateString(
+                            "en-GB"
+                          )
                         : "N/A"}
                     </span>
                   </div>
-                  {badge.dateUpdated &&
-                    badge.dateUpdated !== badge.dateCreated && (
-                      <div className={styles.dateInfo}>
-                        <span className={styles.dateLabel}>Updated:</span>
-                        <span className={styles.dateValue}>
-                          {new Date(badge.dateUpdated).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
+                  {badge.dateUpdated && (
+                    <div className={styles.dateInfo}>
+                      <span className={styles.dateLabel}>Updated:</span>
+                      <span className={styles.dateValue}>
+                        {new Date(badge.dateUpdated).toLocaleDateString(
+                          "en-GB"
+                        )}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

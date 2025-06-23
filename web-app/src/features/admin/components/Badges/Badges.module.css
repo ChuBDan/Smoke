@@ -199,6 +199,11 @@
   color: #7c3aed;
 }
 
+.statIcon.achievements {
+  background: #ecfdf5;
+  color: #059669;
+}
+
 .statValue {
   font-size: 2rem;
   font-weight: 700;
@@ -393,11 +398,16 @@
   border: 1px solid #f1f5f9;
   overflow: hidden;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px; /* Ensure consistent minimum height */
 }
 
 .badgeCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  position: relative;
 }
 
 .badgeHeader {
@@ -405,33 +415,56 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-bottom: 1.5rem;
 }
 
-.badgeInfo h3 {
+.badgeTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.badgeTitle h3 {
   font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 0.75rem 0;
+  margin: 0;
   line-height: 1.4;
+  flex: 1;
+}
+
+/* Badge Card Updates for API data */
+.badgeInfo {
+  flex: 1;
+}
+
+.badgeInfo h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
 }
 
 .badgeMeta {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
   flex-wrap: wrap;
+  min-height: 1.5rem; /* Prevent layout shifts */
 }
 
 .statusBadge {
   padding: 0.25rem 0.75rem;
-  border-radius: 50px;
+  border-radius: 12px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
 .statusBadge.active {
-  background: #ecfdf5;
-  color: #059669;
+  background: #dcfce7;
+  color: #16a34a;
 }
 
 .statusBadge.inactive {
@@ -476,37 +509,98 @@
 
 .badgeContent {
   padding: 0 1.5rem 1.5rem 1.5rem;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* Allow flex shrinking */
+}
+
+.badgeFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: auto; /* Push to bottom */
 }
 
 .badgeDescription {
   color: #64748b;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin: 0 0 1.5rem 0;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+  max-height: 4.8rem; /* Approximately 3 lines */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.badgeDescription:hover {
+  max-height: none;
+  overflow: visible;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin: -0.75rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Fade-out effect for truncated text */
+.badgeDescription::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 1.6rem;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 1)
+  );
+  pointer-events: none;
+}
+
+.badgeDescription:hover::after {
+  display: none;
 }
 
 .badgeDates {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
   padding-top: 1rem;
   border-top: 1px solid #f1f5f9;
+  gap: 1rem;
+  margin-top: 0;
 }
 
 .dateInfo {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .dateLabel {
   font-size: 0.75rem;
   color: #64748b;
-  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dateValue {
-  font-size: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: #374151;
 }
 
@@ -732,4 +826,35 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+/* Badge details section - matching packages page */
+.badgeDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-top: auto;
+}
+
+/* Member count styling - matching packages page exactly */
+.memberCount {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Alternative styling for empty member count state */
+.memberCountEmpty {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-style: italic;
 }
