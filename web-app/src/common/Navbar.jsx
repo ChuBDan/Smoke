@@ -76,16 +76,16 @@ const Navbar = () => {
                   onClick={() => navigate("profile")}
                   className="hover:text-black cursor-pointer"
                 >
-                  My Profile{" "}
+                  My Profile
                 </p>
                 <p
                   onClick={() => navigate("my-appointments")}
                   className="hover:text-black cursor-pointer"
                 >
-                  My Appontments{" "}
+                  My Appontments
                 </p>
                 <p
-                  onClick={() => dispatch(logout()) &&  navigate("/")}
+                  onClick={() => dispatch(logout()) && navigate("/")}
                   className="hover:text-black cursor-pointer"
                 >
                   Logout

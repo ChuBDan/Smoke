@@ -41,8 +41,8 @@ const routes = (
       <Route path="contact" element={<Contact />} />
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
-      <Route path="my-appointments" element={<MyAppointments />} />{" "}
-    </Route>{" "}
+      <Route path="my-appointments" element={<MyAppointments />} />
+    </Route>
     {/* Admin Routes - No Navbar/Footer */}
     <Route path="/admin" element={<AdminLayout />}>
       <Route index element={<DashboardPage />} />

@@ -126,7 +126,7 @@ const MembersPage = () => {
         <div className={styles.headerLeft}>
           <h1>Members Management</h1>
           <p>Manage and track all platform members</p>
-        </div>{" "}
+        </div>
         <div className={styles.headerActions}>
           <button
             className={styles.addButton}
@@ -148,7 +148,7 @@ const MembersPage = () => {
             </svg>
             Add Member
           </button>
-        </div>{" "}
+        </div>
       </div>
       <div className={styles.controls}>
         <div className={styles.searchContainer}>
@@ -184,7 +184,7 @@ const MembersPage = () => {
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
-      </div>{" "}
+      </div>
       <div className={styles.tableContainer}>
         {loading ? (
           <div className={styles.loadingContainer}>
@@ -402,7 +402,7 @@ const MembersPage = () => {
                     <td style={{ padding: "1.25rem 1.5rem" }}>
                       <div style={{ fontSize: "0.8rem", lineHeight: "1.4" }}>
                         <div style={{ marginBottom: "0.25rem" }}>
-                          <span style={{ color: "#64748b" }}>Gender:</span>{" "}
+                          <span style={{ color: "#64748b" }}>Gender:</span>
                           <span
                             style={{
                               color: "#1e293b",
@@ -416,7 +416,7 @@ const MembersPage = () => {
                           </span>
                         </div>
                         <div style={{ marginBottom: "0.25rem" }}>
-                          <span style={{ color: "#64748b" }}>DOB:</span>{" "}
+                          <span style={{ color: "#64748b" }}>DOB:</span>
                           <span style={{ color: "#1e293b", fontWeight: "500" }}>
                             {member.dob
                               ? new Date(member.dob).toLocaleDateString()
@@ -424,7 +424,7 @@ const MembersPage = () => {
                           </span>
                         </div>
                         <div>
-                          <span style={{ color: "#64748b" }}>Role:</span>{" "}
+                          <span style={{ color: "#64748b" }}>Role:</span>
                           <span
                             style={{
                               background: "#f1f5f9",
@@ -503,7 +503,6 @@ const MembersPage = () => {
                       </div>
                     </td>
                     <td style={{ padding: "1.25rem 1.5rem" }}>
-                      {" "}
                       <div
                         style={{
                           display: "flex",
@@ -585,7 +584,7 @@ const MembersPage = () => {
             {error
               ? "Check API connection and try again"
               : "Try adjusting your search criteria"}
-          </p>{" "}
+          </p>
           {error && (
             <button
               className={styles.testButton}

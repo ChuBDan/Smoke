@@ -123,7 +123,6 @@ const PackagesPage = () => {
 
   return (
     <div className={styles.container}>
-      {" "}
       {/* Error Display */}
       {(error?.fetch ||
         error?.create ||
@@ -186,7 +185,7 @@ const PackagesPage = () => {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Packages</span>{" "}
+            <span className={styles.statLabel}>Total Packages</span>
             <div className={`${styles.statIcon} ${styles.total}`}>
               <svg
                 width="20"
@@ -238,7 +237,7 @@ const PackagesPage = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Total Members</span>{" "}
+            <span className={styles.statLabel}>Total Members</span>
             <div className={`${styles.statIcon} ${styles.subscribers}`}>
               <svg
                 width="20"
@@ -264,7 +263,7 @@ const PackagesPage = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Revenue</span>{" "}
+            <span className={styles.statLabel}>Revenue</span>
             <div className={`${styles.statIcon} ${styles.revenue}`}>
               <svg
                 width="20"
@@ -337,7 +336,7 @@ const PackagesPage = () => {
             <option value="premium">Premium</option>
             <option value="ultimate">Ultimate</option>
             <option value="trial">Trial</option>
-          </select>{" "}
+          </select>
           <button
             className={styles.refreshButton}
             onClick={() => dispatch(fetchAllPackages())}
@@ -372,7 +371,6 @@ const PackagesPage = () => {
       <div className={styles.packagesGrid}>
         {filteredPackages.length === 0 ? (
           <div className={styles.emptyState}>
-            {" "}
             <div className={styles.emptyIcon}>
               <svg
                 width="64"
@@ -484,7 +482,6 @@ const PackagesPage = () => {
                   </div>
 
                   <div className={styles.memberCount}>
-                    {" "}
                     <svg
                       width="16"
                       height="16"
@@ -618,16 +615,77 @@ const PackageModal = ({
   };
 
   if (!isOpen) return null;
-
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modal}>
-        <div className={styles.modalHeader}>
-          <h2>{title}</h2>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+    >
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div
+        style={{
+          backgroundColor: "white",
+          borderRadius: "12px",
+          padding: "2rem",
+          width: "90%",
+          maxWidth: "500px",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "600",
+              color: "#1e293b",
+              margin: 0,
+            }}
+          >
+            {title}
+          </h2>
           <button
-            className={styles.closeButton}
             onClick={onClose}
             type="button"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#64748b",
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRadius: "0.5rem",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = "#f1f5f9";
+              e.target.style.color = "#1e293b";
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = "none";
+              e.target.style.color = "#64748b";
+            }}
           >
             <svg
               width="24"
@@ -646,70 +704,229 @@ const PackageModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.modalForm}>
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="packageName">Package Name *</label>
+        <form
+          onSubmit={handleSubmit}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        >
+          {" "}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "1rem",
+            }}
+          >
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Package Name *
+              </label>
               <input
                 type="text"
-                id="packageName"
                 name="packageName"
                 value={formData.packageName}
                 onChange={handleChange}
-                className={errors.packageName ? styles.error : ""}
                 placeholder="Enter package name"
                 required
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: errors.packageName
+                    ? "1px solid #ef4444"
+                    : "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  transition: "all 0.2s ease",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = errors.packageName
+                    ? "#ef4444"
+                    : "#d1d5db";
+                  e.target.style.boxShadow = "none";
+                }}
               />
               {errors.packageName && (
-                <span className={styles.errorText}>{errors.packageName}</span>
+                <span
+                  style={{
+                    color: "#ef4444",
+                    fontSize: "0.75rem",
+                    marginTop: "0.25rem",
+                    display: "block",
+                  }}
+                >
+                  {errors.packageName}
+                </span>
               )}
             </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="price">Price *</label>
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Price *
+              </label>
               <input
                 type="number"
-                id="price"
                 name="price"
                 value={formData.price}
                 onChange={handleChange}
-                className={errors.price ? styles.error : ""}
                 placeholder="0.00"
                 min="0"
                 step="0.01"
                 required
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: errors.price
+                    ? "1px solid #ef4444"
+                    : "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  transition: "all 0.2s ease",
+                  boxSizing: "border-box",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = errors.price
+                    ? "#ef4444"
+                    : "#d1d5db";
+                  e.target.style.boxShadow = "none";
+                }}
               />
               {errors.price && (
-                <span className={styles.errorText}>{errors.price}</span>
+                <span
+                  style={{
+                    color: "#ef4444",
+                    fontSize: "0.75rem",
+                    marginTop: "0.25rem",
+                    display: "block",
+                  }}
+                >
+                  {errors.price}
+                </span>
               )}
             </div>
           </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="description">Description *</label>
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Description *
+            </label>
             <textarea
-              id="description"
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className={errors.description ? styles.error : ""}
               placeholder="Enter package description"
               rows="3"
               required
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: errors.description
+                  ? "1px solid #ef4444"
+                  : "1px solid #d1d5db",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+                resize: "vertical",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#3b82f6";
+                e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = errors.description
+                  ? "#ef4444"
+                  : "#d1d5db";
+                e.target.style.boxShadow = "none";
+              }}
             />
             {errors.description && (
-              <span className={styles.errorText}>{errors.description}</span>
+              <span
+                style={{
+                  color: "#ef4444",
+                  fontSize: "0.75rem",
+                  marginTop: "0.25rem",
+                  display: "block",
+                }}
+              >
+                {errors.description}
+              </span>
             )}
           </div>
-
-          <div className={styles.formGrid}>
-            <div className={styles.formGroup}>
-              <label htmlFor="category">Category</label>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "1rem",
+            }}
+          >
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Category
+              </label>
               <select
-                id="category"
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  transition: "all 0.2s ease",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#d1d5db";
+                  e.target.style.boxShadow = "none";
+                }}
               >
                 <option value="Basic">Basic</option>
                 <option value="Premium">Premium</option>
@@ -718,13 +935,41 @@ const PackageModal = ({
               </select>
             </div>
 
-            <div className={styles.formGroup}>
-              <label htmlFor="duration">Duration</label>
+            <div>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: "0.875rem",
+                  fontWeight: "500",
+                  color: "#374151",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                Duration
+              </label>
               <select
-                id="duration"
                 name="duration"
                 value={formData.duration}
                 onChange={handleChange}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  transition: "all 0.2s ease",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow =
+                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#d1d5db";
+                  e.target.style.boxShadow = "none";
+                }}
               >
                 <option value="7 days">7 days</option>
                 <option value="1 month">1 month</option>
@@ -734,37 +979,125 @@ const PackageModal = ({
               </select>
             </div>
           </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="status">Status</label>
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "#374151",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Status
+            </label>
             <select
-              id="status"
               name="status"
               value={formData.status}
               onChange={handleChange}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                transition: "all 0.2s ease",
+                boxSizing: "border-box",
+                backgroundColor: "white",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#3b82f6";
+                e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#d1d5db";
+                e.target.style.boxShadow = "none";
+              }}
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
           </div>
-
-          <div className={styles.modalActions}>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              marginTop: "1.5rem",
+            }}
+          >
             <button
               type="button"
               onClick={onClose}
-              className={styles.cancelButton}
               disabled={loading}
+              style={{
+                flex: 1,
+                padding: "0.75rem 1.5rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "#374151",
+                backgroundColor: "white",
+                cursor: loading ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = "#f9fafb";
+                  e.target.style.borderColor = "#9ca3af";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = "white";
+                  e.target.style.borderColor = "#d1d5db";
+                }
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={styles.submitButton}
               disabled={loading}
+              style={{
+                flex: 1,
+                padding: "0.75rem 1.5rem",
+                border: "none",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                color: "white",
+                backgroundColor: loading ? "#9ca3af" : "#3b82f6",
+                cursor: loading ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = "#2563eb";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.target.style.backgroundColor = "#3b82f6";
+                }
+              }}
             >
               {loading ? (
                 <>
-                  <div className={styles.spinner}></div>
+                  <div
+                    style={{
+                      width: "1rem",
+                      height: "1rem",
+                      border: "2px solid transparent",
+                      borderTop: "2px solid white",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  ></div>
                   {initialData ? "Updating..." : "Creating..."}
                 </>
               ) : initialData ? (
@@ -773,7 +1106,7 @@ const PackageModal = ({
                 "Create Package"
               )}
             </button>
-          </div>
+          </div>{" "}
         </form>
       </div>
     </div>

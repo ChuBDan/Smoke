@@ -171,7 +171,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
               </div>
             )}
           </div>
-        </div>{" "}
+        </div>
         <nav className={styles.navigation}>
           <div className={styles.navSection}>
             {isOpen && <div className={styles.sectionLabel}>Main Menu</div>}
@@ -290,7 +290,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                   />
                 </svg>
-              </div>{" "}
+              </div>
               <div className={styles.userInfo}>
                 <div className={styles.userName}>Admin</div>
                 <div className={styles.userRole}>Administrator</div>
@@ -312,7 +312,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 />
               </svg>
               Logout
-            </button>{" "}
+            </button>
           </div>
         )}
       </aside>

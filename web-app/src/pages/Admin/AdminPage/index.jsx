@@ -101,7 +101,7 @@ const AdminPage = () => {
                 />
               </svg>
               <span className={styles.notificationBadge}>5</span>
-            </button>{" "}
+            </button>
             <div className={styles.profileDropdown}>
               <div className={styles.profileContainer}>
                 <div className={styles.profileImage}>
@@ -141,7 +141,7 @@ const AdminPage = () => {
               </div>
             </div>
           </div>
-        </header>{" "}
+        </header>
         <main className={styles.content}>
           <Outlet />
         </main>

@@ -82,7 +82,7 @@ const AdminLayout = () => {
               <span className={styles.breadcrumbText}>SmokeFree Admin</span>
               <span className={styles.breadcrumbSeparator}>›</span>
               <span className={styles.breadcrumbCurrent}>{getPageTitle()}</span>
-            </div>{" "}
+            </div>
           </div>
         </header>
 

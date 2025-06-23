@@ -9,36 +9,43 @@ import {
   setSearchTerm,
   setFilterStatus,
 } from "@/redux/slices/badgesSlice";
+import { toast } from "react-toastify";
 import styles from "./Badges.module.css";
-import BadgeModal from "./BadgeModal"; // Import the new BadgeModal component
+import BadgeModal from "./BadgeModal";
 
 const BadgesPage = () => {
   const dispatch = useDispatch();
-  const { badges, loading, error, searchTerm, filterStatus } = useSelector(
-    (state) => state.badges
-  );
+  const {
+    badges = [],
+    loading,
+    error,
+    searchTerm,
+    filterStatus,
+  } = useSelector((state) => state.badges);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch badges on component mount
   useEffect(() => {
-    dispatch(fetchAllBadges()).finally(() => {
-      setIsInitialLoad(false);
-    });
+    dispatch(fetchAllBadges());
   }, [dispatch]);
 
-  // Clear error when component unmounts
+  // Handle errors with toast notifications
   useEffect(() => {
-    return () => {
+    if (error) {
+      toast.error(error);
       dispatch(clearError());
-    };
-  }, [dispatch]);
-
+    }
+  }, [error, dispatch]);
   // Filter badges based on search and status
   const filteredBadges = useMemo(() => {
+    // Ensure badges is an array before filtering
+    if (!Array.isArray(badges)) {
+      return [];
+    }
+
     return badges.filter((badge) => {
       const matchesSearch =
         badge.badgeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,7 +63,9 @@ const BadgesPage = () => {
     try {
       await dispatch(createBadge(badgeData)).unwrap();
       setShowAddModal(false);
+      toast.success("Badge created successfully!");
     } catch (error) {
+      toast.error("Failed to create badge");
       console.error("Failed to create badge:", error);
     } finally {
       setIsSubmitting(false);
@@ -69,14 +78,17 @@ const BadgesPage = () => {
       await dispatch(updateBadge({ id: selectedBadge.id, badgeData })).unwrap();
       setShowEditModal(false);
       setSelectedBadge(null);
+      toast.success("Badge updated successfully!");
     } catch (error) {
+      toast.error("Failed to update badge");
       console.error("Failed to update badge:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const openAddModal = () => {
-    setSelectedBadge(null); // Clear any selected badge
+    setSelectedBadge(null);
     setShowAddModal(true);
   };
 
@@ -89,7 +101,9 @@ const BadgesPage = () => {
     if (window.confirm("Are you sure you want to delete this badge?")) {
       try {
         await dispatch(deleteBadge(badgeId)).unwrap();
+        toast.success("Badge deleted successfully!");
       } catch (error) {
+        toast.error("Failed to delete badge");
         console.error("Failed to delete badge:", error);
       }
     }
@@ -105,21 +119,21 @@ const BadgesPage = () => {
         return "default";
     }
   };
-
   const stats = {
-    totalBadges: badges.length,
-    activeBadges: badges.filter((badge) => badge.status === "active").length,
-    inactiveBadges: badges.filter((badge) => badge.status === "inactive")
-      .length,
-    recentBadges: badges.filter((badge) => {
-      const createdDate = new Date(badge.dateCreated);
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      return createdDate > thirtyDaysAgo;
-    }).length,
+    totalBadges: badges?.length || 0,
+    activeBadges:
+      badges?.filter((badge) => badge.status === "active").length || 0,
+    inactiveBadges:
+      badges?.filter((badge) => badge.status === "inactive").length || 0,
+    recentBadges:
+      badges?.filter((badge) => {
+        const createdDate = new Date(badge.dateCreated);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return createdDate > thirtyDaysAgo;
+      }).length || 0,
   };
-
-  if (loading && badges.length === 0 && isInitialLoad) {
+  if (loading && (!badges || badges.length === 0)) {
     return (
       <div className={styles.container}>
         <div className={styles.loadingState}>
@@ -132,7 +146,6 @@ const BadgesPage = () => {
 
   return (
     <div className={styles.container}>
-      {" "}
       {/* Error Display */}
       {(error?.fetch ||
         error?.create ||
@@ -166,7 +179,7 @@ const BadgesPage = () => {
         <div className={styles.headerLeft}>
           <h1>Badges Management</h1>
           <p>Manage user badges and achievements</p>
-        </div>{" "}
+        </div>
         <div className={styles.headerActions}>
           <button
             className={styles.addButton}
@@ -416,7 +429,6 @@ const BadgesPage = () => {
                   </div>
                 </div>
                 <div className={styles.badgeActions}>
-                  {" "}
                   <button
                     className={styles.actionButton}
                     onClick={() => openEditModal(badge)}
@@ -486,7 +498,7 @@ const BadgesPage = () => {
             </div>
           ))
         )}
-      </div>{" "}
+      </div>
       {/* Add Badge Modal */}
       <BadgeModal
         isOpen={showAddModal}

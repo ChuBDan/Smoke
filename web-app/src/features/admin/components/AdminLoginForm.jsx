@@ -77,7 +77,6 @@ const AdminLoginForm = () => {
           )}
 
           <div className="space-y-4">
-            {" "}
             <div>
               <label
                 htmlFor="username"

@@ -268,7 +268,7 @@ const Dashboard = () => {
             </svg>
           }
         />
-      </div>{" "}
+      </div>
       {/* Content Grid */}
       <div className={styles.contentGrid}>
         {/* Recent Patients */}
