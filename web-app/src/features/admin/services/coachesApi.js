@@ -1,11 +1,11 @@
 // Coaches API service
-import { httpMethods } from "@/config/api";
+import api from "@/config/api";
 
 export const coachesApi = {
   // Get all coaches from the public endpoint
   getAllCoaches: async () => {
     try {
-      const response = await httpMethods.get("/api/user/get-all-coaches");
+      const response = await api.get("/api/user/get-all-coaches");
 
       // Validate response data
       if (!response || !response.data) {
@@ -54,10 +54,7 @@ export const coachesApi = {
   // Register a new coach
   registerCoach: async (coachData) => {
     try {
-      const response = await httpMethods.post(
-        "/api/admin/register-coach",
-        coachData
-      );
+      const response = await api.post("/api/admin/register-coach", coachData);
       return {
         success: true,
         data: response.data,
@@ -77,9 +74,7 @@ export const coachesApi = {
   // Delete a coach
   deleteCoach: async (coachId) => {
     try {
-      const response = await httpMethods.delete(
-        `/api/admin/delete-coach/${coachId}`
-      );
+      const response = await api.delete(`/api/admin/delete-coach/${coachId}`);
       return {
         success: true,
         data: response.data,

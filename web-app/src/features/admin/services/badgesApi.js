@@ -1,4 +1,4 @@
-import { httpMethods } from "@/config/api";
+import api from "@/config/api";
 
 /**
  * Badges API Service
@@ -11,7 +11,7 @@ export const badgesApi = {
    */
   async getAllBadges() {
     try {
-      const response = await httpMethods.get("/api/user/get-all-badges");
+      const response = await api.get("/api/user/get-all-badges");
 
       // Validate response data
       if (!response || !response.data) {
@@ -87,10 +87,7 @@ export const badgesApi = {
    */
   async createBadge(badgeData) {
     try {
-      const response = await httpMethods.post(
-        "/api/admin/create-badge",
-        badgeData
-      );
+      const response = await api.post("/api/admin/create-badge", badgeData);
 
       return {
         success: true,
@@ -122,7 +119,7 @@ export const badgesApi = {
    */
   async updateBadge(badgeId, badgeData) {
     try {
-      const response = await httpMethods.put(
+      const response = await api.put(
         `/api/admin/update-badge/${badgeId}`,
         badgeData
       );
@@ -155,9 +152,7 @@ export const badgesApi = {
    */
   async deleteBadge(badgeId) {
     try {
-      const response = await httpMethods.delete(
-        `/api/admin/delete-badge/${badgeId}`
-      );
+      const response = await api.delete(`/api/admin/delete-badge/${badgeId}`);
 
       return {
         success: true,
@@ -182,7 +177,7 @@ export const badgesApi = {
    */
   async getBadgeById(badgeId) {
     try {
-      const response = await httpMethods.get(`/api/user/get-badge/${badgeId}`);
+      const response = await api.get(`/api/user/get-badge/${badgeId}`);
 
       return {
         success: true,

@@ -1,11 +1,11 @@
 // Admins API service
-import { httpMethods } from "@/config/api";
+import api from "@/config/api";
 
 const adminsApi = {
   // Get all admins
   getAllAdmins: async () => {
     try {
-      const response = await httpMethods.get("/api/admin/get-all-admins");
+      const response = await api.get("/api/admin/get-all-admins");
 
       // Validate response data
       if (!response || !response.data) {
@@ -65,10 +65,7 @@ const adminsApi = {
   // Register new admin
   registerAdmin: async (adminData) => {
     try {
-      const response = await httpMethods.post(
-        "/api/public/register-admin",
-        adminData
-      );
+      const response = await api.post("/api/public/register-admin", adminData);
 
       return {
         success: true,
@@ -95,9 +92,7 @@ const adminsApi = {
   // Delete admin
   deleteAdmin: async (adminId) => {
     try {
-      const response = await httpMethods.delete(
-        `/api/admin/delete-admin/${adminId}`
-      );
+      const response = await api.delete(`/api/admin/delete-admin/${adminId}`);
 
       return {
         success: true,
@@ -117,9 +112,7 @@ const adminsApi = {
   // Get admin by ID
   getAdminById: async (adminId) => {
     try {
-      const response = await httpMethods.get(
-        `/api/admin/get-admin-by-id/${adminId}`
-      );
+      const response = await api.get(`/api/admin/get-admin-by-id/${adminId}`);
 
       return {
         success: true,
@@ -151,7 +144,7 @@ const adminsApi = {
   // Update admin (if needed)
   updateAdmin: async (adminId, adminData) => {
     try {
-      const response = await httpMethods.put(
+      const response = await api.put(
         `/api/admin/update-admin/${adminId}`,
         adminData
       );

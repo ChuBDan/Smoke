@@ -1,9 +1,9 @@
-import axios from "@/config/api";
+import api from "@/config/api";
 
 export const loginAdmin = async (adminData) => {
   try {
     console.log("Sending admin login to backend:", adminData);
-    const res = await axios.post("/api/public/login-admin", {
+    const res = await api.post("/api/public/login-admin", {
       username: adminData.username,
       password: adminData.password,
     });

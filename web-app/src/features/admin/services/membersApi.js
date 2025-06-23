@@ -1,11 +1,11 @@
 // Members API service
-import { httpMethods } from "@/config/api";
+import api from "@/config/api";
 
 export const membersApi = {
   // Get all users (members) from the public endpoint
   getAllUsers: async () => {
     try {
-      const response = await httpMethods.get("/api/user/get-all-users");
+      const response = await api.get("/api/user/get-all-users");
 
       // Validate response data
       if (!response || !response.data) {
@@ -89,7 +89,7 @@ export const membersApi = {
   // Delete a user/member
   deleteUser: async (userId) => {
     try {
-      const response = await httpMethods.delete(`/api/user/delete/${userId}`);
+      const response = await api.delete(`/api/user/delete/${userId}`);
       return {
         success: true,
         data: response.data,
