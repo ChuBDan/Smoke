@@ -185,8 +185,11 @@ export const badgesApi = {
    */ async createBadge(badgeData) {
     try {
       checkAuthStatus(); // Log current auth status
-      console.log("Creating badge:", badgeData);
-      const response = await api.post("/api/admin/create-badge", badgeData);
+      // Remove 'status' field before sending to backend
+      const payload = { ...badgeData };
+      delete payload.status;
+      console.log("Creating badge (filtered):", payload);
+      const response = await api.post("/api/admin/create-badge", payload);
       console.log("Create badge response:", response);
 
       // Normalize the response data
@@ -244,10 +247,13 @@ export const badgesApi = {
    * @returns {Promise<Object>} API response
    */ async updateBadge(badgeId, badgeData) {
     try {
-      console.log("Updating badge:", badgeId, badgeData);
+      // Remove 'status' field before sending to backend
+      const payload = { ...badgeData };
+      delete payload.status;
+      console.log("Updating badge (filtered):", badgeId, payload);
       const response = await api.put(
         `/api/admin/update-badge/${badgeId}`,
-        badgeData
+        payload
       );
       console.log("Update badge response:", response);
 

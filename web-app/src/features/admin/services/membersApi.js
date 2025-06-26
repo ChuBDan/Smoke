@@ -22,9 +22,15 @@ export const membersApi = {
           throw new Error("Invalid JSON response from server");
         }
       }
+      // Normalize all member date fields
+      let membersArr =
+        responseData.members || responseData.data || responseData;
+      if (Array.isArray(membersArr)) {
+        membersArr = membersArr.map(normalizeMemberData);
+      }
       return {
         success: true,
-        data: responseData,
+        data: membersArr,
         message: "Users fetched successfully",
       };
     } catch (error) {
@@ -105,6 +111,77 @@ export const membersApi = {
       };
     }
   },
+
+  // Register new member
+  registerMember: async (memberData) => {
+    try {
+      // Prepare payload with required fields and uppercase gender
+      const payload = {
+        username: memberData.username,
+        password: memberData.password,
+        email: memberData.email,
+        fullName: memberData.fullName,
+        phoneNumber: memberData.phoneNumber,
+        gender: memberData.gender ? memberData.gender.toUpperCase() : undefined,
+        dob: memberData.dob,
+        role: memberData.role,
+      };
+      const response = await api.post("/api/public/register", payload);
+      return {
+        success: true,
+        data: response.data,
+        message: "Member registered successfully",
+      };
+    } catch (error) {
+      console.error("Error registering member:", error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || "Failed to register member",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
 };
 
+// Helper to convert DD-MM-YYYY to ISO string
+function convertDateFormat(dateString) {
+  if (!dateString) return null;
+  if (dateString.includes("T") || dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
+    return dateString;
+  }
+  if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = dateString.split("-");
+    return `${day}-${month}-${year}`;
+  }
+  const testDate = new Date(dateString);
+  if (!isNaN(testDate.getTime())) {
+    return dateString;
+  }
+  return dateString;
+}
+
+function normalizeMemberData(member) {
+  return {
+    ...member,
+    dateCreated: convertDateFormat(member.dateCreated || member.date_created),
+    dateUpdated: convertDateFormat(member.dateUpdated || member.date_updated),
+    join_Date: convertDateFormat(member.join_Date),
+    dob: convertDateFormat(member.dob),
+  };
+}
+
+function formatDateDisplay(dateString) {
+  if (!dateString) return "";
+  // Try to parse as ISO or fallback
+  const d = new Date(dateString);
+  if (!isNaN(d.getTime())) {
+    // Format as YYYY-MM-DD
+    return d.toISOString().slice(0, 10);
+  }
+  // If not valid, return as is
+  return dateString;
+}
+
+export { formatDateDisplay };
 export default membersApi;

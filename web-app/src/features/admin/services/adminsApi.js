@@ -1,6 +1,31 @@
 // Admins API service
 import api from "@/config/api";
 
+// Helper to convert DD-MM-YYYY to ISO string
+function convertDateFormat(dateString) {
+  if (!dateString) return null;
+  if (dateString.includes("T") || dateString.match(/^\d{4}-\d{2}-\d{2}/)) {
+    return dateString;
+  }
+  if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+    const [day, month, year] = dateString.split("-");
+    return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+  const testDate = new Date(dateString);
+  if (!isNaN(testDate.getTime())) {
+    return dateString;
+  }
+  return dateString;
+}
+
+function normalizeAdminData(admin) {
+  return {
+    ...admin,
+    dateCreated: convertDateFormat(admin.dateCreated || admin.date_created),
+    dateUpdated: convertDateFormat(admin.dateUpdated || admin.date_updated),
+  };
+}
+
 const adminsApi = {
   // Get all admins
   getAllAdmins: async () => {
@@ -22,10 +47,14 @@ const adminsApi = {
           throw new Error("Invalid JSON response from server");
         }
       }
-
+      // Normalize all admin date fields
+      let adminsArr = responseData.admins || responseData.data || responseData;
+      if (Array.isArray(adminsArr)) {
+        adminsArr = adminsArr.map(normalizeAdminData);
+      }
       return {
         success: true,
-        data: responseData,
+        data: adminsArr,
         message: "Admins fetched successfully",
       };
     } catch (error) {
@@ -65,7 +94,10 @@ const adminsApi = {
   // Register new admin
   registerAdmin: async (adminData) => {
     try {
-      const response = await api.post("/api/public/register-admin", adminData);
+      // Remove 'role' field before sending to backend
+      const payload = { ...adminData };
+      delete payload.role;
+      const response = await api.post("/api/public/register-admin", payload);
 
       return {
         success: true,

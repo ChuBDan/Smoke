@@ -6,7 +6,7 @@ import {
   deleteMember,
   clearError,
 } from "@/redux/slices/membersSlice";
-import { signup } from "@/redux/slices/authSlice";
+import { membersApi } from "@/features/admin/services/membersApi";
 import { toast } from "react-toastify";
 
 const MembersPage = () => {
@@ -59,12 +59,10 @@ const MembersPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await dispatch(
-        signup({
-          ...formData,
-          role: "member",
-        })
-      ).unwrap();
+      await membersApi.registerMember({
+        ...formData,
+        role: "MEMBER",
+      });
       toast.success("Member created successfully");
       setShowAddForm(false);
       setFormData({
@@ -402,7 +400,7 @@ const MembersPage = () => {
                     <td style={{ padding: "1.25rem 1.5rem" }}>
                       <div style={{ fontSize: "0.8rem", lineHeight: "1.4" }}>
                         <div style={{ marginBottom: "0.25rem" }}>
-                          <span style={{ color: "#64748b" }}>Gender:</span>
+                          <span style={{ color: "#64748b" }}>Gender: </span>
                           <span
                             style={{
                               color: "#1e293b",
@@ -416,7 +414,7 @@ const MembersPage = () => {
                           </span>
                         </div>
                         <div style={{ marginBottom: "0.25rem" }}>
-                          <span style={{ color: "#64748b" }}>DOB:</span>
+                          <span style={{ color: "#64748b" }}>DOB: </span>
                           <span style={{ color: "#1e293b", fontWeight: "500" }}>
                             {member.dob
                               ? new Date(member.dob).toLocaleDateString()
