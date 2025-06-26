@@ -6,13 +6,10 @@ import { useNavigate } from "react-router-dom";
 const MyProfile = () => {
   const [userData, setUserData] = useState({
     fullName: "",
-    username: "",
-    password: "", 
     email: "",
-    phoneNumber: "",
+    phone: "",
     gender: "",
     dob: "",
-    role: "MEMBER",
   });
 
   const [isEdit, setIsEdit] = useState(false);
@@ -23,19 +20,14 @@ const MyProfile = () => {
   const { userId, token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
-  useEffect(() => {
-  console.log("userId:", userId);
-  console.log("token:", token);
-}, []);
-
-  // 🚫 Redirect nếu chưa đăng nhập
+  // Redirect nếu chưa đăng nhập
   useEffect(() => {
     if (!userId || !token) {
       navigate("/signup");
     }
   }, [userId, token, navigate]);
 
-  // 🏅 Fake badge
+  // Fake badge
   useEffect(() => {
     const mockBadges = [
       { id: 1, title: "1-Day Smoking Free", date: "11/06/2025", description: "Chúc mừng bạn!", icon: "🚭" },
@@ -49,7 +41,7 @@ const MyProfile = () => {
     }, 1000);
   }, []);
 
-  // 📥 Lấy thông tin user
+  // Lấy thông tin user
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -64,13 +56,10 @@ const MyProfile = () => {
         const member = res.data.member;
         setUserData({
           fullName: member.fullName || "",
-          username: member.username || "",
-          password: "",
           email: member.email || "",
-          phoneNumber: member.phoneNumber || "",
+          phone: member.phone || "",
           gender: member.gender || "",
           dob: member.dob || "",
-          role: member.role || "MEMBER",
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -95,19 +84,14 @@ const MyProfile = () => {
       setLoading(true);
       const dataToSend = {
         fullName: userData.fullName,
-        username: userData.username,
-        password: userData.password,
         email: userData.email,
-        phoneNumber: userData.phoneNumber,
+        phone: userData.phone,
         gender: userData.gender,
         dob: userData.dob,
-        role: userData.role,
       };
 
-      console.log("Sending data:", dataToSend);
-
       const res = await axios.put(
-        `https://deploy-smk.onrender.com/api/user/update-member-by-id/${userId}`,
+        `https://deploy-smk.onrender.com/api/member/update-member/${userId}`,
         dataToSend,
         {
           headers: {
@@ -116,11 +100,7 @@ const MyProfile = () => {
         }
       );
 
-      const updated = res.data.member;
-      setUserData((prev) => ({
-        ...prev,
-        ...updated,
-      }));
+      console.log("Cập nhật thành công:", res.data);
       setIsEdit(false);
     } catch (err) {
       console.error("Lỗi cập nhật:", err);
@@ -173,13 +153,13 @@ const MyProfile = () => {
               {isEdit ? (
                 <input
                   type="tel"
-                  name="phoneNumber"
-                  value={userData.phoneNumber}
+                  name="phone"
+                  value={userData.phone}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 />
               ) : (
-                <p>{userData.phoneNumber}</p>
+                <p>{userData.phone}</p>
               )}
             </div>
           </div>
@@ -236,11 +216,7 @@ const MyProfile = () => {
 
       <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Huy hiệu Thành tích</h2>
-        {loading ? (
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-800"></div>
-          </div>
-        ) : badges.length > 0 ? (
+        {badges.length > 0 ? (
           <div className="h-[calc(100vh-200px)] overflow-y-auto">
             <div className="space-y-4 pb-4">
               {badges.map((badge) => (
