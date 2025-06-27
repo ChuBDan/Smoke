@@ -48,12 +48,12 @@ const useLoginForm = () => {
       if (!fullName.trim()) newErrors.fullName = "Full name is required";
       if (!username.trim()) newErrors.username = "Username is required";
       if (!phoneNumber.trim()) {
-  newErrors.phoneNumber = "Phone number is required";
-} else if (!/^\d+$/.test(phoneNumber)) {
-  newErrors.phoneNumber = "Phone number must contain only numbers";
-} else if (phoneNumber.length < 10 || phoneNumber.length > 15) {
-  newErrors.phoneNumber = "Phone number must be between 10 and 15 digits";
-}
+        newErrors.phoneNumber = "Phone number is required";
+      } else if (!/^\d+$/.test(phoneNumber)) {
+        newErrors.phoneNumber = "Phone number must contain only numbers";
+      } else if (phoneNumber.length < 10 || phoneNumber.length > 15) {
+        newErrors.phoneNumber = "Phone number must be between 10 and 15 digits";
+      }
       if (!gender) newErrors.gender = "Gender is required";
       if (!dob) newErrors.dob = "Date of birth is required";
     }
@@ -88,7 +88,7 @@ const useLoginForm = () => {
       await dispatch(role === "COACH" ? coachLogin(userData) : login(userData));
     }
   };
-   //aa//
+  //aa//
   return {
     state,
     setState,
@@ -110,7 +110,7 @@ const useLoginForm = () => {
     setRole,
     onSubmitHandler,
     errors,
-     errorMessage,
+    errorMessage,
   };
 };
 
