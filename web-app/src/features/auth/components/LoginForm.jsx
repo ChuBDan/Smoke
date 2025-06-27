@@ -1,4 +1,4 @@
-import useLoginForm from "@/features/auth/hooks/useLoginForm ";
+import useLoginForm from "@/features/auth/hooks/useLoginForm";
 
 const LoginForm = () => {
   const {
@@ -21,7 +21,12 @@ const LoginForm = () => {
     role,
     setRole,
     onSubmitHandler,
+    errors,
+    successMessage,
+     errorMessage,
   } = useLoginForm();
+
+ 
 
   return (
     <form className="min-h-[80vh] flex items-center" onSubmit={onSubmitHandler}>
@@ -33,6 +38,18 @@ const LoginForm = () => {
           Please {state === "Sign Up" ? "sign up" : "log in"} to book
           appointment
         </p>
+
+         {successMessage && (
+  <div className="w-full p-2 text-green-700 bg-green-100 rounded">
+    {successMessage}
+  </div>
+)}
+
+{errorMessage && (
+  <div className="w-full p-2 text-red-700 bg-red-100 rounded">
+    {errorMessage}
+  </div>
+)}
 
         {state === "Login" && (
           <div className="w-full">
@@ -72,6 +89,7 @@ const LoginForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 value={fullName}
               />
+              {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
             </div>
 
             <div className="w-full">
@@ -82,6 +100,7 @@ const LoginForm = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 value={username}
               />
+              {errors.username && <p className="text-red-500 text-xs">{errors.username}</p>}
             </div>
 
             <div className="w-full">
@@ -92,6 +111,7 @@ const LoginForm = () => {
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 value={phoneNumber}
               />
+              {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber}</p>}
             </div>
 
             <div className="w-full">
@@ -118,6 +138,7 @@ const LoginForm = () => {
                   Female
                 </label>
               </div>
+              {errors.gender && <p className="text-red-500 text-xs">{errors.gender}</p>}
             </div>
 
             <div className="w-full">
@@ -128,6 +149,7 @@ const LoginForm = () => {
                 onChange={(e) => setDob(e.target.value)}
                 value={dob}
               />
+              {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
             </div>
           </>
         )}
@@ -140,6 +162,7 @@ const LoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             value={email}
           />
+          {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
         </div>
 
         <div className="w-full">
@@ -150,6 +173,7 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             value={password}
           />
+          {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
         </div>
 
         <button
