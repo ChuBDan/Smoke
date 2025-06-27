@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, signup, coachLogin } from "@/redux/slices/authSlice";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const useLoginForm = () => {
   const [state, setState] = useState("Sign Up");
@@ -34,16 +35,36 @@ const useLoginForm = () => {
     event.preventDefault();
     const userData =
       state === "Sign Up"
-        ? { email, password, fullName, username, phoneNumber, gender, dob, role: "MEMBER" }
+        ? {
+          email,
+          password,
+          fullName,
+          username,
+          phoneNumber,
+          gender,
+          dob,
+          role: "MEMBER",
+        }
         : { email, password };
 
     if (state === "Sign Up") {
       const resultAction = await dispatch(signup(userData));
       if (signup.fulfilled.match(resultAction)) {
+        toast.success("Sign up successful! Please log in.");
         setState("Login");
       }
     } else {
-      dispatch(role === "COACH" ? coachLogin(userData) : login(userData));
+      const resultAction = await dispatch(
+        role === "COACH" ? coachLogin(userData) : login(userData)
+      );
+      if (
+        (role === "COACH" && coachLogin.fulfilled.match(resultAction)) ||
+        (role !== "COACH" && login.fulfilled.match(resultAction))
+      ) {
+        toast.success("Login successful!");
+      } else {
+        toast.error("Login failed. Please check your credentials.");
+      }
     }
   };
 
