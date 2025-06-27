@@ -23,10 +23,8 @@ const LoginForm = () => {
     onSubmitHandler,
     errors,
     successMessage,
-     errorMessage,
+    errorMessage,
   } = useLoginForm();
-
- 
 
   return (
     <form className="min-h-[80vh] flex items-center" onSubmit={onSubmitHandler}>
@@ -39,17 +37,17 @@ const LoginForm = () => {
           appointment
         </p>
 
-         {successMessage && (
-  <div className="w-full p-2 text-green-700 bg-green-100 rounded">
-    {successMessage}
-  </div>
-)}
+        {successMessage && (
+          <div className="w-full p-2 text-green-700 bg-green-100 rounded">
+            {successMessage}
+          </div>
+        )}
 
-{errorMessage && (
-  <div className="w-full p-2 text-red-700 bg-red-100 rounded">
-    {errorMessage}
-  </div>
-)}
+        {errorMessage && (
+          <div className="w-full p-2 text-red-700 bg-red-100 rounded">
+            {errorMessage}
+          </div>
+        )}
 
         {state === "Login" && (
           <div className="w-full">
@@ -89,7 +87,9 @@ const LoginForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 value={fullName}
               />
-              {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
+              {errors.fullName && (
+                <p className="text-red-500 text-xs">{errors.fullName}</p>
+              )}
             </div>
 
             <div className="w-full">
@@ -100,7 +100,9 @@ const LoginForm = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 value={username}
               />
-              {errors.username && <p className="text-red-500 text-xs">{errors.username}</p>}
+              {errors.username && (
+                <p className="text-red-500 text-xs">{errors.username}</p>
+              )}
             </div>
 
             <div className="w-full">
@@ -111,7 +113,9 @@ const LoginForm = () => {
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 value={phoneNumber}
               />
-              {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber}</p>}
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-xs">{errors.phoneNumber}</p>
+              )}
             </div>
 
             <div className="w-full">
@@ -138,7 +142,9 @@ const LoginForm = () => {
                   Female
                 </label>
               </div>
-              {errors.gender && <p className="text-red-500 text-xs">{errors.gender}</p>}
+              {errors.gender && (
+                <p className="text-red-500 text-xs">{errors.gender}</p>
+              )}
             </div>
 
             <div className="w-full">
@@ -149,7 +155,9 @@ const LoginForm = () => {
                 onChange={(e) => setDob(e.target.value)}
                 value={dob}
               />
-              {errors.dob && <p className="text-red-500 text-xs">{errors.dob}</p>}
+              {errors.dob && (
+                <p className="text-red-500 text-xs">{errors.dob}</p>
+              )}
             </div>
           </>
         )}
@@ -162,7 +170,9 @@ const LoginForm = () => {
             onChange={(e) => setEmail(e.target.value)}
             value={email}
           />
-          {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-xs">{errors.email}</p>
+          )}
         </div>
 
         <div className="w-full">
@@ -173,7 +183,9 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             value={password}
           />
-          {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-xs">{errors.password}</p>
+          )}
         </div>
 
         <button
@@ -203,31 +215,6 @@ const LoginForm = () => {
               Click here
             </span>
           </p>
-        )}
-
-        {state === "Login" && (
-          <div className="text-center mt-4 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500 mb-2">Administrative Access</p>
-            <a
-              href="/admin/login"
-              className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
-              Admin Portal
-            </a>
-          </div>
         )}
       </div>
     </form>
