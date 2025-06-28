@@ -3,7 +3,7 @@ import api from "@/config/api";
 export const loginUser = async (userData) => {
   try {
     console.log("Sending to backend:", userData);
-    const res = await api.post("/public/login", userData);
+    const res = await api.post("/api/public/login", userData);
     return res.data;
   } catch (error) {
     console.error("Error during login:", error);
