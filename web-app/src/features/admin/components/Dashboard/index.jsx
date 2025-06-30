@@ -1,5 +1,10 @@
 import PropTypes from "prop-types";
 import styles from "./Dashboard.module.css";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchAllMembers } from "@/redux/slices/membersSlice";
+import { fetchAllPackages } from "@/redux/slices/packagesSlice";
+import { fetchAllBadges } from "@/redux/slices/badgesSlice";
 
 const MetricCard = ({ title, value, change, icon, trend }) => (
   <div className={styles.metricCard}>
@@ -86,50 +91,97 @@ PatientCard.propTypes = {
 };
 
 const Dashboard = () => {
-  const recentPatients = [
-    {
-      name: "John Smith",
-      status: "Active",
-      lastSession: "2 hours ago",
-      progress: 75,
-      avatar: "👨",
-    },
-    {
-      name: "Sarah Johnson",
-      status: "Active",
-      lastSession: "1 day ago",
-      progress: 60,
-      avatar: "👩",
-    },
-    {
-      name: "Mike Davis",
-      status: "Pending",
-      lastSession: "3 days ago",
-      progress: 45,
-      avatar: "👨",
-    },
-    {
-      name: "Emily Brown",
-      status: "Completed",
-      lastSession: "1 week ago",
-      progress: 100,
-      avatar: "👩",
-    },
-    {
-      name: "David Wilson",
-      status: "Active",
-      lastSession: "5 hours ago",
-      progress: 82,
-      avatar: "👨",
-    },
-    {
-      name: "Lisa Martinez",
-      status: "Active",
-      lastSession: "12 hours ago",
-      progress: 68,
-      avatar: "👩",
-    },
-  ];
+  const dispatch = useDispatch();
+  const membersState = useSelector((state) => state.members);
+  const packagesState = useSelector((state) => state.packages);
+  const badgesState = useSelector((state) => state.badges);
+
+  useEffect(() => {
+    dispatch(fetchAllMembers());
+    dispatch(fetchAllPackages());
+    dispatch(fetchAllBadges());
+  }, [dispatch]);
+
+  // Metrics
+  const totalPatients = membersState.members?.length || 0;
+  // For demo: Active Sessions = number of active packages (or you can use another logic)
+  const activeSessions =
+    packagesState.packages?.filter((pkg) => pkg.status === "active").length ||
+    0;
+  // Success Rate: percent of members with status 'completed' (if available), else dummy
+  const completedMembers =
+    membersState.members?.filter((m) => m.status?.toLowerCase() === "completed")
+      .length || 0;
+  const successRate =
+    totalPatients > 0
+      ? Math.round((completedMembers / totalPatients) * 100)
+      : 0;
+  // Avg. Days Smoke-Free: use badges as a proxy, or 0 if not available
+  // If you have a field for days smoke-free, use it here
+  const avgDaysSmokeFree = 0; // Placeholder, update if you have this data
+
+  // Recent Patients: show up to 6 most recently joined members
+  // Use the same avatar design as MembersPage
+  const recentPatients = (membersState.members || [])
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(b.joinDate || b.dateCreated) -
+        new Date(a.joinDate || a.dateCreated)
+    )
+    .slice(0, 6)
+    .map((member) => ({
+      name: member.fullName || member.name || member.username || "Unknown",
+      status: member.status
+        ? member.status.charAt(0).toUpperCase() + member.status.slice(1)
+        : "Active",
+      lastSession:
+        member.lastSession ||
+        member.lastLogin ||
+        member.dateUpdated ||
+        member.dateCreated ||
+        "-",
+      progress: member.progress || 0, // If you have a progress field, use it; else 0
+      avatar: (
+        <div
+          style={{
+            width: "48px",
+            minWidth: "48px",
+            height: "48px",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontWeight: 600,
+            fontSize: "1.125rem",
+            boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)",
+            aspectRatio: "1 / 1",
+          }}
+        >
+          {(member.fullName || member.name || "Unknown")
+            .charAt(0)
+            .toUpperCase()}
+        </div>
+      ),
+    }));
+
+  // Quick Stats
+  // Scheduled Sessions: use active packages as a proxy
+  const scheduledSessions = activeSessions;
+  // New Enrollments: members joined in the last 7 days
+  const now = new Date();
+  const newEnrollments = (membersState.members || []).filter((m) => {
+    const join = new Date(m.joinDate || m.dateCreated);
+    return (now - join) / (1000 * 60 * 60 * 24) <= 7;
+  }).length;
+  // Milestones Reached: total number of badges awarded (sum of memberCount for all badges)
+  const milestonesReached = (badgesState.badges || []).reduce(
+    (sum, badge) => sum + (badge.memberCount || 0),
+    0
+  );
+
   return (
     <div className={styles.dashboard}>
       {/* Welcome Section */}
@@ -182,8 +234,8 @@ const Dashboard = () => {
       <div className={styles.metricsGrid}>
         <MetricCard
           title="Total Patients"
-          value="1,247"
-          change="+12%"
+          value={totalPatients}
+          change={totalPatients > 0 ? `+${totalPatients}` : "+0"}
           trend="up"
           icon={
             <svg
@@ -204,8 +256,8 @@ const Dashboard = () => {
         />
         <MetricCard
           title="Active Sessions"
-          value="89"
-          change="+8%"
+          value={activeSessions}
+          change={activeSessions > 0 ? `+${activeSessions}` : "+0"}
           trend="up"
           icon={
             <svg
@@ -226,8 +278,8 @@ const Dashboard = () => {
         />
         <MetricCard
           title="Success Rate"
-          value="82%"
-          change="+5%"
+          value={`${successRate}%`}
+          change={successRate > 0 ? `+${successRate}%` : "+0%"}
           trend="up"
           icon={
             <svg
@@ -248,8 +300,8 @@ const Dashboard = () => {
         />
         <MetricCard
           title="Avg. Days Smoke-Free"
-          value="52"
-          change="+15%"
+          value={avgDaysSmokeFree}
+          change={avgDaysSmokeFree > 0 ? `+${avgDaysSmokeFree}` : "+0"}
           trend="up"
           icon={
             <svg
@@ -308,7 +360,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div>
-                <div className={styles.quickStatValue}>18</div>
+                <div className={styles.quickStatValue}>{scheduledSessions}</div>
                 <div className={styles.quickStatLabel}>Scheduled Sessions</div>
               </div>
             </div>
@@ -330,7 +382,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div>
-                <div className={styles.quickStatValue}>7</div>
+                <div className={styles.quickStatValue}>{newEnrollments}</div>
                 <div className={styles.quickStatLabel}>New Enrollments</div>
               </div>
             </div>
@@ -352,7 +404,7 @@ const Dashboard = () => {
                 </svg>
               </div>
               <div>
-                <div className={styles.quickStatValue}>12</div>
+                <div className={styles.quickStatValue}>{milestonesReached}</div>
                 <div className={styles.quickStatLabel}>Milestones Reached</div>
               </div>
             </div>
