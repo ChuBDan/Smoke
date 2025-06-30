@@ -64,6 +64,7 @@ const BadgesPage = () => {
       await dispatch(createBadge(badgeData)).unwrap();
       setShowAddModal(false);
       toast.success("Badge created successfully!");
+      await dispatch(fetchAllBadges());
     } catch (error) {
       toast.error("Failed to create badge");
       console.error("Failed to create badge:", error);
@@ -79,6 +80,7 @@ const BadgesPage = () => {
       setShowEditModal(false);
       setSelectedBadge(null);
       toast.success("Badge updated successfully!");
+      await dispatch(fetchAllBadges());
     } catch (error) {
       toast.error("Failed to update badge");
       console.error("Failed to update badge:", error);
@@ -102,6 +104,7 @@ const BadgesPage = () => {
       try {
         await dispatch(deleteBadge(badgeId)).unwrap();
         toast.success("Badge deleted successfully!");
+        await dispatch(fetchAllBadges());
       } catch (error) {
         toast.error("Failed to delete badge");
         console.error("Failed to delete badge:", error);

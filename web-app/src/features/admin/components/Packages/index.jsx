@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
+import { toast } from "react-toastify";
+import { formatVND } from "@/utils/format";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAllPackages,
@@ -8,14 +10,14 @@ import {
   clearError,
   setSearchTerm,
   setFilterStatus,
-  setFilterCategory,
 } from "@/redux/slices/packagesSlice";
 import styles from "./Packages.module.css";
 
 const PackagesPage = () => {
   const dispatch = useDispatch();
-  const { packages, loading, error, searchTerm, filterStatus, filterCategory } =
-    useSelector((state) => state.packages);
+  const { packages, loading, error, searchTerm, filterStatus } = useSelector(
+    (state) => state.packages
+  );
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -35,28 +37,28 @@ const PackagesPage = () => {
     };
   }, [dispatch]);
 
-  // Filter packages based on search and status
+  // Filter packages based on search and status (category removed)
   const filteredPackages = useMemo(() => {
     return packages.filter((pkg) => {
       const matchesSearch =
         pkg.packageName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pkg.category?.toLowerCase().includes(searchTerm.toLowerCase());
+        pkg.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesStatus =
         filterStatus === "all" || pkg.status === filterStatus;
-      const matchesCategory =
-        filterCategory === "all" || pkg.category === filterCategory;
 
-      return matchesSearch && matchesStatus && matchesCategory;
+      return matchesSearch && matchesStatus;
     });
-  }, [packages, searchTerm, filterStatus, filterCategory]);
+  }, [packages, searchTerm, filterStatus]);
 
   const handleAddPackage = async (packageData) => {
     try {
       await dispatch(createPackage(packageData)).unwrap();
+      await dispatch(fetchAllPackages());
       setShowAddModal(false);
+      toast.success("Package created successfully!");
     } catch (error) {
+      toast.error("Failed to create package");
       console.error("Failed to create package:", error);
     }
   };
@@ -66,9 +68,12 @@ const PackagesPage = () => {
       await dispatch(
         updatePackage({ id: selectedPackage.id, packageData })
       ).unwrap();
+      await dispatch(fetchAllPackages());
       setShowEditModal(false);
       setSelectedPackage(null);
+      toast.success("Package updated successfully!");
     } catch (error) {
+      toast.error("Failed to update package");
       console.error("Failed to update package:", error);
     }
   };
@@ -77,26 +82,16 @@ const PackagesPage = () => {
     if (window.confirm("Are you sure you want to delete this package?")) {
       try {
         await dispatch(deletePackage(packageId)).unwrap();
+        await dispatch(fetchAllPackages());
+        toast.success("Package deleted successfully!");
       } catch (error) {
+        toast.error("Failed to delete package");
         console.error("Failed to delete package:", error);
       }
     }
   };
 
-  const getCategoryColor = (category) => {
-    switch (category?.toLowerCase()) {
-      case "basic":
-        return "basic";
-      case "premium":
-        return "premium";
-      case "ultimate":
-        return "ultimate";
-      case "trial":
-        return "trial";
-      default:
-        return "default";
-    }
-  };
+  // Category color logic removed
 
   const stats = {
     totalPackages: packages.length,
@@ -282,7 +277,7 @@ const PackagesPage = () => {
             </div>
           </div>
           <div className={styles.statValue}>
-            ${stats.totalRevenue.toFixed(2)}
+            {formatVND(stats.totalRevenue)}
           </div>
           <div className={`${styles.statChange} ${styles.positive}`}>
             <span>↗</span> Total earnings
@@ -309,7 +304,7 @@ const PackagesPage = () => {
           </svg>
           <input
             type="text"
-            placeholder="Search packages by name, description, or category..."
+            placeholder="Search packages by name or description..."
             value={searchTerm}
             onChange={(e) => dispatch(setSearchTerm(e.target.value))}
             className={styles.searchInput}
@@ -326,17 +321,7 @@ const PackagesPage = () => {
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-          <select
-            value={filterCategory}
-            onChange={(e) => dispatch(setFilterCategory(e.target.value))}
-            className={styles.filterSelect}
-          >
-            <option value="all">All Categories</option>
-            <option value="basic">Basic</option>
-            <option value="premium">Premium</option>
-            <option value="ultimate">Ultimate</option>
-            <option value="trial">Trial</option>
-          </select>
+          {/* Category filter removed */}
           <button
             className={styles.refreshButton}
             onClick={() => dispatch(fetchAllPackages())}
@@ -389,20 +374,18 @@ const PackagesPage = () => {
             </div>
             <h3>No packages found</h3>
             <p>
-              {searchTerm || filterStatus !== "all" || filterCategory !== "all"
+              {searchTerm || filterStatus !== "all"
                 ? "No packages match your current filters."
                 : "Start by creating your first membership package."}
             </p>
-            {!searchTerm &&
-              filterStatus === "all" &&
-              filterCategory === "all" && (
-                <button
-                  className={styles.createFirstButton}
-                  onClick={() => setShowAddModal(true)}
-                >
-                  Create First Package
-                </button>
-              )}
+            {!searchTerm && filterStatus === "all" && (
+              <button
+                className={styles.createFirstButton}
+                onClick={() => setShowAddModal(true)}
+              >
+                Create First Package
+              </button>
+            )}
           </div>
         ) : (
           filteredPackages.map((pkg) => (
@@ -415,13 +398,6 @@ const PackagesPage = () => {
                       className={`${styles.statusBadge} ${styles[pkg.status]}`}
                     >
                       {pkg.status}
-                    </span>
-                    <span
-                      className={`${styles.categoryBadge} ${
-                        styles[getCategoryColor(pkg.category)]
-                      }`}
-                    >
-                      {pkg.category}
                     </span>
                   </div>
                 </div>
@@ -477,8 +453,7 @@ const PackagesPage = () => {
 
                 <div className={styles.packageDetails}>
                   <div className={styles.priceSection}>
-                    <span className={styles.price}>${pkg.price}</span>
-                    <span className={styles.duration}>/{pkg.duration}</span>
+                    <span className={styles.price}>{formatVND(pkg.price)}</span>
                   </div>
 
                   <div className={styles.memberCount}>
@@ -565,8 +540,6 @@ const PackageModal = ({
     description: initialData?.description || "",
     price: initialData?.price || "",
     status: initialData?.status || "active",
-    category: initialData?.category || "Premium",
-    duration: initialData?.duration || "1 month",
   });
 
   const [errors, setErrors] = useState({});
@@ -600,16 +573,11 @@ const PackageModal = ({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Note: Only send backend-supported fields (packageName, description, price, status)
-      // category and duration are frontend-only for UI filtering and display
       onSubmit({
         packageName: formData.packageName,
         description: formData.description,
         price: parseFloat(formData.price),
         status: formData.status,
-        // Keep category and duration for frontend state management
-        category: formData.category,
-        duration: formData.duration,
       });
     }
   };
@@ -885,100 +853,7 @@ const PackageModal = ({
               </span>
             )}
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "1rem",
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Category
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  transition: "all 0.2s ease",
-                  boxSizing: "border-box",
-                  backgroundColor: "white",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#3b82f6";
-                  e.target.style.boxShadow =
-                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#d1d5db";
-                  e.target.style.boxShadow = "none";
-                }}
-              >
-                <option value="Basic">Basic</option>
-                <option value="Premium">Premium</option>
-                <option value="Ultimate">Ultimate</option>
-                <option value="Trial">Trial</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "0.875rem",
-                  fontWeight: "500",
-                  color: "#374151",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                Duration
-              </label>
-              <select
-                name="duration"
-                value={formData.duration}
-                onChange={handleChange}
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid #d1d5db",
-                  borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  transition: "all 0.2s ease",
-                  boxSizing: "border-box",
-                  backgroundColor: "white",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#3b82f6";
-                  e.target.style.boxShadow =
-                    "0 0 0 3px rgba(59, 130, 246, 0.1)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#d1d5db";
-                  e.target.style.boxShadow = "none";
-                }}
-              >
-                <option value="7 days">7 days</option>
-                <option value="1 month">1 month</option>
-                <option value="3 months">3 months</option>
-                <option value="6 months">6 months</option>
-                <option value="1 year">1 year</option>
-              </select>
-            </div>
-          </div>
+          {/* Category and Duration fields removed */}
           <div>
             <label
               style={{
