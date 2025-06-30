@@ -121,6 +121,7 @@ const membersSlice = createSlice({
     loading: false,
     error: null,
     lastFetch: null,
+    dashboardLoadedOnce: false, // <-- add this line
   },
   reducers: {
     clearError: (state) => {
@@ -131,6 +132,9 @@ const membersSlice = createSlice({
     },
     setFilterStatus: (state, action) => {
       state.filterStatus = action.payload;
+    },
+    setDashboardLoadedOnce: (state, action) => {
+      state.dashboardLoadedOnce = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -145,6 +149,7 @@ const membersSlice = createSlice({
         state.members = action.payload;
         state.lastFetch = new Date().toISOString();
         state.error = null;
+        state.dashboardLoadedOnce = true; // <-- set flag on first load
       })
       .addCase(fetchAllMembers.rejected, (state, action) => {
         state.loading = false;
@@ -181,6 +186,10 @@ const membersSlice = createSlice({
   },
 });
 
-export const { clearError, setSearchTerm, setFilterStatus } =
-  membersSlice.actions;
+export const {
+  clearError,
+  setSearchTerm,
+  setFilterStatus,
+  setDashboardLoadedOnce,
+} = membersSlice.actions;
 export default membersSlice.reducer;

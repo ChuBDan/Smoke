@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMembers } from "@/redux/slices/membersSlice";
 import { fetchAllPackages } from "@/redux/slices/packagesSlice";
 import { fetchAllBadges } from "@/redux/slices/badgesSlice";
+import { isToday, isYesterday } from "@/utils/dateHelpers";
+import { setDashboardLoadedOnce } from "@/redux/slices/membersSlice";
 
 const MetricCard = ({ title, value, change, icon, trend }) => (
   <div className={styles.metricCard}>
@@ -87,8 +89,10 @@ PatientCard.propTypes = {
   status: PropTypes.string.isRequired,
   lastSession: PropTypes.string.isRequired,
   progress: PropTypes.number.isRequired,
-  avatar: PropTypes.string,
+  avatar: PropTypes.node, // Accepts JSX for custom avatar
 };
+
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes in ms
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -96,32 +100,99 @@ const Dashboard = () => {
   const packagesState = useSelector((state) => state.packages);
   const badgesState = useSelector((state) => state.badges);
 
+  // Debug logs for state
+  console.log("membersState:", membersState);
+  console.log("packagesState:", packagesState);
+  console.log("badgesState:", badgesState);
+
   useEffect(() => {
-    dispatch(fetchAllMembers());
-    dispatch(fetchAllPackages());
-    dispatch(fetchAllBadges());
-  }, [dispatch]);
+    const now = Date.now();
+    // Only fetch if missing or stale
+    if (
+      !membersState.members ||
+      membersState.members.length === 0 ||
+      !membersState.lastFetch ||
+      now - new Date(membersState.lastFetch).getTime() > STALE_TIME
+    ) {
+      dispatch(fetchAllMembers());
+    }
+    if (
+      !packagesState.packages ||
+      packagesState.packages.length === 0 ||
+      !packagesState.lastFetch ||
+      now - new Date(packagesState.lastFetch).getTime() > STALE_TIME
+    ) {
+      dispatch(fetchAllPackages());
+    }
+    if (
+      !badgesState.badges ||
+      badgesState.badges.length === 0 ||
+      !badgesState.lastFetch ||
+      now - new Date(badgesState.lastFetch).getTime() > STALE_TIME
+    ) {
+      dispatch(fetchAllBadges());
+    }
+  }, [
+    dispatch,
+    membersState.members,
+    membersState.lastFetch,
+    packagesState.packages,
+    packagesState.lastFetch,
+    badgesState.badges,
+    badgesState.lastFetch,
+  ]);
 
   // Metrics
   const totalPatients = membersState.members?.length || 0;
-  // For demo: Active Sessions = number of active packages (or you can use another logic)
   const activeSessions =
     packagesState.packages?.filter((pkg) => pkg.status === "active").length ||
     0;
-  // Success Rate: percent of members with status 'completed' (if available), else dummy
-  const completedMembers =
-    membersState.members?.filter((m) => m.status?.toLowerCase() === "completed")
-      .length || 0;
-  const successRate =
-    totalPatients > 0
-      ? Math.round((completedMembers / totalPatients) * 100)
-      : 0;
-  // Avg. Days Smoke-Free: use badges as a proxy, or 0 if not available
-  // If you have a field for days smoke-free, use it here
-  const avgDaysSmokeFree = 0; // Placeholder, update if you have this data
+  // Appointments placeholder (replace with real data if available)
+  const appointments = 0;
+
+  // Active Badges: total count for display
+  const activeBadges = (badgesState.badges || []).filter(
+    (b) => b.status === "active"
+  ).length;
+
+  // Total Patients: change = new patients today
+  const newPatientsToday = (membersState.members || []).filter((m) =>
+    isToday(m.joinDate || m.dateCreated)
+  ).length;
+  const totalPatientsChange =
+    newPatientsToday > 0 ? `+${newPatientsToday}` : "+0";
+
+  // Active Packages: change = active today - active yesterday
+  const activePackagesToday = (packagesState.packages || []).filter(
+    (pkg) =>
+      pkg.status === "active" &&
+      isToday(pkg.dateUpdated || pkg.updatedAt || pkg.dateCreated)
+  ).length;
+  const activePackagesYesterday = (packagesState.packages || []).filter(
+    (pkg) =>
+      pkg.status === "active" &&
+      isYesterday(pkg.dateUpdated || pkg.updatedAt || pkg.dateCreated)
+  ).length;
+  const activePackagesChange = activePackagesToday - activePackagesYesterday;
+  const activePackagesChangeStr =
+    (activePackagesChange >= 0 ? "+" : "") + activePackagesChange;
+
+  // Active Badges: change = active today - active yesterday
+  const activeBadgesToday = (badgesState.badges || []).filter(
+    (b) =>
+      b.status === "active" &&
+      isToday(b.dateUpdated || b.updatedAt || b.dateCreated)
+  ).length;
+  const activeBadgesYesterday = (badgesState.badges || []).filter(
+    (b) =>
+      b.status === "active" &&
+      isYesterday(b.dateUpdated || b.updatedAt || b.dateCreated)
+  ).length;
+  const activeBadgesChange = activeBadgesToday - activeBadgesYesterday;
+  const activeBadgesChangeStr =
+    (activeBadgesChange >= 0 ? "+" : "") + activeBadgesChange;
 
   // Recent Patients: show up to 6 most recently joined members
-  // Use the same avatar design as MembersPage
   const recentPatients = (membersState.members || [])
     .slice()
     .sort(
@@ -141,7 +212,7 @@ const Dashboard = () => {
         member.dateUpdated ||
         member.dateCreated ||
         "-",
-      progress: member.progress || 0, // If you have a progress field, use it; else 0
+      progress: member.progress || 0,
       avatar: (
         <div
           style={{
@@ -167,9 +238,6 @@ const Dashboard = () => {
       ),
     }));
 
-  // Quick Stats
-  // Scheduled Sessions: use active packages as a proxy
-  const scheduledSessions = activeSessions;
   // New Enrollments: members joined in the last 7 days
   const now = new Date();
   const newEnrollments = (membersState.members || []).filter((m) => {
@@ -181,6 +249,44 @@ const Dashboard = () => {
     (sum, badge) => sum + (badge.memberCount || 0),
     0
   );
+
+  // Robust loading: show loading only on first load
+  const isMembersReady =
+    !membersState.loading && membersState.members?.length > 0;
+  const isPackagesReady =
+    !packagesState.loading && packagesState.packages?.length > 0;
+  const isBadgesReady = !badgesState.loading && badgesState.badges?.length > 0;
+
+  useEffect(() => {
+    if (
+      isMembersReady &&
+      isPackagesReady &&
+      isBadgesReady &&
+      !membersState.dashboardLoadedOnce
+    ) {
+      dispatch(setDashboardLoadedOnce(true));
+    }
+  }, [
+    isMembersReady,
+    isPackagesReady,
+    isBadgesReady,
+    membersState.dashboardLoadedOnce,
+    dispatch,
+  ]);
+
+  if (
+    !membersState.dashboardLoadedOnce &&
+    (!isMembersReady || !isPackagesReady || !isBadgesReady)
+  ) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -194,23 +300,6 @@ const Dashboard = () => {
           </p>
         </div>
         <div className={styles.welcomeActions}>
-          <button className={styles.primaryButton}>
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Add New Patient
-          </button>
           <button className={styles.secondaryButton}>
             <svg
               width="20"
@@ -233,10 +322,10 @@ const Dashboard = () => {
       {/* Metrics Grid */}
       <div className={styles.metricsGrid}>
         <MetricCard
-          title="Total Patients"
+          title="Total Members"
           value={totalPatients}
-          change={totalPatients > 0 ? `+${totalPatients}` : "+0"}
-          trend="up"
+          change={totalPatientsChange}
+          trend={newPatientsToday >= 0 ? "up" : "down"}
           icon={
             <svg
               width="24"
@@ -255,14 +344,14 @@ const Dashboard = () => {
           }
         />
         <MetricCard
-          title="Active Sessions"
+          title="Active Packages"
           value={activeSessions}
-          change={activeSessions > 0 ? `+${activeSessions}` : "+0"}
-          trend="up"
+          change={activePackagesChangeStr}
+          trend={activePackagesChange >= 0 ? "up" : "down"}
           icon={
             <svg
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -271,20 +360,20 @@ const Dashboard = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
+                d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7"
               />
             </svg>
           }
         />
         <MetricCard
-          title="Success Rate"
-          value={`${successRate}%`}
-          change={successRate > 0 ? `+${successRate}%` : "+0%"}
-          trend="up"
+          title="Active Badges"
+          value={activeBadges}
+          change={activeBadgesChangeStr}
+          trend={activeBadgesChange >= 0 ? "up" : "down"}
           icon={
             <svg
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -293,15 +382,15 @@ const Dashboard = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
               />
             </svg>
           }
         />
         <MetricCard
-          title="Avg. Days Smoke-Free"
-          value={avgDaysSmokeFree}
-          change={avgDaysSmokeFree > 0 ? `+${avgDaysSmokeFree}` : "+0"}
+          title="Appointments"
+          value={appointments}
+          change={"+0"}
           trend="up"
           icon={
             <svg
@@ -326,7 +415,7 @@ const Dashboard = () => {
         {/* Recent Patients */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Recent Patients</h2>
+            <h2 className={styles.sectionTitle}>Recent Members</h2>
             <button className={styles.viewAllButton}>View All</button>
           </div>
           <div className={styles.patientsList}>
@@ -342,28 +431,6 @@ const Dashboard = () => {
             <h2 className={styles.sectionTitle}>Today&apos;s Overview</h2>
           </div>
           <div className={styles.quickStats}>
-            <div className={styles.quickStatItem}>
-              <div className={styles.quickStatIcon}>
-                <svg
-                  width="20"
-                  height="20"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <div className={styles.quickStatValue}>{scheduledSessions}</div>
-                <div className={styles.quickStatLabel}>Scheduled Sessions</div>
-              </div>
-            </div>
             <div className={styles.quickStatItem}>
               <div className={styles.quickStatIcon}>
                 <svg

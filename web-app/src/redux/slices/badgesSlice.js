@@ -90,6 +90,7 @@ const initialState = {
   error: null,
   searchTerm: "",
   filterStatus: "all",
+  lastFetch: null, // <-- add this line
 };
 
 const badgesSlice = createSlice({
@@ -123,6 +124,7 @@ const badgesSlice = createSlice({
         state.loading = false;
         // Ensure payload is always an array
         state.badges = Array.isArray(action.payload) ? action.payload : [];
+        state.lastFetch = new Date().toISOString(); // <-- add this line
       })
       .addCase(fetchAllBadges.rejected, (state, action) => {
         state.loading = false;
