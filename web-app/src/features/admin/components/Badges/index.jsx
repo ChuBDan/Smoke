@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import styles from "./Badges.module.css";
 import BadgeModal from "./BadgeModal";
+import ConfirmModal from "@/components/ConfirmModal";
 
 const BadgesPage = () => {
   const dispatch = useDispatch();
@@ -26,6 +27,8 @@ const BadgesPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   // Fetch badges on component mount
   useEffect(() => {
@@ -99,17 +102,28 @@ const BadgesPage = () => {
     setShowEditModal(true);
   };
 
-  const handleDeleteBadge = async (badgeId) => {
-    if (window.confirm("Are you sure you want to delete this badge?")) {
-      try {
-        await dispatch(deleteBadge(badgeId)).unwrap();
-        toast.success("Badge deleted successfully!");
-        await dispatch(fetchAllBadges());
-      } catch (error) {
-        toast.error("Failed to delete badge");
-        console.error("Failed to delete badge:", error);
-      }
+  const handleDeleteBadge = (badgeId) => {
+    setDeleteId(badgeId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await dispatch(deleteBadge(deleteId)).unwrap();
+      toast.success("Badge deleted successfully!");
+      await dispatch(fetchAllBadges());
+    } catch (error) {
+      toast.error("Failed to delete badge");
+      console.error("Failed to delete badge:", error);
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteId(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteId(null);
   };
 
   const getStatusColor = (status) => {
@@ -546,6 +560,16 @@ const BadgesPage = () => {
         title="Edit Badge"
         initialData={selectedBadge}
         loading={isSubmitting}
+      />
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Badge"
+        message="Are you sure you want to delete this badge? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
       />
     </div>
   );

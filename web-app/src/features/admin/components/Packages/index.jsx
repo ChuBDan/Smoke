@@ -12,6 +12,8 @@ import {
   setFilterStatus,
 } from "@/redux/slices/packagesSlice";
 import styles from "./Packages.module.css";
+import ConfirmModal from "@/components/ConfirmModal";
+import PropTypes from "prop-types";
 
 const PackagesPage = () => {
   const dispatch = useDispatch();
@@ -23,6 +25,9 @@ const PackagesPage = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
   // Fetch packages on component mount
   useEffect(() => {
     dispatch(fetchAllPackages()).finally(() => {
@@ -79,16 +84,27 @@ const PackagesPage = () => {
   };
 
   const handleDeletePackage = async (packageId) => {
-    if (window.confirm("Are you sure you want to delete this package?")) {
-      try {
-        await dispatch(deletePackage(packageId)).unwrap();
-        await dispatch(fetchAllPackages());
-        toast.success("Package deleted successfully!");
-      } catch (error) {
-        toast.error("Failed to delete package");
-        console.error("Failed to delete package:", error);
-      }
+    setDeleteId(packageId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await dispatch(deletePackage(deleteId)).unwrap();
+      await dispatch(fetchAllPackages());
+      toast.success("Package deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete package");
+      console.error("Failed to delete package:", error);
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteId(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteId(null);
   };
 
   // Category color logic removed
@@ -522,6 +538,16 @@ const PackagesPage = () => {
           loading={loading}
         />
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Package"
+        message="Are you sure you want to delete this package? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };
@@ -986,6 +1012,20 @@ const PackageModal = ({
       </div>
     </div>
   );
+};
+
+PackageModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
+  initialData: PropTypes.shape({
+    packageName: PropTypes.string,
+    description: PropTypes.string,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    status: PropTypes.string,
+  }),
+  loading: PropTypes.bool,
 };
 
 export default PackagesPage;
