@@ -50,6 +50,9 @@ const BadgesPage = () => {
     }
 
     return badges.filter((badge) => {
+      // Filter out deleted badges
+      if (badge.status && badge.status.toLowerCase() === "deleted")
+        return false;
       const matchesSearch =
         badge.badgeName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         badge.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -137,13 +140,21 @@ const BadgesPage = () => {
     }
   };
   const stats = {
-    totalBadges: badges?.length || 0,
+    totalBadges:
+      badges?.filter((badge) => badge.status?.toLowerCase() !== "deleted")
+        .length || 0,
     activeBadges:
       badges?.filter((badge) => badge.status === "active").length || 0,
     inactiveBadges:
       badges?.filter((badge) => badge.status === "inactive").length || 0,
     totalMembersAchieved:
-      badges?.reduce((sum, badge) => sum + (badge.memberCount || 0), 0) || 0,
+      badges?.reduce(
+        (sum, badge) =>
+          badge.status?.toLowerCase() !== "deleted"
+            ? sum + (badge.memberCount || 0)
+            : sum,
+        0
+      ) || 0,
   };
   if (loading && (!badges || badges.length === 0)) {
     return (
