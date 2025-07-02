@@ -1,14 +1,5 @@
 "use client"
 
-<<<<<<< HEAD
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "react-toastify"
-import { smokingCessationApi } from "@/services/smokingCessationApi"
-import { useUserMembership } from "@/hooks/useUserMembership"
-import { useSelector } from "react-redux";
-
-=======
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
@@ -16,27 +7,18 @@ import { smokingCessationApi } from "@/services/smokingCessationApi"
 import { useSelector } from "react-redux";
 import { dateUtils } from "@/utils/dateUtils"
 import { getCurrentSmokingLog } from "@/utils/smokingLogUtils"
->>>>>>> 46ea0bb (progress)
 
 const SmokingStatusForm = () => {
   const navigate = useNavigate();
   const { userId, token } = useSelector((state) => state.auth);
-<<<<<<< HEAD
-  const { isPaidMember } = useUserMembership()
-  //const isPaidMember = true // For testing purposes, set to true
-=======
   // const { isPaidMember } = useUserMembership()
   const isPaidMember = true // For testing purposes, set to true
->>>>>>> 46ea0bb (progress)
 
   const [formData, setFormData] = useState({
     cigarettesPerDay: "",
     frequency: "",
     cost: ""
   })
-<<<<<<< HEAD
-  const [loading, setLoading] = useState(false)
-=======
   const [checkingExistingLogs, setCheckingExistingLogs] = useState(true)
   const [hasActiveLogs, setHasActiveLogs] = useState(false)
   const [existingLog, setExistingLog] = useState(null)
@@ -70,7 +52,6 @@ const SmokingStatusForm = () => {
     fetchLog()
   }, [userId, token])
 
->>>>>>> 46ea0bb (progress)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -107,10 +88,6 @@ const SmokingStatusForm = () => {
 
       const smokingLogResponse = await smokingCessationApi.createSmokingLog(userId, smokingLogData, token);
       const smokingLogId = smokingLogResponse?.smokingLog?.id;
-<<<<<<< HEAD
-      localStorage.setItem("smokingLogId", smokingLogId);
-=======
->>>>>>> 46ea0bb (progress)
 
       if (isPaidMember && smokingLogId) {
         // Generate AI plan for paid members
@@ -138,8 +115,6 @@ const SmokingStatusForm = () => {
     }
   }
 
-<<<<<<< HEAD
-=======
   if (initLoading) {
     return (
       <div className="px-4 py-6 flex items-center justify-center">
@@ -190,7 +165,6 @@ const SmokingStatusForm = () => {
       </div>
     )
   }
->>>>>>> 46ea0bb (progress)
 
   return (
     <div
