@@ -1,5 +1,6 @@
 "use client"
 
+<<<<<<< HEAD
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-toastify"
@@ -7,19 +8,69 @@ import { smokingCessationApi } from "@/services/smokingCessationApi"
 import { useUserMembership } from "@/hooks/useUserMembership"
 import { useSelector } from "react-redux";
 
+=======
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { toast } from "react-toastify"
+import { smokingCessationApi } from "@/services/smokingCessationApi"
+import { useSelector } from "react-redux";
+import { dateUtils } from "@/utils/dateUtils"
+import { getCurrentSmokingLog } from "@/utils/smokingLogUtils"
+>>>>>>> 46ea0bb (progress)
 
 const SmokingStatusForm = () => {
   const navigate = useNavigate();
   const { userId, token } = useSelector((state) => state.auth);
+<<<<<<< HEAD
   const { isPaidMember } = useUserMembership()
   //const isPaidMember = true // For testing purposes, set to true
+=======
+  // const { isPaidMember } = useUserMembership()
+  const isPaidMember = true // For testing purposes, set to true
+>>>>>>> 46ea0bb (progress)
 
   const [formData, setFormData] = useState({
     cigarettesPerDay: "",
     frequency: "",
     cost: ""
   })
+<<<<<<< HEAD
   const [loading, setLoading] = useState(false)
+=======
+  const [checkingExistingLogs, setCheckingExistingLogs] = useState(true)
+  const [hasActiveLogs, setHasActiveLogs] = useState(false)
+  const [existingLog, setExistingLog] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [initLoading, setInitLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLog = async () => {
+      setInitLoading(true)
+
+      try {
+        if (!userId || !token) return
+
+        setCheckingExistingLogs(true)
+
+        const activeLog = await getCurrentSmokingLog(userId, token)
+
+        if (activeLog) {
+          setHasActiveLogs(true)
+          setExistingLog(activeLog)
+
+        }
+      } catch (e) {
+        console.error("Error in fetchLog:", e)
+      } finally {
+        setCheckingExistingLogs(false)
+        setInitLoading(false)
+      }
+    }
+
+    fetchLog()
+  }, [userId, token])
+
+>>>>>>> 46ea0bb (progress)
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -56,7 +107,10 @@ const SmokingStatusForm = () => {
 
       const smokingLogResponse = await smokingCessationApi.createSmokingLog(userId, smokingLogData, token);
       const smokingLogId = smokingLogResponse?.smokingLog?.id;
+<<<<<<< HEAD
       localStorage.setItem("smokingLogId", smokingLogId);
+=======
+>>>>>>> 46ea0bb (progress)
 
       if (isPaidMember && smokingLogId) {
         // Generate AI plan for paid members
@@ -84,6 +138,59 @@ const SmokingStatusForm = () => {
     }
   }
 
+<<<<<<< HEAD
+=======
+  if (initLoading) {
+    return (
+      <div className="px-4 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your smoking log...</p>
+        </div>
+      </div>
+    )
+  }
+  // Show message if user has active logs
+  if (hasActiveLogs && existingLog) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+          <div className="text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+              <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">Active Plan Found</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              You already have an active smoking cessation plan started on{" "}
+              {new Date(dateUtils.parseDDMMYYYY(existingLog.logDate)).toLocaleDateString("vi-VN")}.
+            </p>
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Current Plan:</strong> {existingLog.cigarettesPerDay} cigarettes/day
+              </p>
+
+            </div>
+            <div className="mt-6">
+              <button
+                onClick={() => navigate("/smokingprogress")}
+                className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Continue to Progress Page
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+>>>>>>> 46ea0bb (progress)
 
   return (
     <div

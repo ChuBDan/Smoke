@@ -32,6 +32,24 @@ export const smokingCessationApi = {
         }
     },
 
+<<<<<<< HEAD
+=======
+    // Get smoking log
+    getSmokingLogByMemberId: async (userId, token) => {
+        try {
+            const response = await httpMethods.get(`/user/get-smoking-logs-by-member/${userId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+            return response.data
+        } catch (error) {
+            console.error("Error fetching smoking log:", error)
+            throw error
+        }
+    },
+
+>>>>>>> 46ea0bb (progress)
     // Update smoking log
     updateSmokingLog: async (smokingLogId, updateData) => {
         try {
@@ -109,9 +127,19 @@ export const smokingCessationApi = {
     },
 
     // Create progress entry
+<<<<<<< HEAD
     createProgress: async (memberId, progressData) => {
         try {
             const response = await httpMethods.post(`/public/create-progress/member/${memberId}`, progressData)
+=======
+    createProgress: async (memberId, progressData, token) => {
+        try {
+            const response = await httpMethods.post(`/user/create-progress/member/${memberId}`, progressData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+>>>>>>> 46ea0bb (progress)
             return response.data
         } catch (error) {
             console.error("Error creating progress:", error)
@@ -120,9 +148,19 @@ export const smokingCessationApi = {
     },
 
     // Get progress
+<<<<<<< HEAD
     getProgress: async (progressId) => {
         try {
             const response = await httpMethods.get(`/public/get-progress/${progressId}`)
+=======
+    getProgress: async (progressId, token) => {
+        try {
+            const response = await httpMethods.get(`/public/get-progress/${progressId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+>>>>>>> 46ea0bb (progress)
             return response.data
         } catch (error) {
             console.error("Error fetching progress:", error)
@@ -131,9 +169,19 @@ export const smokingCessationApi = {
     },
 
     // Update progress
+<<<<<<< HEAD
     updateProgress: async (progressId, progressData) => {
         try {
             const response = await httpMethods.put(`/public/update-progress/${progressId}`, progressData)
+=======
+    updateProgress: async (progressId, progressData, token) => {
+        try {
+            const response = await httpMethods.put(`/user/update-progress/${progressId}`, progressData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+>>>>>>> 46ea0bb (progress)
             return response.data
         } catch (error) {
             console.error("Error updating progress:", error)
@@ -142,15 +190,39 @@ export const smokingCessationApi = {
     },
 
     // Get all progresses
+<<<<<<< HEAD
     getAllProgresses: async () => {
         try {
             const response = await httpMethods.get("/public/get-all-progresses")
+=======
+    getAllProgresses: async (token) => {
+        try {
+            const response = await httpMethods.get("/public/get-all-progresses", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+>>>>>>> 46ea0bb (progress)
             return response.data
         } catch (error) {
             console.error("Error fetching all progresses:", error)
             throw error
         }
     },
+<<<<<<< HEAD
+=======
+    // Delete progress
+    deleteProgress: async (progressId) => {
+        try {
+            const response = await httpMethods.delete(`/public/delete-progress/${progressId}`)
+            return response.data
+        } catch (error) {
+            console.error("Error deleting progress:", error)
+            throw error
+        }
+    },
+
+>>>>>>> 46ea0bb (progress)
 
     // Create consultation
     createConsultation: async (coachId, memberId, consultationData) => {
@@ -227,6 +299,7 @@ export const smokingCessationApi = {
         }
     },
 
+<<<<<<< HEAD
     // Get AI-generated plan for VIP members
     getAIPlan: async (token) => {
         try {
@@ -251,12 +324,50 @@ export const smokingCessationApi = {
                 },
             })
             return response.data
+=======
+
+
+    // Submit daily progress for VIP members (using the progress endpoints)
+    submitDailyProgress: async (memberId, progressData, token) => {
+        try {
+            // First try to get existing progress for today
+            const today = new Date().toISOString().split("T")[0]
+            const existingProgress = await smokingCessationApi.getAllProgresses()
+
+            // Check if progress already exists for today
+            const todayProgress = existingProgress.find((p) => p.memberId === memberId && p.date === today)
+
+            if (todayProgress) {
+                // Update existing progress
+                const response = await httpMethods.put(`/public/update-progress/${todayProgress.id}`, {
+
+                    ...progressData,
+                    date: today,
+                    memberId: memberId,
+                },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                )
+                return response.data
+            } else {
+                // Create new progress
+                const response = await httpMethods.post(`/api/public/create-progress/member/${memberId}`, {
+                    ...progressData,
+                    date: today,
+                })
+                return response.data
+            }
+>>>>>>> 46ea0bb (progress)
         } catch (error) {
             console.error("Error submitting daily progress:", error)
             throw error
         }
     },
 
+<<<<<<< HEAD
     // Get daily progress status
     getDailyProgressStatus: async (memberId, token) => {
         try {
@@ -264,6 +375,14 @@ export const smokingCessationApi = {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
+=======
+    getDailyProgressByMemberId: async (memberId, token) => {
+        try {
+            const response = await httpMethods.get(`/user/get-progresses-by-member/${memberId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+>>>>>>> 46ea0bb (progress)
             })
             return response.data
         } catch (error) {
@@ -271,6 +390,27 @@ export const smokingCessationApi = {
             throw error
         }
     },
+<<<<<<< HEAD
+=======
+
+    // Get member's progress history
+    getMemberProgressHistory: async (memberId, token) => {
+        try {
+            const response = await httpMethods.get("/public/get-all-progresses", {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            const allProgresses = response.data
+
+            // Filter and return progresses for this member
+            return allProgresses.filter((p) => p.memberId === memberId)
+        } catch (error) {
+            console.error("Error fetching member progress history:", error)
+            throw error
+        }
+    },
+>>>>>>> 46ea0bb (progress)
 }
 
 // Membership API

@@ -4,6 +4,18 @@ import { registerUser } from "@/features/auth/services/Register";
 import { loginCoach } from "@/features/coaches/services/LoginCoach";
 import { toast } from "react-toastify";
 
+// Utility: safe JSON parse fallback
+const safeParseArray = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    const raw = localStorage.getItem(key);
+    return raw ? raw.split(",").map(Number).filter((x) => !isNaN(x)) : [];
+  }
+};
+
 // Định nghĩa các action
 export const login = createAsyncThunk("auth/login", async (userData) => {
   const res = await loginUser({
@@ -18,16 +30,13 @@ export const signup = createAsyncThunk("auth/signup", async (userData) => {
   return res;
 });
 
-export const coachLogin = createAsyncThunk(
-  "auth/loginCoach",
-  async (coachData) => {
-    const res = await loginCoach({
-      email: coachData.email,
-      password: coachData.password,
-    });
-    return res;
-  }
-);
+export const coachLogin = createAsyncThunk("auth/loginCoach", async (coachData) => {
+  const res = await loginCoach({
+    email: coachData.email,
+    password: coachData.password,
+  });
+  return res;
+});
 
 export const updateUserProfile = createAsyncThunk(
   "auth/updateUserProfile",
@@ -50,9 +59,7 @@ export const updateUserProfile = createAsyncThunk(
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `Failed to update profile: ${response.status} - ${errorText}`
-      );
+      throw new Error(`Failed to update profile: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
@@ -65,6 +72,8 @@ const authSlice = createSlice({
   initialState: {
     token: localStorage.getItem("token") || null,
     userId: localStorage.getItem("userId") || null,
+    planIds: safeParseArray("planIds"),
+    smokingLogIds: safeParseArray("smokingLogIds"),
     successMessage: "",
     errorMessage: "",
     status: "idle",
@@ -73,10 +82,15 @@ const authSlice = createSlice({
     logout: (state) => {
       state.token = null;
       state.userId = null;
+      state.planIds = [];
+      state.smokingLogIds = [];
       state.successMessage = "";
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       localStorage.removeItem("userId");
+      localStorage.removeItem("planIds");
+      localStorage.removeItem("smokingLogIds");
+      localStorage.removeItem("latestPlanId");
     },
     clearMessages: (state) => {
       state.successMessage = "";
@@ -91,11 +105,22 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.planIds = action.payload.planIds || [];
+        state.smokingLogIds = action.payload.smokingLogIds || [];
+
         toast.success("Login successful!");
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
+
+        if (state.planIds.length > 0) {
+          const latestPlanId = state.planIds[state.planIds.length - 1];
+          localStorage.setItem("latestPlanId", latestPlanId);
+        }
+
+        localStorage.setItem("planIds", JSON.stringify(state.planIds));
+        localStorage.setItem("smokingLogIds", JSON.stringify(state.smokingLogIds));
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(login.rejected, (state) => {
         state.status = "failed";
         state.successMessage = "";
         toast.error("Login failed. Please check your email and password.");
@@ -107,9 +132,20 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.planIds = action.payload.planIds || [];
+        state.smokingLogIds = action.payload.smokingLogIds || [];
+
         toast.success("Sign up successful!");
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
+
+        if (state.planIds.length > 0) {
+          const latestPlanId = state.planIds[state.planIds.length - 1];
+          localStorage.setItem("latestPlanId", latestPlanId);
+        }
+
+        localStorage.setItem("planIds", JSON.stringify(state.planIds));
+        localStorage.setItem("smokingLogIds", JSON.stringify(state.smokingLogIds));
       })
       .addCase(signup.rejected, (state) => {
         state.status = "failed";
