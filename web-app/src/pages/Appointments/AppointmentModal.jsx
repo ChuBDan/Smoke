@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "../../config/api";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
@@ -17,7 +17,7 @@ const AppointmentModal = ({ open, onClose }) => {
     if (open) {
       setLoading(true);
       axios
-        .get("/user/get-all-coaches")
+        .get("/api/user/get-all-coaches")
         .then((res) => {
           const activeCoaches = (res.data?.coaches || []).filter(
             (coach) => coach.status === "ACTIVE"
@@ -86,7 +86,7 @@ const AppointmentModal = ({ open, onClose }) => {
     setSubmitting(true);
     try {
       await axios.post(
-        `/user/create-consultation/coach/${selectedCoach}/member/${memberId}`,
+        `/api/user/create-consultation/coach/${selectedCoach}/member/${memberId}`,
         payload
       );
       toast.success("Đặt lịch hẹn thành công!");
@@ -178,7 +178,9 @@ const AppointmentModal = ({ open, onClose }) => {
                 className="w-full border-2 rounded-xl px-4 py-4"
                 value={startTime}
                 onChange={handleStartTimeChange}
-                min={toLocalDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000))}
+                min={toLocalDateTimeInputValue(
+                  new Date(Date.now() + 60 * 60 * 1000)
+                )}
               />
             </div>
             <div>
@@ -199,14 +201,20 @@ const AppointmentModal = ({ open, onClose }) => {
           {startTime && endTime && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
               ⏱️ Tư vấn từ{" "}
-              <strong>{format(new Date(startTime), "hh:mm a dd/MM/yyyy")}</strong> đến{" "}
-              <strong>{format(new Date(endTime), "hh:mm a dd/MM/yyyy")}</strong> – {getDuration()}
+              <strong>
+                {format(new Date(startTime), "hh:mm a dd/MM/yyyy")}
+              </strong>{" "}
+              đến{" "}
+              <strong>{format(new Date(endTime), "hh:mm a dd/MM/yyyy")}</strong>{" "}
+              – {getDuration()}
             </div>
           )}
 
           {/* Notes */}
           <div>
-            <label className="block mb-3 text-sm font-bold text-gray-700">📝 Ghi chú (tuỳ chọn)</label>
+            <label className="block mb-3 text-sm font-bold text-gray-700">
+              📝 Ghi chú (tuỳ chọn)
+            </label>
             <textarea
               className="w-full border-2 rounded-xl px-4 py-3 resize-none"
               rows={3}
