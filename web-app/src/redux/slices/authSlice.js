@@ -4,6 +4,23 @@ import { registerUser } from "@/features/auth/services/Register";
 import { loginCoach } from "@/features/coaches/services/LoginCoach";
 import { loginAdmin } from "@/features/admin/services/adminLoginApi";
 
+// Utility: safe JSON parse fallback
+const safeParseArray = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    const raw = localStorage.getItem(key);
+    return raw
+      ? raw
+          .split(",")
+          .map(Number)
+          .filter((x) => !isNaN(x))
+      : [];
+  }
+};
+
 // Định nghĩa các action
 export const login = createAsyncThunk("auth/login", async (userData) => {
   const res = await loginUser({
@@ -30,7 +47,7 @@ export const coachLogin = createAsyncThunk(
 );
 
 export const adminLogin = createAsyncThunk(
-  "auth/loginAdmin",
+  "auth/adminLogin",
   async (adminData) => {
     const res = await loginAdmin({
       username: adminData.username,
@@ -70,12 +87,13 @@ export const updateUserProfile = createAsyncThunk(
     return data.member;
   }
 );
-
 const authSlice = createSlice({
   name: "auth",
   initialState: {
     token: localStorage.getItem("token") || null,
     userId: localStorage.getItem("userId") || null,
+    planIds: safeParseArray("planIds"),
+    smokingLogIds: safeParseArray("smokingLogIds"),
     successMessage: "",
     errorMessage: "",
     status: "idle",
@@ -84,9 +102,15 @@ const authSlice = createSlice({
     logout: (state) => {
       state.token = null;
       state.userId = null;
+      state.planIds = [];
+      state.smokingLogIds = [];
+      state.successMessage = "";
       localStorage.removeItem("token");
       localStorage.removeItem("userId");
       localStorage.removeItem("role");
+      localStorage.removeItem("planIds");
+      localStorage.removeItem("smokingLogIds");
+      localStorage.removeItem("latestPlanId");
     },
     clearMessages: (state) => {
       state.successMessage = "";
@@ -102,10 +126,23 @@ const authSlice = createSlice({
         state.status = "succeeded";
         state.token = action.payload.token;
         state.userId = action.payload.member?.id || action.payload.id;
+        state.planIds = action.payload.planIds || [];
+        state.smokingLogIds = action.payload.smokingLogIds || [];
         state.successMessage = "Login successful!";
         localStorage.setItem("role", "MEMBER");
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("userId", state.userId);
+
+        if (state.planIds.length > 0) {
+          const latestPlanId = state.planIds[state.planIds.length - 1];
+          localStorage.setItem("latestPlanId", latestPlanId);
+        }
+
+        localStorage.setItem("planIds", JSON.stringify(state.planIds));
+        localStorage.setItem(
+          "smokingLogIds",
+          JSON.stringify(state.smokingLogIds)
+        );
       })
       .addCase(login.rejected, (state) => {
         state.status = "failed";
@@ -115,7 +152,7 @@ const authSlice = createSlice({
       .addCase(signup.pending, (state) => {
         state.status = "loading";
       })
-      .addCase(signup.fulfilled, (state, action) => {
+      .addCase(signup.fulfilled, (state) => {
         state.status = "succeeded";
         state.successMessage = "Sign up successful!";
       })

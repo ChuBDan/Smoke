@@ -33,7 +33,7 @@ import CoachDashBoard from "@/pages/Coach/CoachesDBPage/CoachDashBoard";
 import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
 import CoachProfile from "@/pages/Coach/CoachesAppoimentPage/CoachProfile";
 import SmokingCessationProgress from "@/pages/SmokingCessationProgress/SmokingCessationProgress";
-
+import VNPayReturn from "@/pages/VNPay/VNPayReturn";
 const routes = (
   <Routes>
     {/* Main Application Routes with Navbar and Footer */}
@@ -48,6 +48,7 @@ const routes = (
       <Route path="smokingstatusform" element={<SmokingStatusForm />} />
       <Route path="smokingcessation" element={<SmokingCessation />} />
       <Route path="smokingprogress" element={<SmokingCessationProgress />} />
+      <Route path="vnpay-return" element={<VNPayReturn />} />
     </Route>
     {/* Admin Routes - No Navbar/Footer */}
     <Route path="/admin" element={<AdminLayout />}>
