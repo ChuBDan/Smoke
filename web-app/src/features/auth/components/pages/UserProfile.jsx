@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { updateMemberPackage } from "@/redux/slices/authSlice"
+import { getMemberInfo } from "@/features/auth/services/getMemberInfo"
 
 const MyProfile = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { userId, token, memberPackage } = useSelector((state) => state.auth);
+
   const [userData, setUserData] = useState({
     fullName: "",
     email: "",
@@ -11,99 +17,69 @@ const MyProfile = () => {
     gender: "",
     dob: "",
   });
-
   const [isEdit, setIsEdit] = useState(false);
-  const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [badges, setBadges] = useState([]);
 
-  const { userId, token } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
-
-  // Redirect nếu chưa đăng nhập
   useEffect(() => {
-    if (!userId || !token) {
-      navigate("/signup");
-    }
+    if (!userId || !token) navigate("/login");
   }, [userId, token, navigate]);
 
-  // Fake badge
   useEffect(() => {
     const mockBadges = [
-      { id: 1, title: "1-Day Smoking Free", date: "11/06/2025", description: "Chúc mừng bạn!", icon: "🚭" },
-      { id: 2, title: "100K Money Save", date: "12/06/2025", description: "Tiết kiệm 100K!", icon: "💰" },
-      { id: 3, title: "1-Week Milestone", date: "18/06/2025", description: "Kiên trì 1 tuần!", icon: "🏆" },
+      { id: 1, title: "1-Day Free", date: "11/06/2025", description: "Cố lên!", icon: "🚭" },
+      { id: 2, title: "100K Saved", date: "12/06/2025", description: "Tiết kiệm tốt!", icon: "💰" },
+      { id: 3, title: "1 Week!", date: "18/06/2025", description: "Tiến bộ!", icon: "🏆" },
     ];
-
-    setTimeout(() => {
-      setBadges(mockBadges);
-      setLoading(false);
-    }, 1000);
+    setTimeout(() => setBadges(mockBadges), 800);
   }, []);
 
-  // Lấy thông tin user
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await axios.get(
-          `https://deploy-smk.onrender.com/api/user/get-member-by-id/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const member = res.data.member;
-        setUserData({
-          fullName: member.fullName || "",
-          email: member.email || "",
-          phone: member.phone || "",
-          gender: member.gender || "",
-          dob: member.dob || "",
-        });
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-        setError("Không thể tải thông tin người dùng.");
-      } finally {
-        setLoading(false);
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
+      const member = await getMemberInfo(userId, token);
+
+      setUserData({
+        fullName: member.fullName || "",
+        email: member.email || "",
+        phone: member.phoneNumber || "",
+        gender: member.gender || "",
+        dob: member.dob || "",
+      });
+
+      if (member.membership_Package) {
+        dispatch(updateMemberPackage(member.membership_Package));
       }
-    };
-
-    if (userId && token) {
-      fetchUserData();
+    } catch (err) {
+      console.error("Fetch user error:", err);
+      setError("Không thể tải thông tin người dùng.");
+    } finally {
+      setLoading(false);
     }
-  }, [userId, token]);
+  };
 
-  const handleInputChange = (e) => {
+  if (userId && token) fetchUser();
+}, [userId, token, dispatch]);
+
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSaveChanges = async () => {
+  const handleSave = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const dataToSend = {
-        fullName: userData.fullName,
-        email: userData.email,
-        phone: userData.phone,
-        gender: userData.gender,
-        dob: userData.dob,
-      };
-
       const res = await axios.put(
         `https://deploy-smk.onrender.com/api/member/update-member/${userId}`,
-        dataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        userData,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      console.log("Cập nhật thành công:", res.data);
+      console.log("Updated:", res.data);
       setIsEdit(false);
     } catch (err) {
-      console.error("Lỗi cập nhật:", err);
+      console.error("Update failed:", err);
       setError("Không thể cập nhật thông tin.");
     } finally {
       setLoading(false);
@@ -114,127 +90,120 @@ const MyProfile = () => {
   if (error) return <div className="text-red-500 text-center h-screen">{error}</div>;
 
   return (
-    <div className="container mx-auto p-4 flex flex-col md:flex-row gap-8">
-      <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow">
+    <div className="container mx-auto p-6 flex flex-col md:flex-row gap-6">
+      {/* Profile Section */}
+      <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-3xl">👤</div>
+          <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center text-3xl">👤</div>
           {isEdit ? (
             <input
               type="text"
               name="fullName"
               value={userData.fullName}
-              onChange={handleInputChange}
-              className="text-2xl font-bold border-b border-gray-300 focus:outline-none focus:border-black"
+              onChange={handleChange}
+              className="text-xl font-bold border-b w-full focus:outline-none"
             />
           ) : (
-            <h1 className="text-2xl font-bold">{userData.fullName}</h1>
+            <h1 className="text-xl font-bold">{userData.fullName}</h1>
           )}
         </div>
 
-        <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin liên hệ</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-gray-600 block">Email:</label>
-              {isEdit ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={userData.email}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                />
-              ) : (
-                <p>{userData.email}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-gray-600 block">Phone:</label>
-              {isEdit ? (
-                <input
-                  type="tel"
-                  name="phone"
-                  value={userData.phone}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                />
-              ) : (
-                <p>{userData.phone}</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin cơ bản</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="text-gray-600 block">Gender:</label>
-              {isEdit ? (
-                <select
-                  name="gender"
-                  value={userData.gender}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                >
+        {[
+          { label: "Email", name: "email" },
+          { label: "Phone", name: "phone" },
+          { label: "Gender", name: "gender", isSelect: true },
+          { label: "Birthday", name: "dob", type: "date" },
+        ].map(({ label, name, isSelect, type = "text" }) => (
+          <div key={name} className="mb-4">
+            <label className="text-gray-600 block">{label}:</label>
+            {isEdit ? (
+              isSelect ? (
+                <select name={name} value={userData[name]} onChange={handleChange} className="w-full border p-2 rounded">
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
                   <option value="OTHER">Other</option>
                 </select>
               ) : (
-                <p>{userData.gender}</p>
-              )}
-            </div>
-            <div>
-              <label className="text-gray-600 block">Birthday:</label>
-              {isEdit ? (
                 <input
-                  type="date"
-                  name="dob"
-                  value={userData.dob}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  type={type}
+                  name={name}
+                  value={userData[name]}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded"
                 />
-              ) : (
-                <p>{userData.dob}</p>
-              )}
-            </div>
+              )
+            ) : (
+              <p>{userData[name]}</p>
+            )}
           </div>
-        </div>
+        ))}
 
         <button
-          onClick={isEdit ? handleSaveChanges : () => setIsEdit(true)}
-          className={`px-6 py-2 rounded-full ${
-            isEdit
-              ? "bg-green-600 hover:bg-green-700 text-white"
-              : "bg-gray-200 hover:bg-gray-300 text-gray-800"
-          } transition-colors`}
+          onClick={isEdit ? handleSave : () => setIsEdit(true)}
+          className={`mt-6 px-6 py-2 rounded-full transition ${
+            isEdit ? "bg-green-600 text-white" : "bg-gray-200 text-black"
+          }`}
         >
-          {isEdit ? "Lưu thông tin" : "Chỉnh sửa"}
+          {isEdit ? "Lưu" : "Chỉnh sửa"}
         </button>
+
+        {/* Member Package Section */}
+        <div className="mt-8">
+          <h3 className="text-gray-700 text-lg font-semibold mb-2">Gói thành viên</h3>
+          {memberPackage ? (
+            <div className="p-4 border rounded bg-blue-50">
+              <p className="text-blue-800 font-bold text-lg">{memberPackage.packageName}</p>
+              <p className="text-sm text-gray-700 mt-1">{memberPackage.description}</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Giá: <strong>{Number(memberPackage.price).toLocaleString()} VND</strong>
+              </p>
+              <p className="text-sm text-gray-500">Ngày tạo: {memberPackage.dateCreated}</p>
+              {memberPackage.packageName.toUpperCase() === "FREE" && (
+                <button
+                  onClick={() => navigate("/membership")}
+                  className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Nâng cấp gói VIP
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-500 italic">Chưa đăng ký gói thành viên nào.</p>
+              <button
+                onClick={() => navigate("/membership")}
+                className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              >
+                Đăng ký gói thành viên
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Huy hiệu Thành tích</h2>
+      {/* Badges Section */}
+      <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-4">Huy hiệu thành tích</h2>
         {badges.length > 0 ? (
-          <div className="h-[calc(100vh-200px)] overflow-y-auto">
-            <div className="space-y-4 pb-4">
-              {badges.map((badge) => (
-                <div key={badge.id} className="bg-gray-100 p-4 rounded-lg border-l-4 border-gray-800">
-                  <div className="bg-gray-800 text-white w-10 h-10 flex items-center justify-center rounded-full text-xl flex-shrink-0">
-                    {badge.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{badge.title}</h3>
-                    <p className="text-sm text-gray-600">Đạt ngày: {badge.date}</p>
-                    <p className="mt-1 text-gray-700">{badge.description}</p>
-                  </div>
+          <div className="space-y-4 max-h-[500px] overflow-y-auto">
+            {badges.map((badge) => (
+              <div
+                key={badge.id}
+                className="p-4 bg-gray-100 rounded-lg flex items-start gap-3 border-l-4 border-blue-600"
+              >
+                <div className="w-10 h-10 text-xl bg-blue-600 text-white flex items-center justify-center rounded-full">
+                  {badge.icon}
                 </div>
-              ))}
-            </div>
+                <div>
+                  <h3 className="font-semibold">{badge.title}</h3>
+                  <p className="text-sm text-gray-600">Ngày đạt: {badge.date}</p>
+                  <p className="text-gray-700">{badge.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">Chưa có huy hiệu nào</p>
+          <p className="text-gray-500 text-sm">Chưa có huy hiệu nào.</p>
         )}
       </div>
     </div>
