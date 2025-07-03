@@ -20,19 +20,19 @@ const MyProfile = () => {
   const { userId, token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
-  // Redirect nếu chưa đăng nhập
+  // Redirect if not logged in
   useEffect(() => {
     if (!userId || !token) {
       navigate("/login");
     }
   }, [userId, token, navigate]);
 
-  // Fake badge
+  // Fake badges
   useEffect(() => {
     const mockBadges = [
-      { id: 1, title: "1-Day Smoking Free", date: "11/06/2025", description: "Chúc mừng bạn!", icon: "🚭" },
-      { id: 2, title: "100K Money Save", date: "12/06/2025", description: "Tiết kiệm 100K!", icon: "💰" },
-      { id: 3, title: "1-Week Milestone", date: "18/06/2025", description: "Kiên trì 1 tuần!", icon: "🏆" },
+      { id: 1, title: "1-Day Smoke-Free", date: "11/06/2025", description: "Congratulations!", icon: "🚭" },
+      { id: 2, title: "100K Saved", date: "12/06/2025", description: "You've saved 100K!", icon: "💰" },
+      { id: 3, title: "1-Week Milestone", date: "18/06/2025", description: "Stayed strong for 1 week!", icon: "🏆" },
     ];
 
     setTimeout(() => {
@@ -41,7 +41,7 @@ const MyProfile = () => {
     }, 1000);
   }, []);
 
-  // Lấy thông tin user
+  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -63,7 +63,7 @@ const MyProfile = () => {
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
-        setError("Không thể tải thông tin người dùng.");
+        setError("Unable to load user information.");
       } finally {
         setLoading(false);
       }
@@ -100,11 +100,11 @@ const MyProfile = () => {
         }
       );
 
-      console.log("Cập nhật thành công:", res.data);
+      console.log("Update successful:", res.data);
       setIsEdit(false);
     } catch (err) {
-      console.error("Lỗi cập nhật:", err);
-      setError("Không thể cập nhật thông tin.");
+      console.error("Update error:", err);
+      setError("Unable to update information.");
     } finally {
       setLoading(false);
     }
@@ -132,27 +132,27 @@ const MyProfile = () => {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin liên hệ</h2>
+          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Contact Information</h2>
           <div className="space-y-3">
             <div>
-  <label className="text-gray-600 block">Email:</label>
-  <input
-    type="email"
-    name="email"
-    value={userData.email}
-    className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
-    readOnly
-    disabled
-  />
-</div>
+              <label className="text-gray-600 block">Email:</label>
+              <input
+                type="email"
+                name="email"
+                value={userData.email}
+                className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
+                readOnly
+                disabled
+              />
+            </div>
 
             <div>
               <label className="text-gray-600 block">Phone:</label>
               {isEdit ? (
                 <input
                   type="tel"
-                  name="phoneNumber" 
-    value={userData.phoneNumber}
+                  name="phoneNumber"
+                  value={userData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 />
@@ -164,7 +164,7 @@ const MyProfile = () => {
         </div>
 
         <div className="mb-6">
-          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin cơ bản</h2>
+          <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Basic Information</h2>
           <div className="space-y-3">
             <div>
               <label className="text-gray-600 block">Gender:</label>
@@ -208,12 +208,12 @@ const MyProfile = () => {
               : "bg-gray-200 hover:bg-gray-300 text-gray-800"
           } transition-colors`}
         >
-          {isEdit ? "Lưu thông tin" : "Chỉnh sửa"}
+          {isEdit ? "Save Changes" : "Edit"}
         </button>
       </div>
 
       <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800">Huy hiệu Thành tích</h2>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">Achievement Badges</h2>
         {badges.length > 0 ? (
           <div className="h-[calc(100vh-200px)] overflow-y-auto">
             <div className="space-y-4 pb-4">
@@ -224,7 +224,7 @@ const MyProfile = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800">{badge.title}</h3>
-                    <p className="text-sm text-gray-600">Đạt ngày: {badge.date}</p>
+                    <p className="text-sm text-gray-600">Achieved on: {badge.date}</p>
                     <p className="mt-1 text-gray-700">{badge.description}</p>
                   </div>
                 </div>
@@ -232,7 +232,7 @@ const MyProfile = () => {
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">Chưa có huy hiệu nào</p>
+          <p className="text-gray-500 text-center py-8">No badges earned yet</p>
         )}
       </div>
     </div>
