@@ -1,12 +1,13 @@
 import PropTypes from "prop-types";
 import styles from "./Dashboard.module.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllMembers } from "@/redux/slices/membersSlice";
 import { fetchAllPackages } from "@/redux/slices/packagesSlice";
 import { fetchAllBadges } from "@/redux/slices/badgesSlice";
 import { isToday, isYesterday } from "@/utils/dateHelpers";
 import { setDashboardLoadedOnce } from "@/redux/slices/membersSlice";
+import { ReportsModal } from "../index";
 
 const MetricCard = ({ title, value, change, icon, trend }) => (
   <div className={styles.metricCard}>
@@ -96,6 +97,7 @@ const STALE_TIME = 5 * 60 * 1000; // 5 minutes in ms
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
   const membersState = useSelector((state) => state.members);
   const packagesState = useSelector((state) => state.packages);
   const badgesState = useSelector((state) => state.badges);
@@ -300,7 +302,10 @@ const Dashboard = () => {
           </p>
         </div>
         <div className={styles.welcomeActions}>
-          <button className={styles.secondaryButton}>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => setIsReportsModalOpen(true)}
+          >
             <svg
               width="20"
               height="20"
@@ -478,6 +483,12 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Reports Modal */}
+      <ReportsModal
+        isOpen={isReportsModalOpen}
+        onClose={() => setIsReportsModalOpen(false)}
+      />
     </div>
   );
 };

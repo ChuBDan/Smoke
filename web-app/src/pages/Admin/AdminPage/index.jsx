@@ -45,7 +45,7 @@ const AdminPage = () => {
               </svg>
             </button>
             <div className={styles.breadcrumb}>
-              <span className={styles.breadcrumbText}>SmokeFree Admin</span>
+              <span className={styles.breadcrumbText}>Prescripto Admin</span>
               <span className={styles.breadcrumbSeparator}>›</span>
               <span className={styles.breadcrumbCurrent}>
                 {location.pathname === "/admin"
