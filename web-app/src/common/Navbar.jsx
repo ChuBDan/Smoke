@@ -43,6 +43,13 @@ const Navbar = () => {
           <li className="py-1">Contact</li>
           <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
         </NavLink>
+          {/* Chỉ hiện khi đã login */}
+  {token && (
+    <NavLink to="/smokingstatusform">
+      <li className="py-1">Smoking Form</li>
+      <hr className="border-none outline-none h-0.5 bg-primary w3/5 m-auto hidden" />
+    </NavLink>
+  )}
 
         {/* Role-based navigation */}
         {userRole === "admin" && (
