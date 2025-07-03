@@ -103,23 +103,7 @@ const moderatePlanPhases = [
       "Evaluate and celebrate progress.",
     ],
   },
-  {
-    key: "phase4",
-    name: "Phase 4 (Weeks 13–16)",
-    days: 28,
-    weeks: 4,
-    goal: "Final Taper and Quit Date",
-    strategies: [
-      "Set and approach your quit date.",
-      "Reduce to 1–2 cigarettes max/day by end of week 16.",
-      "Tell friends/family your quit date for accountability.",
-      "Use all prior coping strategies to manage any slips.",
-      "Prepare emergency toolkit (gum, water, breathing techniques).",
-      "Visualize life after quitting — write it down.",
-      "Start journaling about daily urges and how you handle them.",
-      "Celebrate reaching quit day — big reward!",
-    ],
-  },
+  
 ]
 
 const heavyPlanPhases = [
@@ -174,40 +158,7 @@ const heavyPlanPhases = [
       "Reflect on mental, physical, and financial benefits so far.",
     ],
   },
-  {
-    key: "phase4",
-    name: "Phase 4 (Weeks 13–16)",
-    days: 28,
-    weeks: 4,
-    goal: "Quit Day and Maintenance",
-    strategies: [
-      "Quit smoking completely on your selected day.",
-      "Remove all cigarettes, lighters, and ashtrays from your space.",
-      "Use your coping toolkit aggressively in the first few days post-quit.",
-      "Journal your progress and relapses without judgment.",
-      "Get extra sleep and hydration.",
-      "Reward yourself with something significant at the end of the month.",
-      "Reaffirm your identity as a non-smoker daily.",
-      "Stay connected to support community or therapist.",
-    ],
-  },
-  {
-    key: "phase5",
-    name: "Phase 5 (Weeks 17–20)",
-    days: 28,
-    weeks: 4,
-    goal: "Long-Term Maintenance and Relapse Prevention",
-    strategies: [
-      "Reinforce the 'no smoking' rule — no exceptions.",
-      "Practice refusal skills in social situations.",
-      "Check in weekly with a support person or group.",
-      "Revisit motivations: health, money, relationships.",
-      "Stay alert for emotional or stress relapse triggers.",
-      "Create a personal 'smoke-free' milestone celebration.",
-      "Adopt a new identity-based habit (runner, writer, etc.).",
-      "Start helping others quit — mentor if possible.",
-    ],
-  },
+  
 ]
 
 export { lightPlanPhases, moderatePlanPhases, heavyPlanPhases }

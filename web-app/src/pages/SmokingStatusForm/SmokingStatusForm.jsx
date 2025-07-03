@@ -232,15 +232,7 @@ const SmokingStatusForm = () => {
                 />
               </div>
             </div>
-
-
-
           </div>
-
-
-
-
-
 
           {/* Membership Notice */}
           {!isPaidMember && (
