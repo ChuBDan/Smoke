@@ -8,7 +8,7 @@ import { dateUtils } from "@/utils/dateUtils";
 import { getCurrentSmokingLog } from "@/utils/smokingLogUtils";
 import { getCurrentSmokingPlan } from "@/utils/planUtils";
 import Card from "./components/Card";
-import { freePlanPhases } from "./components/freePhases";
+import { lightPlanPhases } from "./components/freePhases";
 import AppointmentModal from "@/pages/Appointments/AppointmentModal";
 
 export default function SmokingcessationProgress() {
