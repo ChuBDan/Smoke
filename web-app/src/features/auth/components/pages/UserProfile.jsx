@@ -7,7 +7,7 @@ const MyProfile = () => {
   const [userData, setUserData] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
     gender: "",
     dob: "",
   });
@@ -23,7 +23,7 @@ const MyProfile = () => {
   // Redirect nếu chưa đăng nhập
   useEffect(() => {
     if (!userId || !token) {
-      navigate("/signup");
+      navigate("/login");
     }
   }, [userId, token, navigate]);
 
@@ -57,7 +57,7 @@ const MyProfile = () => {
         setUserData({
           fullName: member.fullName || "",
           email: member.email || "",
-          phone: member.phone || "",
+          phoneNumber: member.phoneNumber || "",
           gender: member.gender || "",
           dob: member.dob || "",
         });
@@ -85,7 +85,7 @@ const MyProfile = () => {
       const dataToSend = {
         fullName: userData.fullName,
         email: userData.email,
-        phone: userData.phone,
+        phoneNumber: userData.phoneNumber,
         gender: userData.gender,
         dob: userData.dob,
       };
@@ -135,31 +135,29 @@ const MyProfile = () => {
           <h2 className="text-gray-500 uppercase text-sm font-bold mb-3">Thông tin liên hệ</h2>
           <div className="space-y-3">
             <div>
-              <label className="text-gray-600 block">Email:</label>
-              {isEdit ? (
-                <input
-                  type="email"
-                  name="email"
-                  value={userData.email}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                />
-              ) : (
-                <p>{userData.email}</p>
-              )}
-            </div>
+  <label className="text-gray-600 block">Email:</label>
+  <input
+    type="email"
+    name="email"
+    value={userData.email}
+    className="w-full p-2 border rounded bg-gray-100 cursor-not-allowed"
+    readOnly
+    disabled
+  />
+</div>
+
             <div>
               <label className="text-gray-600 block">Phone:</label>
               {isEdit ? (
                 <input
                   type="tel"
-                  name="phone"
-                  value={userData.phone}
+                  name="phoneNumber" 
+    value={userData.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                 />
               ) : (
-                <p>{userData.phone}</p>
+                <p>{userData.phoneNumber}</p>
               )}
             </div>
           </div>
