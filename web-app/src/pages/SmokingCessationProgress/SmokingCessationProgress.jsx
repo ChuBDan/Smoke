@@ -9,7 +9,7 @@ import { dateUtils } from "@/utils/dateUtils"
 import { getCurrentSmokingLog } from "@/utils/smokingLogUtils"
 import { getCurrentSmokingPlan } from "@/utils/planUtils"
 import Card from "./components/Card"
-import { freePlanPhases } from "./components/freePhases"
+import { lightPlanPhases, moderatePlanPhases, heavyPlanPhases } from "./components/freePhases"
 
 export default function SmokingcessationProgress() {
   const [currentPhase, setCurrentPhase] = useState("phase1")
@@ -23,7 +23,6 @@ export default function SmokingcessationProgress() {
   const [submittingProgress, setSubmittingProgress] = useState(false)
   const [progressHistory, setProgressHistory] = useState([])
   const [existingLog, setExistingLog] = useState(null)
-
 
   const { userId, token } = useSelector((state) => state.auth)
 
@@ -60,7 +59,6 @@ export default function SmokingcessationProgress() {
             if (planResponse.plan && planResponse.plan.planSchema) {
               try {
                 const progressResponse = await smokingCessationApi.getDailyProgressByMemberId(userId, token)
-                // Set progress status, even if empty - don't create automatically
                 setDailyProgressStatus(progressResponse || {})
                 if (progressResponse) {
                   // Also fetch progress history
@@ -69,7 +67,6 @@ export default function SmokingcessationProgress() {
                 }
               } catch (progressError) {
                 console.error("Error fetching daily progress:", progressError)
-                // Set empty progress status - user will be on day 1
                 setDailyProgressStatus({})
               }
             }
@@ -85,7 +82,6 @@ export default function SmokingcessationProgress() {
           }
         } catch (error) {
           console.error("Error fetching plan data:", error)
-          // If plan fetch fails, user might be on free plan
           setPlan(null)
         } finally {
           setLoading(false)
@@ -96,14 +92,11 @@ export default function SmokingcessationProgress() {
     fetchPlanData()
   }, [])
 
-
-
   const isPaidMember = plan && Object.prototype.hasOwnProperty.call(plan, "planSchema")
   // Default values
   let startDate = new Date(Date.now())
   let cigsPerDay = 10
   let costPerCig = 2000
-
 
   // Use smokingLogs if available
   if (existingLog) {
@@ -128,7 +121,22 @@ export default function SmokingcessationProgress() {
       // Transform AI plan to match our expected structure
       return transformAIPlanToPhases(plan)
     }
-    return freePlanPhases.find((p) => p.key === currentPhase)
+    // Free plan logic
+    let freePhases
+    switch (plan?.phases) {
+      case "Light Smoker":
+        freePhases = lightPlanPhases
+        break
+      case "Moderate Smoker":
+        freePhases = moderatePlanPhases
+        break
+      case "Heavy Smoker":
+        freePhases = heavyPlanPhases
+        break
+      default:
+        freePhases = lightPlanPhases
+    }
+    return freePhases.find((p) => p.key === currentPhase)
   }
 
   const transformAIPlanToPhases = (plan) => {
@@ -136,19 +144,17 @@ export default function SmokingcessationProgress() {
       return null
     }
 
-    // Use the correct property names from the API response
     return plan.planSchema.phases.map((phase) => ({
       key: `ai_phase${phase.phaseNumber}`,
-      name: `Phase ${phase.phaseNumber} (${phase.weekRange})`, // Use weekRange
-      days: calculatePhaseDays(phase.weekRange), // Pass weekRange
-      weeks: calculatePhaseWeeks(phase.weekRange), // Pass weekRange
-      goal: phase.goal, // Use goal
-      strategies: phase.strategies, // Use strategies
+      name: `Phase ${phase.phaseNumber} (${phase.weekRange})`,
+      days: calculatePhaseDays(phase.weekRange),
+      weeks: calculatePhaseWeeks(phase.weekRange),
+      goal: phase.goal,
+      strategies: phase.strategies,
     }))
   }
 
   const calculatePhaseDays = (timePeriod) => {
-    // Parse time period like "Weeks 1-2", "Weeks 3-8", etc.
     const match = timePeriod.match(/Weeks?\s+(\d+)(?:-(\d+))?/i)
     if (match) {
       const start = Number.parseInt(match[1])
@@ -167,7 +173,6 @@ export default function SmokingcessationProgress() {
     const activePlan = getActivePlan()
 
     if (isPaidMember && Array.isArray(activePlan)) {
-      // For AI plan, find current phase and calculate within that phase
       const currentPhaseData = activePlan.find((p) => p.key === currentPhase) || activePlan[0]
       if (currentPhaseData) {
         const daysInPhase = totalDays % currentPhaseData.days || totalDays
@@ -176,7 +181,6 @@ export default function SmokingcessationProgress() {
         return { currentWeek, currentDay }
       }
     } else if (activePlan) {
-      // For free plan
       const daysInPhase = totalDays % activePlan.days || totalDays
       const currentWeek = Math.floor(daysInPhase / 7) + 1
       const currentDay = daysInPhase % 7 || 7
@@ -187,11 +191,9 @@ export default function SmokingcessationProgress() {
 
   const showDailySubmission = () => {
     if (!isPaidMember) {
-      // Free members: show quiz on day 3 and 7
       const { currentDay } = getCurrentWeekAndDay()
       return currentDay === 3 || currentDay === 7
     }
-    // VIP members: show daily submission every day if not completed
     const dayKey = getDayKey()
     const isCompleted = isDayCompleted(dayKey)
     return !isCompleted
@@ -221,7 +223,6 @@ export default function SmokingcessationProgress() {
 
   const handleQuizSubmit = async () => {
     if (isPaidMember) {
-      // VIP members: submit daily progress
       setSubmittingProgress(true)
       try {
         const dayKey = getDayKey()
@@ -230,25 +231,19 @@ export default function SmokingcessationProgress() {
           healthImprovement: quizAnswers.healthImprovement,
         }
 
-        // Check if this is the first progress entry
         const hasExistingProgress = Object.keys(dailyProgressStatus).length > 0
 
         if (!hasExistingProgress) {
-          // Create new progress using the create-progress endpoint
           await smokingCessationApi.createProgress(userId, progressData, token)
         } else {
-          // Update existing progress
           await smokingCessationApi.updateProgress(userId, progressData, token)
         }
 
-        // Update local state
         setDailyProgressStatus((prev) => ({
           ...prev,
           [dayKey]: { completed: true, submissionDate: new Date().toISOString() },
         }))
 
-        // Refresh progress history
-        // const historyResponse = await smokingCessationApi.getMemberProgressHistory(userId, token)
         let historyResponse
         setProgressHistory(historyResponse)
 
@@ -261,11 +256,9 @@ export default function SmokingcessationProgress() {
         setSubmittingProgress(false)
       }
     } else {
-      // Free members: submit progress using the progress API
       setSubmittingProgress(true)
       try {
         const progressData = {
-
           cigarettes: quizAnswers.cigarettes,
           trigger: quizAnswers.trigger,
           cravings: quizAnswers.cravings,
@@ -273,7 +266,6 @@ export default function SmokingcessationProgress() {
 
         await smokingCessationApi.createProgress(userId, progressData, token)
 
-        // Refresh progress history
         const historyResponse = await smokingCessationApi.getMemberProgressHistory(userId)
         setProgressHistory(historyResponse)
         setQuizSubmitted(true)
@@ -406,24 +398,41 @@ export default function SmokingcessationProgress() {
     )
   }
 
-  const renderFreePlanPhases = () => (
-    <div className="flex flex-col gap-4 text-sm text-gray-600">
-      {freePlanPhases.map((phase) => (
-        <p
-          key={phase.key}
-          onClick={() => {
-            setCurrentPhase(phase.key)
-            setQuizAnswers({})
-            setQuizSubmitted(false)
-          }}
-          className={`w-[94vw] sm:w-auto pl-4 pr-16 py-2 border border-gray-300 rounded cursor-pointer whitespace-nowrap transition-all ${currentPhase === phase.key ? "bg-indigo-100 text-black font-medium" : ""
-            }`}
-        >
-          {phase.name}
-        </p>
-      ))}
-    </div>
-  )
+  const renderFreePlanPhases = () => {
+    let freePhases
+    switch (plan?.phases) {
+      case "Light Smoker":
+        freePhases = lightPlanPhases
+        break
+      case "Moderate Smoker":
+        freePhases = moderatePlanPhases
+        break
+      case "Heavy Smoker":
+        freePhases = heavyPlanPhases
+        break
+      default:
+        freePhases = lightPlanPhases
+    }
+
+    return (
+      <div className="flex flex-col gap-4 text-sm text-gray-600">
+        {freePhases.map((phase) => (
+          <p
+            key={phase.key}
+            onClick={() => {
+              setCurrentPhase(phase.key)
+              setQuizAnswers({})
+              setQuizSubmitted(false)
+            }}
+            className={`w-[94vw] sm:w-auto pl-4 pr-16 py-2 border border-gray-300 rounded cursor-pointer whitespace-nowrap transition-all ${currentPhase === phase.key ? "bg-indigo-100 text-black font-medium" : ""
+              }`}
+          >
+            {phase.name}
+          </p>
+        ))}
+      </div>
+    )
+  }
 
   const renderDailySubmission = () => {
     const dayKey = getDayKey()
@@ -549,7 +558,7 @@ export default function SmokingcessationProgress() {
                   <strong>Expected End Date:</strong> {plan.ExpectedEndDate}
                 </p>
                 <p>
-                   <strong>Daily Cost:</strong> {plan.planSchema?.costPerDay?.toLocaleString()} VND
+                  <strong>Daily Cost:</strong> {plan.planSchema?.costPerDay?.toLocaleString()} VND
                 </p>
                 <p>
                   <strong>Status:</strong> <span className="text-green-600">{plan.status}</span>
@@ -578,14 +587,6 @@ export default function SmokingcessationProgress() {
                   {plan.planSchema.warningsOrNotes.map((note, index) => (
                     <li key={index}>{note}</li>
                   ))}
-
-
-                  {plan.planSchema?.notesOrDisclaimers && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                      <p className="font-semibold text-yellow-800 mb-2">Important Notes:</p>
-                      <p className="text-yellow-700 space-y-1">{plan.planSchema.notesOrDisclaimers}</p>
-                    </div>
-                  )}
                 </ul>
               </div>
             )}
@@ -617,9 +618,23 @@ export default function SmokingcessationProgress() {
     : []
   const { currentWeek, currentDay } = getCurrentWeekAndDay()
 
-
   console.log("plan >> ", plan);
   console.log("existingLog >> ", existingLog)
+
+  if (!existingLog && !loading) {
+  return (
+    <div className="p-6 text-center text-red-600">
+      <p className="text-lg font-semibold mb-2">You haven't provided your smoking status yet!</p>
+      <p className="mb-4">Please complete the form before starting to track your cessation progress.</p>
+      <a
+        href="/smokingstatusform"
+        className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
+      >
+        Go to Smoking Status Form
+      </a>
+    </div>
+  )
+}
 
   return (
     <div className="px-4 py-6">
@@ -632,7 +647,6 @@ export default function SmokingcessationProgress() {
         )}
       </div>
 
-      {/* Date Picker */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700">Select Date to Test (YYYY-MM-DD):</label>
         <input
@@ -650,21 +664,13 @@ export default function SmokingcessationProgress() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6">
-        {/* Phase Selector */}
         {isPaidMember ? renderVIPPlanPhases() : renderFreePlanPhases()}
 
-        {/* Main Content */}
         <div className="w-full grid md:grid-cols-2 gap-6">
-          {/* Smoking Log Info */}
           {renderSmokingLogInfo()}
-
-          {/* Progress History */}
           {renderProgressHistory()}
-
-          {/* AI Plan Info for VIP */}
           {renderPlanInfo()}
 
-          {/* Goal & Strategies */}
           {currentPlanPhase && (
             <div className="md:col-span-2 border border-blue-200 rounded-xl overflow-hidden shadow hover:shadow-md transition">
               <div className="bg-blue-50 p-4">
@@ -693,18 +699,12 @@ export default function SmokingcessationProgress() {
             </div>
           )}
 
-          {/* Daily Submission / Weekly Quiz */}
           {renderDailySubmission()}
 
-          {/* Phase Duration */}
           {currentPlanPhase && (
             <Card title="Phase Duration" subtitle="In Progress" value={`${currentPlanPhase.days} days`} />
           )}
 
-          {/* Money Saved */}
-          {/* <Card title="Money Saved" subtitle="Savings" value={`${calculateSavedMoney().toLocaleString()} VND`} /> */}
-
-          {/* Health Improvement */}
           <div className="border border-blue-200 rounded-xl overflow-hidden shadow hover:shadow-md transition">
             <div className="bg-blue-50 p-4">
               <p className="text-gray-900 text-lg font-medium">Health Improvement</p>
@@ -714,17 +714,9 @@ export default function SmokingcessationProgress() {
                 <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                 <span>Recovering</span>
               </div>
-              {/* <div className="w-full bg-gray-200 rounded-full h-6">
-                <div
-                  className="bg-green-600 h-6 rounded-full transition-all"
-                  style={{ width: `${calculateHealthImprovement()}%` }}
-                ></div>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">{calculateHealthImprovement().toFixed(1)}%</p> */}
             </div>
           </div>
 
-          {/* Smoking Statistics */}
           <div className="border border-orange-200 rounded-xl overflow-hidden shadow hover:shadow-md transition">
             <div className="bg-orange-50 p-4">
               <p className="text-gray-900 text-lg font-medium">Your Statistics</p>
@@ -748,42 +740,38 @@ export default function SmokingcessationProgress() {
             </div>
           </div>
 
-          {/* VIP Progress Overview */}
-          {
-            <div className="md:col-span-2 border border-purple-200 rounded-xl overflow-hidden shadow hover:shadow-md transition">
-              <div className="bg-purple-50 p-4">
-                <p className="text-gray-900 text-lg font-medium">Weekly Progress Overview</p>
-              </div>
-              <div className="p-4">
-                <div className="grid grid-cols-7 gap-2">
-                  {[1, 2, 3, 4, 5, 6, 7].map((day) => {
-                    const dayKey = `week${currentWeek}_day${day}`
-                    const isCompleted = isDayCompleted(dayKey)
-                    const isToday = day === currentDay
+          <div className="md:col-span-2 border border-purple-200 rounded-xl overflow-hidden shadow hover:shadow-md transition">
+            <div className="bg-purple-50 p-4">
+              <p className="text-gray-900 text-lg font-medium">Weekly Progress Overview</p>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-7 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7].map((day) => {
+                  const dayKey = `week${currentWeek}_day${day}`
+                  const isCompleted = isDayCompleted(dayKey)
+                  const isToday = day === currentDay
 
-                    return (
-                      <div
-                        key={day}
-                        className={`p-2 text-center rounded text-sm font-medium ${isCompleted
-                          ? "bg-green-100 text-green-800"
-                          : isToday
-                            ? "bg-blue-100 text-blue-800 border-2 border-blue-300"
-                            : "bg-gray-100 text-gray-600"
-                          }`}
-                      >
-                        Day {day}
-                        {isCompleted && <div className="text-xs">✅</div>}
-                        {isToday && !isCompleted && <div className="text-xs">📝</div>}
-                      </div>
-                    )
-                  })}
-                </div>
+                  return (
+                    <div
+                      key={day}
+                      className={`p-2 text-center rounded text-sm font-medium ${isCompleted
+                        ? "bg-green-100 text-green-800"
+                        : isToday
+                          ? "bg-blue-100 text-blue-800 border-2 border-blue-300"
+                          : "bg-gray-100 text-gray-600"
+                        }`}
+                    >
+                      Day {day}
+                      {isCompleted && <div className="text-xs">✅</div>}
+                      {isToday && !isCompleted && <div className="text-xs">📝</div>}
+                    </div>
+                  )
+                })}
               </div>
             </div>
-          }
+          </div>
         </div>
       </div>
     </div>
   )
 }
-

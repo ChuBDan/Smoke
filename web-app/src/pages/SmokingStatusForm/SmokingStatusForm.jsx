@@ -217,7 +217,7 @@ const SmokingStatusForm = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="costPerPack">
-                  Cost per pack (VND) *
+                  Cost per cigarette (VND) *
                 </label>
                 <input
                   type="number"
