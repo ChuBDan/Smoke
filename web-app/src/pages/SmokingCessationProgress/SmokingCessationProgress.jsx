@@ -80,7 +80,7 @@ export default function SmokingcessationProgress() {
     if (isPaidMember && plan) {
       return transformAIPlanToPhases(plan);
     }
-    return freePlanPhases.find((p) => p.key === currentPhase);
+    return lightPlanPhases.find((p) => p.key === currentPhase);
   }, [isPaidMember, plan, currentPhase]);
 
   const getTotalDays = () => {
@@ -501,7 +501,7 @@ export default function SmokingcessationProgress() {
 
   const renderFreePlanPhases = () => (
     <div className="flex flex-col gap-4 text-sm text-gray-600">
-      {freePlanPhases.map((phase) => (
+      {lightPlanPhases.map((phase) => (
         <p
           key={phase.key}
           onClick={() => {
