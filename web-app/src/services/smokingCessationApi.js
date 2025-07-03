@@ -379,18 +379,5 @@ export const smokingCessationApi = {
     }
   },
 
-  getMemberProgressHistory: async (memberId, token) => {
-    try {
-      const response = await httpMethods.get("/api/public/get-all-progresses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const allProgresses = response.data;
-      return allProgresses.filter((p) => p.memberId === memberId);
-    } catch (error) {
-      console.error("Error fetching member progress history:", error);
-      throw error;
-    }
-  },
+
 };
