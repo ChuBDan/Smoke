@@ -58,7 +58,7 @@ export const fetchAllPackages = createAsyncThunk(
           dateCreated: parseCustomDate(pkg.dateCreated),
           dateUpdated: parseCustomDate(pkg.dateUpdated),
           members: pkg.members || [], // Additional fields for component display
-          memberCount: pkg.members?.length || 0,
+          memberCount: pkg.memberCount ?? (pkg.members?.length || 0),
           // Note: category and duration are frontend-only fields for UI filtering
           // Infer category from package name or description for better UI display
           category:

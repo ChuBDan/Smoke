@@ -9,3 +9,4 @@ export { default as BadgesPage } from "./Badges";
 export { default as PackagesPage } from "./Packages";
 export { default as AppointmentsPage } from "./Appointments";
 export { default as AdminLoginForm } from "./AdminLoginForm";
+export { default as ReportsModal } from "./ReportsModal";

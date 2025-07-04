@@ -19,7 +19,6 @@ const SmokingStatusForm = () => {
     cost: "",
   });
 
-  const [checkingExistingLogs, setCheckingExistingLogs] = useState(true);
   const [hasActiveLogs, setHasActiveLogs] = useState(false);
   const [existingLog, setExistingLog] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +30,6 @@ const SmokingStatusForm = () => {
       try {
         if (!userId || !token) return;
 
-        setCheckingExistingLogs(true);
         const activeLog = await getCurrentSmokingLog(userId, token);
         if (activeLog) {
           setHasActiveLogs(true);
@@ -40,7 +38,6 @@ const SmokingStatusForm = () => {
       } catch (e) {
         console.error("Error in fetchLog:", e);
       } finally {
-        setCheckingExistingLogs(false);
         setInitLoading(false);
       }
     };
@@ -98,16 +95,24 @@ const SmokingStatusForm = () => {
 
           if (planResponse?.plan?.planSchema) {
             localStorage.setItem("planId", planResponse?.plan?.id);
-            toast.success("Your personalized AI plan has been created successfully!");
+            toast.success(
+              "Your personalized AI plan has been created successfully!"
+            );
           } else {
-            toast.warning("Received plan is not AI-generated. Please contact support.");
+            toast.warning(
+              "Received plan is not AI-generated. Please contact support."
+            );
           }
         } catch (planError) {
           console.error("Error creating plan:", planError);
-          toast.warning("Your info was saved, but failed to create AI plan. Try again.");
+          toast.warning(
+            "Your info was saved, but failed to create AI plan. Try again."
+          );
         }
       } else {
-        toast.success("Your information has been recorded. Upgrade to VIP to receive a personalized plan!");
+        toast.success(
+          "Your information has been recorded. Upgrade to VIP to receive a personalized plan!"
+        );
       }
 
       navigate("/smokingprogress");
@@ -136,20 +141,34 @@ const SmokingStatusForm = () => {
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
-              <svg className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+              <svg
+                className="h-6 w-6 text-yellow-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
                 />
               </svg>
             </div>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Active Plan Found</h3>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              Active Plan Found
+            </h3>
             <p className="mt-2 text-sm text-gray-600">
               You already have an active smoking cessation plan started on{" "}
-              {new Date(dateUtils.parseDDMMYYYY(existingLog.logDate)).toLocaleDateString("vi-VN")}.
+              {new Date(
+                dateUtils.parseDDMMYYYY(existingLog.logDate)
+              ).toLocaleDateString("vi-VN")}
+              .
             </p>
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Current Plan:</strong> {existingLog.cigarettesPerDay} cigarettes/day
+                <strong>Current Plan:</strong> {existingLog.cigarettesPerDay}{" "}
+                cigarettes/day
               </p>
             </div>
             <div className="mt-6">
@@ -168,33 +187,69 @@ const SmokingStatusForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-8">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl" style={{ borderTop: "4px solid #4A90E2" }}>
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800" style={{ color: "#4A90E2" }}>
+      <div
+        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl"
+        style={{ borderTop: "4px solid #4A90E2" }}
+      >
+        <h2
+          className="text-3xl font-bold mb-6 text-center text-gray-800"
+          style={{ color: "#4A90E2" }}
+        >
           Detailed Smoking Status Assessment
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="bg-gray-50 p-6 rounded-lg">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">Basic Information</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Basic Information
+            </h3>
             <div className="grid md:grid-cols-3 gap-4">
-              <InputField label="Cigarettes per day *" name="cigarettesPerDay" value={formData.cigarettesPerDay} onChange={handleInputChange} placeholder="Example: 10" />
-              <InputField label="Frequency (times/day) *" name="frequency" value={formData.frequency} onChange={handleInputChange} placeholder="Example: 5" />
-              <InputField label="Cost per pack (VND) *" name="costPerPack" value={formData.costPerPack} onChange={handleInputChange} placeholder="Example: 30000" />
+              <InputField
+                label="Cigarettes per day *"
+                name="cigarettesPerDay"
+                value={formData.cigarettesPerDay}
+                onChange={handleInputChange}
+                placeholder="Example: 10"
+              />
+              <InputField
+                label="Frequency (times/day) *"
+                name="frequency"
+                value={formData.frequency}
+                onChange={handleInputChange}
+                placeholder="Example: 5"
+              />
+              <InputField
+                label="Cost per pack (VND) *"
+                name="costPerPack"
+                value={formData.costPerPack}
+                onChange={handleInputChange}
+                placeholder="Example: 30000"
+              />
             </div>
           </div>
-
           {!isPaidMember && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-yellow-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800">Upgrade to VIP for Personalized Plan</h3>
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    Upgrade to VIP for Personalized Plan
+                  </h3>
                   <p className="mt-1 text-sm text-yellow-700">
-                    VIP members will receive a smoking cessation plan created by AI based on your detailed information.
+                    VIP members will receive a smoking cessation plan created by
+                    AI based on your detailed information.
                   </p>
                 </div>
               </div>
@@ -217,7 +272,12 @@ const SmokingStatusForm = () => {
 // Simple input component
 const InputField = ({ label, name, value, onChange, placeholder }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor={name}>{label}</label>
+    <label
+      className="block text-sm font-medium text-gray-700 mb-2"
+      htmlFor={name}
+    >
+      {label}
+    </label>
     <input
       type="number"
       id={name}

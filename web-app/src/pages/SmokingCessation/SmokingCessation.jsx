@@ -38,10 +38,10 @@ const SmokingCessation = () => {
         <div className='flex flex-col md:flex-row items-center gap-10 mb-20'>
           <div className='md:w-1/2'>
             <h1 className='text-4xl md:text-5xl font-bold text-blue-800 mb-6 leading-tight'>
-              Hãy bắt đầu hành trình <span className='text-blue-600'>cai nghiện thuốc lá</span> ngay hôm nay!
+              Start your journey to <span className='text-blue-600'>quit smoking</span> today!
             </h1>
             <p className='text-lg text-gray-600 mb-6'>
-              Giải pháp khoa học giúp bạn từ bỏ thuốc lá hiệu quả và bền vững, với sự hỗ trợ của chuyên gia và công nghệ hiện đại.
+              A scientific solution to help you quit smoking effectively and sustainably, with support from experts and modern technology.
             </p>
             <button
               onClick={handleTryNow}
@@ -61,9 +61,9 @@ const SmokingCessation = () => {
 
         {/* Features Section */}
         <div className='mb-24'>
-          <h2 className='text-3xl font-bold text-center text-gray-800 mb-4'>🔥 Các Tính Năng Nổi Bật</h2>
+          <h2 className='text-3xl font-bold text-center text-gray-800 mb-4'>🔥 Key Features</h2>
           <p className='text-center text-gray-600 mb-10 max-w-2xl mx-auto'>
-            Được thiết kế bởi các chuyên gia tâm lý và y tế, ứng dụng cung cấp bộ công cụ toàn diện hỗ trợ bạn bỏ thuốc hiệu quả.
+            Designed by psychological and medical experts, this app offers a comprehensive toolset to support your smoking cessation journey.
           </p>
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
             {features.map((feature, index) => (
@@ -81,18 +81,18 @@ const SmokingCessation = () => {
 
         {/* Pricing Section */}
         <div className='mb-24'>
-          <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>💎 Chọn Gói Phù Hợp Với Bạn</h2>
+          <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>💎 Choose Your Plan</h2>
           <div className='flex flex-col md:flex-row gap-8 justify-center items-stretch'>
             {/* Free Plan */}
             <div className='bg-white border rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
-              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Gói Free</h3>
-              <div className='text-3xl font-bold text-center text-blue-500 mb-6'>Miễn phí</div>
+              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Free Plan</h3>
+              <div className='text-3xl font-bold text-center text-blue-500 mb-6'>Free</div>
               <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
-                <li>✔ Theo dõi thói quen hút thuốc cơ bản</li>
-                <li>✔ Thống kê 7 ngày gần nhất</li>
-                <li>✔ 5 lời khuyên mẫu mỗi ngày</li>
-                <li className='text-gray-400'>✖ Không có hỗ trợ chuyên gia</li>
-                <li className='text-gray-400'>✖ Giới hạn 3 huy hiệu cơ bản</li>
+                <li>✔ Basic smoking habit tracking</li>
+                <li>✔ Last 7-day statistics</li>
+                <li>✔ 5 sample tips per day</li>
+                <li className='text-gray-400'>✖ No expert support</li>
+                <li className='text-gray-400'>✖ Limited to 3 basic badges</li>
               </ul>
               <button
                 onClick={handleTryNow}
@@ -105,20 +105,20 @@ const SmokingCessation = () => {
             {/* Premium Plan */}
             <div className='bg-white border-2 border-blue-500 rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
               <div className='absolute top-0 right-6 transform -translate-y-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full'>
-                Phổ biến
+                Most Popular
               </div>
-              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Gói Premium</h3>
+              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Premium Plan</h3>
               <div className='text-3xl font-bold text-center text-blue-500 mb-6'>
-                199.000đ<span className='text-base text-gray-500'>/tháng</span>
+                199,000₫<span className='text-base text-gray-500'>/month</span>
               </div>
               <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
-                <li>✔ Tất cả tính năng gói Free</li>
-                <li>✔ Theo dõi không giới hạn thời gian</li>
-                <li>✔ Lời khuyên cá nhân hóa hàng ngày</li>
-                <li>✔ Hỗ trợ 1:1 với chuyên gia</li>
-                <li>✔ Toàn bộ hệ thống huy hiệu (20+ loại)</li>
-                <li>✔ Báo cáo chi tiết hàng tuần</li>
-                <li>✔ Cộng đồng hỗ trợ 24/7</li>
+                <li>✔ All Free Plan features</li>
+                <li>✔ Unlimited time tracking</li>
+                <li>✔ Personalized daily tips</li>
+                <li>✔ 1-on-1 expert support</li>
+                <li>✔ Full badge system (20+ types)</li>
+                <li>✔ Weekly detailed reports</li>
+                <li>✔ 24/7 support community</li>
               </ul>
               <button
                 onClick={handleTryNow}
@@ -130,9 +130,9 @@ const SmokingCessation = () => {
           </div>
         </div>
 
-        {/* Testimonials Section (Slider version) */}
+        {/* Testimonials Section */}
         <div className='mb-16'>
-          <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>📣 Câu Chuyện Thành Công</h2>
+          <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>📣 Success Stories</h2>
           <Slider {...sliderSettings}>
             {testimonials.map((testimonial, index) => (
               <div key={index} className='px-3'>
@@ -145,16 +145,16 @@ const SmokingCessation = () => {
           </Slider>
         </div>
 
-        {/* Closing CTA */}
+        {/* Final Call-to-Action */}
         <div className='text-center mt-20'>
           <h3 className='text-xl font-semibold text-gray-700 mb-4'>
-            Mỗi giây bạn trì hoãn là một cơ hội sống khỏe bị đánh mất.
+            Every second you delay is a missed opportunity for a healthier life.
           </h3>
           <button
             onClick={handleTryNow}
             className='bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-10 rounded-full shadow-lg transition duration-300 text-lg'
           >
-            Bắt đầu ngay
+            Get Started Now
           </button>
         </div>
 
@@ -163,39 +163,38 @@ const SmokingCessation = () => {
   );
 };
 
-// Dữ liệu tính năng
+// Feature Data
 const features = [
   {
     icon: "📱",
-    title: "Theo dõi thói quen",
-    description: "Ghi lại số điếu thuốc hút mỗi ngày và xu hướng giảm dần"
+    title: "Habit Tracking",
+    description: "Record your daily cigarette count and see your reduction trend"
   },
   {
     icon: "📊",
-    title: "Thống kê tiến độ",
-    description: "Biểu đồ trực quan về quá trình cai nghiện của bạn"
+    title: "Progress Stats",
+    description: "Visual charts showing your quitting journey"
   },
   {
     icon: "💡",
-    title: "Lời khuyên cá nhân",
-    description: "Nhận lời khuyên dựa trên tình trạng và thói quen của bạn"
+    title: "Personalized Tips",
+    description: "Receive advice tailored to your condition and habits"
   },
   {
     icon: "🏆",
-    title: "Hệ thống phần thưởng",
-    description: "Mở khóa huy hiệu khi đạt mốc quan trọng"
+    title: "Reward System",
+    description: "Unlock badges as you reach key milestones"
   }
 ];
 
-// Dữ liệu người dùng (không có hình)
+// Testimonials
 const testimonials = [
-  { quote: "Tôi đã bỏ thuốc thành công sau 3 tháng sử dụng ứng dụng. Cảm ơn đội ngũ đã hỗ trợ!", name: "Anh Tuấn, 42 tuổi" },
-  { quote: "Hệ thống huy hiệu giúp tôi có động lực mỗi ngày. Đã 6 tháng không hút thuốc!", name: "Chị Hương, 35 tuổi" },
-  { quote: "Cảm ơn app đã giúp tôi giảm dần lượng thuốc mỗi ngày và đến nay đã bỏ được!", name: "Anh Hòa, 50 tuổi" },
-  { quote: "Tôi từng thất bại nhiều lần, nhưng lần này đã thành công nhờ có app.", name: "Chị Lan, 29 tuổi" },
-  { quote: "Ứng dụng giúp tôi hiểu rõ hành vi hút thuốc và vượt qua cám dỗ.", name: "Anh Bình, 38 tuổi" },
-  { quote: "Mỗi ngày nhìn vào thành tích là một động lực để tiếp tục.", name: "Chị Thảo, 41 tuổi" }
+  { quote: "I successfully quit after 3 months using this app. Thanks to the team!", name: "Mr. Tuan, 42" },
+  { quote: "The badge system motivated me daily. 6 months smoke-free now!", name: "Ms. Huong, 35" },
+  { quote: "Thanks to the app, I gradually reduced and finally quit smoking!", name: "Mr. Hoa, 50" },
+  { quote: "I had failed many times before, but this time I succeeded thanks to the app.", name: "Ms. Lan, 29" },
+  { quote: "The app helped me understand my smoking behavior and overcome urges.", name: "Mr. Binh, 38" },
+  { quote: "Seeing my achievements daily was a huge motivation to keep going.", name: "Ms. Thao, 41" }
 ];
 
 export default SmokingCessation;
-  

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { updateMemberPackage } from "@/redux/slices/authSlice"
-import { getMemberInfo } from "@/features/auth/services/getMemberInfo"
+import { updateMemberPackage } from "@/redux/slices/authSlice";
+import { getMemberInfo } from "@/features/auth/services/getMemberInfo";
 
 const MyProfile = () => {
   const dispatch = useDispatch();
@@ -13,7 +13,7 @@ const MyProfile = () => {
   const [userData, setUserData] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
     gender: "",
     dob: "",
   });
@@ -28,40 +28,58 @@ const MyProfile = () => {
 
   useEffect(() => {
     const mockBadges = [
-      { id: 1, title: "1-Day Free", date: "11/06/2025", description: "Cố lên!", icon: "🚭" },
-      { id: 2, title: "100K Saved", date: "12/06/2025", description: "Tiết kiệm tốt!", icon: "💰" },
-      { id: 3, title: "1 Week!", date: "18/06/2025", description: "Tiến bộ!", icon: "🏆" },
+      {
+        id: 1,
+        title: "1-Day Free",
+        date: "11/06/2025",
+        description: "Cố lên!",
+        icon: "🚭",
+      },
+      {
+        id: 2,
+        title: "100K Saved",
+        date: "12/06/2025",
+        description: "Tiết kiệm tốt!",
+        icon: "💰",
+      },
+      {
+        id: 3,
+        title: "1 Week!",
+        date: "18/06/2025",
+        description: "Tiến bộ!",
+        icon: "🏆",
+      },
     ];
     setTimeout(() => setBadges(mockBadges), 800);
   }, []);
 
   useEffect(() => {
-  const fetchUser = async () => {
-    setLoading(true);
-    try {
-      const member = await getMemberInfo(userId, token);
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const member = await getMemberInfo(userId, token);
 
-      setUserData({
-        fullName: member.fullName || "",
-        email: member.email || "",
-        phone: member.phoneNumber || "",
-        gender: member.gender || "",
-        dob: member.dob || "",
-      });
+        setUserData({
+          fullName: member.fullName || "",
+          email: member.email || "",
+          phoneNumber: member.phoneNumber || "",
+          gender: member.gender || "",
+          dob: member.dob || "",
+        });
 
-      if (member.membership_Package) {
-        dispatch(updateMemberPackage(member.membership_Package));
+        if (member.membership_Package) {
+          dispatch(updateMemberPackage(member.membership_Package));
+        }
+      } catch (err) {
+        console.error("Fetch user error:", err);
+        setError("Không thể tải thông tin người dùng.");
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Fetch user error:", err);
-      setError("Không thể tải thông tin người dùng.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  if (userId && token) fetchUser();
-}, [userId, token, dispatch]);
+    if (userId && token) fetchUser();
+  }, [userId, token, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,15 +104,23 @@ const MyProfile = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
-  if (error) return <div className="text-red-500 text-center h-screen">{error}</div>;
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  if (error)
+    return <div className="text-red-500 text-center h-screen">{error}</div>;
 
   return (
     <div className="container mx-auto p-6 flex flex-col md:flex-row gap-6">
       {/* Profile Section */}
       <div className="w-full md:w-1/2 bg-white p-6 rounded-lg shadow-md">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center text-3xl">👤</div>
+          <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center text-3xl">
+            👤
+          </div>
           {isEdit ? (
             <input
               type="text"
@@ -109,16 +135,22 @@ const MyProfile = () => {
         </div>
 
         {[
-          { label: "Email", name: "email" },
-          { label: "Phone", name: "phone" },
+          { label: "Email", name: "email", readOnly: true },
+          { label: "Phone", name: "phoneNumber" },
           { label: "Gender", name: "gender", isSelect: true },
           { label: "Birthday", name: "dob", type: "date" },
-        ].map(({ label, name, isSelect, type = "text" }) => (
+        ].map(({ label, name, isSelect, type = "text", readOnly }) => (
           <div key={name} className="mb-4">
             <label className="text-gray-600 block">{label}:</label>
-            {isEdit ? (
+            {isEdit && !readOnly ? (
               isSelect ? (
-                <select name={name} value={userData[name]} onChange={handleChange} className="w-full border p-2 rounded">
+                <select
+                  name={name}
+                  value={userData[name]}
+                  onChange={handleChange}
+                  className="w-full border p-2 rounded"
+                >
+                  <option value="">Select {label}</option>
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
                   <option value="OTHER">Other</option>
@@ -133,7 +165,9 @@ const MyProfile = () => {
                 />
               )
             ) : (
-              <p>{userData[name]}</p>
+              <p className={readOnly ? "text-gray-500" : ""}>
+                {userData[name]}
+              </p>
             )}
           </div>
         ))}
@@ -149,15 +183,26 @@ const MyProfile = () => {
 
         {/* Member Package Section */}
         <div className="mt-8">
-          <h3 className="text-gray-700 text-lg font-semibold mb-2">Gói thành viên</h3>
+          <h3 className="text-gray-700 text-lg font-semibold mb-2">
+            Gói thành viên
+          </h3>
           {memberPackage ? (
             <div className="p-4 border rounded bg-blue-50">
-              <p className="text-blue-800 font-bold text-lg">{memberPackage.packageName}</p>
-              <p className="text-sm text-gray-700 mt-1">{memberPackage.description}</p>
-              <p className="mt-1 text-sm text-gray-600">
-                Giá: <strong>{Number(memberPackage.price).toLocaleString()} VND</strong>
+              <p className="text-blue-800 font-bold text-lg">
+                {memberPackage.packageName}
               </p>
-              <p className="text-sm text-gray-500">Ngày tạo: {memberPackage.dateCreated}</p>
+              <p className="text-sm text-gray-700 mt-1">
+                {memberPackage.description}
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Giá:{" "}
+                <strong>
+                  {Number(memberPackage.price).toLocaleString()} VND
+                </strong>
+              </p>
+              <p className="text-sm text-gray-500">
+                Ngày tạo: {memberPackage.dateCreated}
+              </p>
               {memberPackage.packageName.toUpperCase() === "FREE" && (
                 <button
                   onClick={() => navigate("/membership")}
@@ -169,7 +214,9 @@ const MyProfile = () => {
             </div>
           ) : (
             <>
-              <p className="text-gray-500 italic">Chưa đăng ký gói thành viên nào.</p>
+              <p className="text-gray-500 italic">
+                Chưa đăng ký gói thành viên nào.
+              </p>
               <button
                 onClick={() => navigate("/membership")}
                 className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
@@ -196,7 +243,9 @@ const MyProfile = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold">{badge.title}</h3>
-                  <p className="text-sm text-gray-600">Ngày đạt: {badge.date}</p>
+                  <p className="text-sm text-gray-600">
+                    Ngày đạt: {badge.date}
+                  </p>
                   <p className="text-gray-700">{badge.description}</p>
                 </div>
               </div>

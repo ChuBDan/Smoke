@@ -166,7 +166,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             </div>
             {isOpen && (
               <div className={styles.logoText}>
-                <h2>SmokeFree</h2>
+                <h2>Prescripto</h2>
                 <span>Admin Panel</span>
               </div>
             )}
