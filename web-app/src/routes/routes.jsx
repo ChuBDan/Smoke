@@ -14,11 +14,11 @@ import SmokingStatusForm from "@/pages/SmokingStatusForm/SmokingStatusForm";
 
 // Admin Pages
 import DashboardPage from "@/pages/Admin/DashboardPage";
-import AdminAppointmentsPage from "@/pages/Admin/AppointmentsPage";
 import UsersPage from "@/pages/Admin/UsersPage";
 import BadgesPage from "@/pages/Admin/BadgesPage";
 import PackagesPage from "@/pages/Admin/PackagesPage";
 import AdminLoginPage from "@/pages/Admin/AdminLoginPage";
+import { PaymentHistoryPage } from "@/features/admin/components";
 
 // User Management Pages
 import {
@@ -34,6 +34,7 @@ import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
 import CoachProfile from "@/pages/Coach/CoachesAppoimentPage/CoachProfile";
 import SmokingCessationProgress from "@/pages/SmokingCessationProgress/SmokingCessationProgress";
 import VNPayReturn from "@/pages/VNPay/VNPayReturn";
+
 const routes = (
   <Routes>
     {/* Main Application Routes with Navbar and Footer */}
@@ -54,7 +55,7 @@ const routes = (
     <Route path="/admin" element={<AdminLayout />}>
       <Route index element={<DashboardPage />} />
       <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="appointments" element={<AdminAppointmentsPage />} />
+      <Route path="payments" element={<PaymentHistoryPage />} />
       <Route path="users" element={<UsersPage />} />
       <Route path="users/members" element={<MembersPage />} />
       <Route path="users/coaches" element={<CoachesPage />} />

@@ -42,7 +42,7 @@ const AdminLayout = () => {
       if (path.includes("/admins")) return "Admins";
       return "Users";
     }
-    if (path.includes("/admin/appointments")) return "Appointments";
+    if (path.includes("/admin/payments")) return "Payments";
     if (path.includes("/admin/badges")) return "Badges";
     if (path.includes("/admin/packages")) return "Packages";
     return "Admin";

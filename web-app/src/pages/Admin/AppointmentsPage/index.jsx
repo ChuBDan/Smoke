@@ -1,7 +1,7 @@
-import { AppointmentsPage as AppointmentsComponent } from "../../../features/admin/components";
+import { PaymentHistoryPage as PaymentsComponent } from "../../../features/admin/components";
 
-const AppointmentsPage = () => {
-  return <AppointmentsComponent />;
+const PaymentsPage = () => {
+  return <PaymentsComponent />;
 };
 
-export default AppointmentsPage;
+export default PaymentsPage;

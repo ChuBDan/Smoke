@@ -91,6 +91,40 @@ export const coachesApi = {
     }
   },
 
+  // Update coach
+  updateCoach: async (coachId, coachData) => {
+    try {
+      // Prepare payload with required fields and uppercase gender
+      const payload = {
+        username: coachData.username,
+        email: coachData.email,
+        name: coachData.name,
+        phoneNumber: coachData.phoneNumber,
+        gender: coachData.gender ? coachData.gender.toUpperCase() : undefined,
+        dob: coachData.dob,
+        expertise: coachData.expertise,
+        status: coachData.status,
+      };
+      const response = await api.put(
+        `/api/coach/update-coach/${coachId}`,
+        payload
+      );
+      return {
+        success: true,
+        data: response.data,
+        message: "Coach updated successfully",
+      };
+    } catch (error) {
+      console.error("Error updating coach:", error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || "Failed to update coach",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
+
   // Test endpoint function that logs the response
   testGetAllCoaches: async () => {
     console.log("🔍 Testing /api/user/get-all-coaches endpoint...");

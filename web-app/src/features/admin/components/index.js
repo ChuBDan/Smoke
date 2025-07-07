@@ -7,6 +7,6 @@ export { default as CoachesPage } from "./Users/Coaches";
 export { default as AdminsPage } from "./Users/Admins";
 export { default as BadgesPage } from "./Badges";
 export { default as PackagesPage } from "./Packages";
-export { default as AppointmentsPage } from "./Appointments";
+export { default as PaymentHistoryPage } from "./Payments";
 export { default as AdminLoginForm } from "./AdminLoginForm";
 export { default as ReportsModal } from "./ReportsModal";

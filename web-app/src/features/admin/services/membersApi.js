@@ -142,6 +142,39 @@ export const membersApi = {
       };
     }
   },
+
+  // Update member
+  updateMember: async (memberId, memberData) => {
+    try {
+      // Prepare payload with required fields and uppercase gender
+      const payload = {
+        username: memberData.username,
+        email: memberData.email,
+        fullName: memberData.fullName,
+        phoneNumber: memberData.phoneNumber,
+        gender: memberData.gender ? memberData.gender.toUpperCase() : undefined,
+        dob: memberData.dob,
+        status: memberData.status,
+      };
+      const response = await api.put(
+        `/api/member/update-member/${memberId}`,
+        payload
+      );
+      return {
+        success: true,
+        data: response.data,
+        message: "Member updated successfully",
+      };
+    } catch (error) {
+      console.error("Error updating member:", error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || "Failed to update member",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
 };
 
 // Helper to convert DD-MM-YYYY to ISO string

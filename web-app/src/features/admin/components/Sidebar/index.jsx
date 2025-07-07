@@ -229,22 +229,44 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       ),
     },
     {
-      path: "/admin/appointments",
-      label: "Appointments",
+      path: "/admin/payments",
+      label: "Payments",
       icon: (
-        <svg
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+          <g
+            id="SVGRepo_tracerCarrier"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-          />
+          ></g>
+          <g id="SVGRepo_iconCarrier">
+            {" "}
+            <rect
+              x="3"
+              y="6"
+              width="18"
+              height="13"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></rect>{" "}
+            <path
+              d="M3 10H20.5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></path>{" "}
+            <path
+              d="M7 15H9"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            ></path>{" "}
+          </g>
         </svg>
       ),
     },
