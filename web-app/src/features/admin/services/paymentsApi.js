@@ -2,10 +2,10 @@
 import api from "@/config/api";
 
 export const paymentsApi = {
-  // Get all payment transactions
+  // Get all payment transactions (Admin)
   getAllTransactions: async () => {
     try {
-      const response = await api.get("/api/admin/transactions");
+      const response = await api.get("/api/admin/get-all-transactions");
 
       // Validate response data
       if (!response || !response.data) {
@@ -59,22 +59,100 @@ export const paymentsApi = {
     }
   },
 
-  // Get payment history for a specific user
-  getUserPayments: async (userId) => {
+  // Get specific transaction by ID (Admin)
+  getTransaction: async (transactionId) => {
     try {
-      const response = await api.get(`/api/admin/user-payments/${userId}`);
+      const response = await api.get(
+        `/api/admin/get-transaction/${transactionId}`
+      );
       return {
         success: true,
-        data: response.data,
-        message: "User payments fetched successfully",
+        data: normalizeTransactionData(response.data),
+        message: "Transaction fetched successfully",
       };
     } catch (error) {
-      console.error("Error fetching user payments:", error);
+      console.error("Error fetching transaction:", error);
+      return {
+        success: false,
+        data: null,
+        message: error.response?.data?.message || "Failed to fetch transaction",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
+
+  // Get transactions by member ID
+  getTransactionsByMember: async (memberId) => {
+    try {
+      const response = await api.get(
+        `/api/user/get-transactions-by-member/${memberId}`
+      );
+
+      let transactionsArr = response.data;
+      if (Array.isArray(transactionsArr)) {
+        transactionsArr = transactionsArr.map(normalizeTransactionData);
+      }
+
+      return {
+        success: true,
+        data: transactionsArr,
+        message: "Member transactions fetched successfully",
+      };
+    } catch (error) {
+      console.error("Error fetching member transactions:", error);
       return {
         success: false,
         data: null,
         message:
-          error.response?.data?.message || "Failed to fetch user payments",
+          error.response?.data?.message ||
+          "Failed to fetch member transactions",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
+
+  // Update transaction (Admin)
+  updateTransaction: async (transactionId, transactionData) => {
+    try {
+      const response = await api.post(
+        `/api/admin/update-transaction/transaction/${transactionId}`,
+        transactionData
+      );
+      return {
+        success: true,
+        data: normalizeTransactionData(response.data),
+        message: "Transaction updated successfully",
+      };
+    } catch (error) {
+      console.error("Error updating transaction:", error);
+      return {
+        success: false,
+        data: null,
+        message:
+          error.response?.data?.message || "Failed to update transaction",
+        error: error.response?.data || error.message,
+      };
+    }
+  },
+
+  // Delete transaction (Admin)
+  deleteTransaction: async (transactionId) => {
+    try {
+      const response = await api.delete(
+        `/api/admin/delete-transaction/${transactionId}`
+      );
+      return {
+        success: true,
+        data: response.data,
+        message: "Transaction deleted successfully",
+      };
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      return {
+        success: false,
+        data: null,
+        message:
+          error.response?.data?.message || "Failed to delete transaction",
         error: error.response?.data || error.message,
       };
     }
@@ -157,14 +235,24 @@ export const paymentsApi = {
 // Helper to normalize transaction data
 function normalizeTransactionData(transaction) {
   return {
-    ...transaction,
+    id: transaction.id,
+    memberId: transaction.memberId,
+    packageId: transaction.packageId,
+    orderInfo: transaction.orderInfo,
+    bankCode: transaction.bankCode,
+    amount: parseFloat(transaction.amount || 0),
+    responseCode: transaction.responseCode,
+    transactionDate: convertDateFormat(transaction.transactionDate),
+    status: transaction.status,
+    // Legacy fields for backward compatibility
     createdAt: convertDateFormat(
-      transaction.createdAt || transaction.created_at
+      transaction.transactionDate ||
+        transaction.createdAt ||
+        transaction.created_at
     ),
     updatedAt: convertDateFormat(
       transaction.updatedAt || transaction.updated_at
     ),
-    amount: parseFloat(transaction.amount || 0),
   };
 }
 

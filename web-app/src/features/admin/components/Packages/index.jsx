@@ -274,7 +274,7 @@ const PackagesPage = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <span className={styles.statLabel}>Revenue</span>
+            <span className={styles.statLabel}>Total Revenue</span>
             <div className={`${styles.statIcon} ${styles.revenue}`}>
               <svg
                 width="20"

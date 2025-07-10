@@ -6,6 +6,7 @@ import adminsReducer from "@/redux/slices/adminsSlice";
 import packagesReducer from "@/redux/slices/packagesSlice";
 import badgesReducer from "@/redux/slices/badgesSlice";
 import userBadgeReducer from "@/redux/slices/userBadgeSlice";
+import paymentsReducer from "@/redux/slices/paymentsSlice";
 
 const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
     packages: packagesReducer,
     badges: badgesReducer,
     userBadges: userBadgeReducer,
+    payments: paymentsReducer,
   },
 });
 export default store;
