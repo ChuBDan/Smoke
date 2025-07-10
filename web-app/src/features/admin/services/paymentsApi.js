@@ -112,11 +112,17 @@ export const paymentsApi = {
   },
 
   // Update transaction (Admin)
-  updateTransaction: async (transactionId, transactionData) => {
+  updateTransaction: async (
+    transactionId,
+    updatedFields,
+    originalTransaction
+  ) => {
     try {
-      const response = await api.post(
+      // Always send all fields by merging originalTransaction with updatedFields
+      const fullPayload = { ...originalTransaction, ...updatedFields };
+      const response = await api.put(
         `/api/admin/update-transaction/transaction/${transactionId}`,
-        transactionData
+        fullPayload
       );
       return {
         success: true,
@@ -243,7 +249,7 @@ function normalizeTransactionData(transaction) {
     amount: parseFloat(transaction.amount || 0),
     responseCode: transaction.responseCode,
     transactionDate: convertDateFormat(transaction.transactionDate),
-    status: transaction.status,
+    status: transaction.status ? transaction.status.toLowerCase() : undefined,
     // Legacy fields for backward compatibility
     createdAt: convertDateFormat(
       transaction.transactionDate ||

@@ -121,15 +121,16 @@ const PaymentHistoryPage = () => {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const totalRevenue = transactions
+    const filtered = transactions.filter((t) => t.status !== "deleted");
+    const totalRevenue = filtered
       .filter((t) => t.status === "completed" || t.status === "success")
       .reduce((sum, t) => sum + (parseFloat(t.amount) || 0), 0);
 
-    const totalTransactions = transactions.length;
-    const successfulTransactions = transactions.filter(
+    const totalTransactions = filtered.length;
+    const successfulTransactions = filtered.filter(
       (t) => t.status === "completed" || t.status === "success"
     ).length;
-    const pendingTransactions = transactions.filter(
+    const pendingTransactions = filtered.filter(
       (t) => t.status === "pending"
     ).length;
 
@@ -376,73 +377,74 @@ const PaymentHistoryPage = () => {
       </div>
 
       {/* Controls and Table Section */}
-      <div className={styles.contentCard}>
-        {/* Filters Container - matches Coaches page */}
-        <div className={styles.filtersContainer}>
-          <div className={styles.searchBox}>
-            <svg
-              className={styles.searchIcon}
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search transactions by order info, bank code, or ID..."
-              value={searchTerm}
-              onChange={(e) => dispatch(setSearchTerm(e.target.value))}
-              className={styles.searchInput}
+
+      {/* Filters Container - matches Coaches page */}
+      <div className={styles.filtersContainer}>
+        <div className={styles.searchBox}>
+          <svg
+            className={styles.searchIcon}
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-          </div>
-
-          <select
-            value={filterStatus}
-            onChange={(e) => dispatch(setFilterStatus(e.target.value))}
-            className={styles.filterSelect}
-          >
-            <option value="all">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="success">Success</option>
-            <option value="pending">Pending</option>
-            <option value="failed">Failed</option>
-          </select>
-
-          <button
-            className={styles.refreshButton}
-            onClick={loadTransactions}
-            disabled={loading}
-            type="button"
-            aria-label="Refresh"
-          >
-            <svg
-              width="20"
-              height="20"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              className={loading ? styles.spinning : ""}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            <span>Refresh</span>
-          </button>
+          </svg>
+          <input
+            type="text"
+            placeholder="Search transactions by order info, bank code, or ID..."
+            value={searchTerm}
+            onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+            className={styles.searchInput}
+          />
         </div>
 
-        {/* Transactions Table */}
+        <select
+          value={filterStatus}
+          onChange={(e) => dispatch(setFilterStatus(e.target.value))}
+          className={styles.filterSelect}
+        >
+          <option value="all">All Status</option>
+          <option value="completed">Completed</option>
+          <option value="success">Success</option>
+          <option value="pending">Pending</option>
+          <option value="failed">Failed</option>
+        </select>
+
+        <button
+          className={styles.refreshButton}
+          onClick={loadTransactions}
+          disabled={loading}
+          type="button"
+          aria-label="Refresh"
+        >
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            className={loading ? styles.spinning : ""}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
+          </svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      {/* Transactions Table */}
+      <div className={styles.tableContentContainer}>
         {filteredTransactions.length === 0 ? (
           <div className={styles.emptyState}>
             <svg
@@ -581,7 +583,7 @@ const PaymentHistoryPage = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <ConfirmModal
-          isOpen={showDeleteModal}
+          open={showDeleteModal}
           title="Delete Transaction"
           message="Are you sure you want to delete this transaction? This action cannot be undone."
           confirmText="Delete"
@@ -604,10 +606,16 @@ const EditTransactionModal = ({ transaction, onSave, onCancel }) => {
     responseCode: transaction.responseCode || "",
     status: transaction.status || "",
   });
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    setSaving(true);
+    try {
+      await onSave(formData);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -643,29 +651,31 @@ const EditTransactionModal = ({ transaction, onSave, onCancel }) => {
 
         <form onSubmit={handleSubmit} className={styles.modalForm}>
           <div className={styles.formGroup}>
-            <label>Order Info</label>
+            <label>Order Info *</label>
             <input
               type="text"
               name="orderInfo"
               value={formData.orderInfo}
               onChange={handleChange}
               placeholder="Enter order information"
+              disabled={saving}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Bank Code</label>
+            <label>Bank Code *</label>
             <input
               type="text"
               name="bankCode"
               value={formData.bankCode}
               onChange={handleChange}
               placeholder="Enter bank code"
+              disabled={saving}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Amount</label>
+            <label>Amount *</label>
             <input
               type="number"
               step="0.01"
@@ -673,26 +683,29 @@ const EditTransactionModal = ({ transaction, onSave, onCancel }) => {
               value={formData.amount}
               onChange={handleChange}
               placeholder="Enter amount"
+              disabled={saving}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Response Code</label>
+            <label>Response Code *</label>
             <input
               type="text"
               name="responseCode"
               value={formData.responseCode}
               onChange={handleChange}
               placeholder="Enter response code"
+              disabled={saving}
             />
           </div>
 
           <div className={styles.formGroup}>
-            <label>Status</label>
+            <label>Status *</label>
             <select
               name="status"
               value={formData.status}
               onChange={handleChange}
+              disabled={saving}
             >
               <option value="pending">Pending</option>
               <option value="completed">Completed</option>
@@ -706,11 +719,28 @@ const EditTransactionModal = ({ transaction, onSave, onCancel }) => {
               type="button"
               onClick={onCancel}
               className={styles.cancelBtn}
+              disabled={saving}
             >
               Cancel
             </button>
-            <button type="submit" className={styles.saveBtn}>
-              Save Changes
+            <button type="submit" className={styles.saveBtn} disabled={saving}>
+              {saving ? (
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <span
+                    className={styles.spinner}
+                    style={{ width: 22, height: 22, marginRight: 8 }}
+                  />
+                  Saving changes...
+                </span>
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
         </form>
