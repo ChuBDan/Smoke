@@ -3,18 +3,28 @@ import axios from "../../config/api";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
-const AppointmentModal = ({ open, onClose }) => {
+// Định nghĩa getCurrentWeek bên ngoài component để tránh vấn đề khởi tạo
+const getCurrentWeek = () => {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(now.setDate(diff));
+};
+
+const AppointmentCalendar = ({ open, onClose }) => {
   const [coaches, setCoaches] = useState([]);
   const [selectedCoach, setSelectedCoach] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const memberId = localStorage.getItem("userId");
+  const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
 
   useEffect(() => {
     if (open) {
+      // Ngăn cuộn trang nền khi modal mở
+      document.body.style.overflow = "hidden";
       setLoading(true);
       axios
         .get("/api/user/get-all-coaches")
@@ -31,55 +41,59 @@ const AppointmentModal = ({ open, onClose }) => {
         .finally(() => {
           setLoading(false);
         });
+    } else {
+      // Khôi phục cuộn trang nền khi modal đóng
+      document.body.style.overflow = "auto";
     }
+    // Cleanup khi component unmount
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, [open]);
 
-  // Chuyển Date thành chuỗi định dạng datetime-local đúng múi giờ VN
-  const toLocalDateTimeInputValue = (date) => {
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60 * 1000);
-    return localDate.toISOString().slice(0, 16);
+  const getWeekDays = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeek);
+      date.setDate(currentWeek.getDate() + i);
+      days.push({
+        day: date.toLocaleDateString("vi-VN", { weekday: "long" }),
+        date: date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
+        fullDate: date,
+      });
+    }
+    return days;
   };
 
-  const handleStartTimeChange = (e) => {
-    const selectedStart = e.target.value;
-    setStartTime(selectedStart);
+  const timeSlots = [
+    "06AM-07AM", "07AM-08AM", "08AM-09AM", "09AM-10AM",
+    "10AM-11AM", "11AM-12PM"
+  ];
 
-    if (selectedStart) {
-      const startDate = new Date(selectedStart);
-      const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // +1 giờ
-      setEndTime(toLocalDateTimeInputValue(endDate));
-    }
+  const handleSlotClick = (time, day) => {
+    setSelectedSlot({ time, day: day.fullDate });
   };
 
   const handleSubmit = async () => {
-    if (!selectedCoach || !startTime || !endTime) {
-      toast.warning("Vui lòng chọn coach và thời gian bắt đầu.");
+    if (!selectedCoach || !selectedSlot) {
+      toast.warning("Vui lòng chọn coach và thời gian.");
       return;
     }
 
-    const startDateTime = new Date(startTime);
-    const endDateTime = new Date(endTime);
-    const now = new Date();
+    const startDateTime = new Date(selectedSlot.day);
+    const [startHour] = selectedSlot.time.split("-")[0].replace("AM", "").replace("PM", "").split("AM")[0].split(":");
+    startDateTime.setHours(parseInt(startHour) + (selectedSlot.time.includes("PM") ? 12 : 0), 0, 0, 0);
+    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
 
-    if (startDateTime <= now) {
+    if (startDateTime <= new Date()) {
       toast.warning("Vui lòng chọn thời gian bắt đầu trong tương lai.");
       return;
     }
 
-    const durationMinutes = (endDateTime - startDateTime) / 60000;
-    if (durationMinutes !== 60) {
-      toast.warning("Thời gian tư vấn phải đúng 1 giờ.");
-      return;
-    }
-
-    const formattedStart = format(startDateTime, "dd-MM-yyyy HH:mm:ss");
-    const formattedEnd = format(endDateTime, "dd-MM-yyyy HH:mm:ss");
-
     const payload = {
-      consultationDate: formattedStart,
-      startDate: formattedStart,
-      endDate: formattedEnd,
+      consultationDate: format(startDateTime, "dd-MM-yyyy HH:mm:ss"),
+      startDate: format(startDateTime, "dd-MM-yyyy HH:mm:ss"),
+      endDate: format(endDateTime, "dd-MM-yyyy HH:mm:ss"),
       notes: notes.trim() || "Tư vấn sức khỏe tâm lý",
     };
 
@@ -90,9 +104,7 @@ const AppointmentModal = ({ open, onClose }) => {
         payload
       );
       toast.success("Đặt lịch hẹn thành công!");
-      setSelectedCoach("");
-      setStartTime("");
-      setEndTime("");
+      setSelectedSlot(null);
       setNotes("");
       onClose();
     } catch (error) {
@@ -105,23 +117,23 @@ const AppointmentModal = ({ open, onClose }) => {
 
   const handleClose = () => {
     setSelectedCoach("");
-    setStartTime("");
-    setEndTime("");
+    setSelectedSlot(null);
     setNotes("");
     onClose();
   };
 
-  const getDuration = () => {
-    if (startTime && endTime) return "1 giờ (tự động)";
-    return "";
+  // Xử lý nhấp ra ngoài để đóng modal
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
   };
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className=" rounded-3xl w-full max-w-lg shadow-2xl border border-gray-100">
-        {/* Header */}
+    <div className="fixed inset-0 z-50 bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4" onClick={handleBackdropClick}>
+      <div className="rounded-3xl w-full max-w-4xl shadow-2xl border border-gray-100">
         <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-t-3xl p-6">
           <div className="flex justify-between items-center">
             <div>
@@ -140,10 +152,7 @@ const AppointmentModal = ({ open, onClose }) => {
             </button>
           </div>
         </div>
-
-        {/* Body */}
-        <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6">
-          {/* Coach selector */}
+        <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6 max-h-[70vh] overflow-y-auto">
           <div>
             <label className="block mb-3 text-sm font-bold text-gray-700">
               👨‍⚕️ Chọn Coach <span className="text-red-500">*</span>
@@ -166,54 +175,54 @@ const AppointmentModal = ({ open, onClose }) => {
               </div>
             )}
           </div>
-
-          {/* Time selector */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-3 text-sm font-bold text-gray-700">
-                🕐 Giờ bắt đầu <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="datetime-local"
-                className="w-full border-2 rounded-xl px-4 py-4"
-                value={startTime}
-                onChange={handleStartTimeChange}
-                min={toLocalDateTimeInputValue(
-                  new Date(Date.now() + 60 * 60 * 1000)
-                )}
-              />
+          <div className="bg-white p-4 rounded-xl border border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Lịch hẹn</h3>
+              <div className="flex space-x-2">
+                <span className="text-green-500">Lịch trống</span>
+                <span className="text-red-500">Đã đặt lịch</span>
+                <span className="text-blue-500">Hôm nay</span>
+              </div>
             </div>
-            <div>
-              <label className="block mb-3 text-sm font-bold text-gray-700">
-                🕐 Giờ kết thúc (tự động)
-              </label>
-              <input
-                type="datetime-local"
-                className="w-full border-2 rounded-xl px-4 py-4 bg-gray-100 text-gray-500 cursor-not-allowed"
-                value={endTime}
-                readOnly
-                disabled
-              />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2"></th>
+                    {getWeekDays().map((day, index) => (
+                      <th key={index} className="border p-2 text-center">
+                        {day.day}<br/>{day.date}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeSlots.map((time, rowIndex) => (
+                    <tr key={rowIndex}>
+                      <td className="border p-2 bg-green-100">{time}</td>
+                      {getWeekDays().map((day, colIndex) => {
+                        const isToday = day.fullDate.toDateString() === new Date().toDateString();
+                        const isSelected = selectedSlot && selectedSlot.time === time && selectedSlot.day.toDateString() === day.fullDate.toDateString();
+                        return (
+                          <td
+                            key={colIndex}
+                            className={`border p-2 text-center cursor-pointer ${isToday ? 'bg-blue-100' : 'bg-green-50'} ${isSelected ? 'bg-green-200' : ''}`}
+                            onClick={() => handleSlotClick(time, day)}
+                          >
+                            {isSelected ? "Đã chọn" : "Trống"}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          {/* Thời gian tư vấn */}
-          {startTime && endTime && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-              ⏱️ Tư vấn từ{" "}
-              <strong>
-                {format(new Date(startTime), "hh:mm a dd/MM/yyyy")}
-              </strong>{" "}
-              đến{" "}
-              <strong>{format(new Date(endTime), "hh:mm a dd/MM/yyyy")}</strong>{" "}
-              – {getDuration()}
-            </div>
-          )}
-
-          {/* Notes */}
+          {/* Thêm phần Ghi chú (tùy chọn) */}
           <div>
             <label className="block mb-3 text-sm font-bold text-gray-700">
-              📝 Ghi chú (tuỳ chọn)
+              📝 Ghi chú (tùy chọn)
             </label>
             <textarea
               className="w-full border-2 rounded-xl px-4 py-3 resize-none"
@@ -224,8 +233,6 @@ const AppointmentModal = ({ open, onClose }) => {
             />
           </div>
         </div>
-
-        {/* Footer */}
         <div className="bg-gray-50 rounded-b-3xl p-6 flex gap-4">
           <button
             onClick={handleClose}
@@ -235,7 +242,7 @@ const AppointmentModal = ({ open, onClose }) => {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={submitting || !selectedCoach || !startTime}
+            disabled={submitting || !selectedCoach || !selectedSlot}
             className="flex-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-6 rounded-xl font-bold"
           >
             {submitting ? "Đang xử lý..." : "📅 Xác nhận lịch hẹn"}
@@ -246,4 +253,4 @@ const AppointmentModal = ({ open, onClose }) => {
   );
 };
 
-export default AppointmentModal;
+export default AppointmentCalendar;
