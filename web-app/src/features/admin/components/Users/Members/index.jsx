@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./Members.module.css";
+import ConfirmModal from "@/components/ConfirmModal";
 import {
   fetchAllMembers,
   deleteMember,
@@ -33,19 +34,29 @@ const MembersPage = () => {
     dispatch(fetchAllMembers());
   };
 
-  // Handle delete member
+  // ConfirmModal state for delete
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingMemberId, setDeletingMemberId] = useState(null);
+
+  // Handle delete member (open modal)
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this member?")) {
-      dispatch(deleteMember(id))
-        .unwrap()
-        .then(() => {
-          toast.success("Member deleted successfully");
-        })
-        .catch((error) => {
-          toast.error(error.message || "Failed to delete member");
-          console.error("Failed to delete member:", error);
-        });
+    setDeletingMemberId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete action
+  const confirmDelete = () => {
+    if (deletingMemberId) {
+      dispatch(deleteMember(deletingMemberId));
     }
+    setShowDeleteModal(false);
+    setDeletingMemberId(null);
+  };
+
+  // Cancel delete action
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingMemberId(null);
   };
 
   // Handle edit member
@@ -593,40 +604,28 @@ const MembersPage = () => {
                       </div>
                     </td>
                     <td style={{ padding: "1.25rem 1.5rem" }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "0.5rem",
-                        }}
-                      >
+                      <div className={styles.actions}>
                         <button
-                          onClick={() => handleEdit(member)}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "0.5rem",
+                            marginRight: "0.5rem",
+                            padding: "0.5rem",
+                            borderRadius: "0.375rem",
                             border: "1px solid #e2e8f0",
                             background: "white",
-                            color: "#64748b",
+                            color: "#0284c7",
                             cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
+                          title="Edit Member"
                           onMouseEnter={(e) => {
                             e.target.style.background = "#f0f9ff";
-                            e.target.style.color = "#0284c7";
                             e.target.style.borderColor = "#0284c7";
                           }}
                           onMouseLeave={(e) => {
                             e.target.style.background = "white";
-                            e.target.style.color = "#64748b";
                             e.target.style.borderColor = "#e2e8f0";
                           }}
-                          title="Edit Member"
+                          onClick={() => handleEdit(member)}
                         >
                           <svg
                             width="16"
@@ -644,31 +643,25 @@ const MembersPage = () => {
                           </svg>
                         </button>
                         <button
-                          onClick={() => handleDelete(member.id)}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "36px",
-                            height: "36px",
-                            borderRadius: "0.5rem",
+                            padding: "0.5rem",
+                            borderRadius: "0.375rem",
                             border: "1px solid #e2e8f0",
                             background: "white",
-                            color: "#64748b",
+                            color: "#ef4444",
                             cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
+                          title="Delete Member"
                           onMouseEnter={(e) => {
                             e.target.style.background = "#fef2f2";
-                            e.target.style.color = "#dc2626";
-                            e.target.style.borderColor = "#dc2626";
+                            e.target.style.borderColor = "#ef4444";
                           }}
                           onMouseLeave={(e) => {
                             e.target.style.background = "white";
-                            e.target.style.color = "#64748b";
                             e.target.style.borderColor = "#e2e8f0";
                           }}
-                          title="Delete Member"
+                          onClick={() => handleDelete(member.id)}
                         >
                           <svg
                             width="16"
@@ -736,6 +729,17 @@ const MembersPage = () => {
           )}
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Member"
+        message="Are you sure you want to delete this member? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
       {/* Add Member Modal */}
       {showAddForm && (
         <div

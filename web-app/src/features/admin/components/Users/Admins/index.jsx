@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ConfirmModal from "@/components/ConfirmModal";
 import styles from "./Admins.module.css";
 import {
   fetchAllAdmins,
@@ -22,19 +23,29 @@ const AdminsPage = () => {
   const dispatch = useDispatch();
   const { admins, loading, error } = useSelector((state) => state.admins);
 
-  // Handle delete admin
+  // ConfirmModal state for delete
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingAdminId, setDeletingAdminId] = useState(null);
+
+  // Handle delete admin (open modal)
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this admin?")) {
-      dispatch(deleteAdmin(id))
-        .unwrap()
-        .then(() => {
-          toast.success("Admin deleted successfully");
-        })
-        .catch((error) => {
-          toast.error(error.message || "Failed to delete admin");
-          console.error("Failed to delete admin:", error);
-        });
+    setDeletingAdminId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete action
+  const confirmDelete = () => {
+    if (deletingAdminId) {
+      dispatch(deleteAdmin(deletingAdminId));
     }
+    setShowDeleteModal(false);
+    setDeletingAdminId(null);
+  };
+
+  // Cancel delete action
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingAdminId(null);
   };
 
   // Handle input change for add form
@@ -296,9 +307,65 @@ const AdminsPage = () => {
                       <td>
                         <div className={styles.actions}>
                           <button
+                            style={{
+                              marginRight: "0.5rem",
+                              padding: "0.5rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              color: "#0284c7",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                            title="Edit Admin"
+                            onMouseEnter={(e) => {
+                              e.target.style.background = "#f0f9ff";
+                              e.target.style.borderColor = "#0284c7";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = "white";
+                              e.target.style.borderColor = "#e2e8f0";
+                            }}
+                            onClick={() => {
+                              /* TODO: Implement handleEdit(admin) when edit is available */
+                            }}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
                             className={styles.deleteButton}
+                            style={{
+                              padding: "0.5rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
                             onClick={() => handleDelete(admin.id)}
                             title="Delete Admin"
+                            onMouseEnter={(e) => {
+                              e.target.style.background = "#fef2f2";
+                              e.target.style.borderColor = "#ef4444";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = "white";
+                              e.target.style.borderColor = "#e2e8f0";
+                            }}
                           >
                             <svg
                               width="16"
@@ -618,6 +685,16 @@ const AdminsPage = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Admin"
+        message="Are you sure you want to delete this admin? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

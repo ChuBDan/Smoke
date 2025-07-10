@@ -450,9 +450,26 @@ const BadgesPage = () => {
                 </div>
                 <div className={styles.badgeActions}>
                   <button
-                    className={styles.actionButton}
-                    onClick={() => openEditModal(badge)}
+                    style={{
+                      marginRight: "0.5rem",
+                      padding: "0.5rem",
+                      borderRadius: "0.375rem",
+                      border: "1px solid #e2e8f0",
+                      background: "white",
+                      color: "#0284c7",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                     title="Edit badge"
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#f0f9ff";
+                      e.target.style.borderColor = "#0284c7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "white";
+                      e.target.style.borderColor = "#e2e8f0";
+                    }}
+                    onClick={() => openEditModal(badge)}
                   >
                     <svg
                       width="16"
@@ -470,9 +487,25 @@ const BadgesPage = () => {
                     </svg>
                   </button>
                   <button
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                    onClick={() => handleDeleteBadge(badge.id)}
+                    style={{
+                      padding: "0.5rem",
+                      borderRadius: "0.375rem",
+                      border: "1px solid #e2e8f0",
+                      background: "white",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                     title="Delete badge"
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#fef2f2";
+                      e.target.style.borderColor = "#ef4444";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "white";
+                      e.target.style.borderColor = "#e2e8f0";
+                    }}
+                    onClick={() => handleDeleteBadge(badge.id)}
                   >
                     <svg
                       width="16"

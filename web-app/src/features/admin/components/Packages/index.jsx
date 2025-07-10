@@ -419,12 +419,29 @@ const PackagesPage = () => {
                 </div>
                 <div className={styles.packageActions}>
                   <button
-                    className={styles.actionButton}
+                    style={{
+                      marginRight: "0.5rem",
+                      padding: "0.5rem",
+                      borderRadius: "0.375rem",
+                      border: "1px solid #e2e8f0",
+                      background: "white",
+                      color: "#0284c7",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    title="Edit package"
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#f0f9ff";
+                      e.target.style.borderColor = "#0284c7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "white";
+                      e.target.style.borderColor = "#e2e8f0";
+                    }}
                     onClick={() => {
                       setSelectedPackage(pkg);
                       setShowEditModal(true);
                     }}
-                    title="Edit package"
                   >
                     <svg
                       width="16"
@@ -442,9 +459,25 @@ const PackagesPage = () => {
                     </svg>
                   </button>
                   <button
-                    className={`${styles.actionButton} ${styles.deleteButton}`}
-                    onClick={() => handleDeletePackage(pkg.id)}
+                    style={{
+                      padding: "0.5rem",
+                      borderRadius: "0.375rem",
+                      border: "1px solid #e2e8f0",
+                      background: "white",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
                     title="Delete package"
+                    onMouseEnter={(e) => {
+                      e.target.style.background = "#fef2f2";
+                      e.target.style.borderColor = "#ef4444";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = "white";
+                      e.target.style.borderColor = "#e2e8f0";
+                    }}
+                    onClick={() => handleDeletePackage(pkg.id)}
                   >
                     <svg
                       width="16"

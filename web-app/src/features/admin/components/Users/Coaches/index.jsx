@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import ConfirmModal from "@/components/ConfirmModal";
 import styles from "./Coaches.module.css";
 import {
   fetchAllCoaches,
@@ -29,19 +30,29 @@ const CoachesPage = () => {
   const dispatch = useDispatch();
   const { coaches, loading, error } = useSelector((state) => state.coaches);
 
-  // Handle delete coach
+  // ConfirmModal state for delete
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingCoachId, setDeletingCoachId] = useState(null);
+
+  // Handle delete coach (open modal)
   const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this coach?")) {
-      dispatch(deleteCoach(id))
-        .unwrap()
-        .then(() => {
-          toast.success("Coach deleted successfully");
-        })
-        .catch((error) => {
-          toast.error(error.message || "Failed to delete coach");
-          console.error("Failed to delete coach:", error);
-        });
+    setDeletingCoachId(id);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete action
+  const confirmDelete = () => {
+    if (deletingCoachId) {
+      dispatch(deleteCoach(deletingCoachId));
     }
+    setShowDeleteModal(false);
+    setDeletingCoachId(null);
+  };
+
+  // Cancel delete action
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeletingCoachId(null);
   };
 
   // Handle edit coach
@@ -1351,6 +1362,16 @@ const CoachesPage = () => {
           </div>
         </div>
       )}
+      {/* Confirm Delete Modal */}
+      <ConfirmModal
+        open={showDeleteModal}
+        title="Delete Coach"
+        message="Are you sure you want to delete this coach? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
     </div>
   );
 };
