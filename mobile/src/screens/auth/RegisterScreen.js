@@ -154,13 +154,15 @@ const RegisterScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.backgroundGradient} />
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { justifyContent: "flex-start", paddingTop: theme.spacing.lg },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -170,20 +172,14 @@ const RegisterScreen = () => {
               {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
+                paddingTop: theme.spacing.lg,
               },
             ]}
           >
-            <View style={styles.headerSection}>
-              <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  <Text style={styles.logoIcon}>🚭</Text>
-                </View>
-              </View>
-              <Text style={styles.welcomeTitle}>Join Us Today</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Create your account to start your journey
-              </Text>
-            </View>
+            <Text style={styles.welcomeTitle}>Join Us Today</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Create your account to start your journey
+            </Text>
 
             <Card style={styles.formCard}>
               {error && (
@@ -296,7 +292,14 @@ const RegisterScreen = () => {
                     style={styles.inputWithIcon}
                   />
                   <TouchableOpacity
-                    style={styles.passwordToggle}
+                    style={[
+                      styles.passwordToggle,
+                      {
+                        top: 44,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      },
+                    ]}
                     onPress={() => setShowPassword(!showPassword)}
                   >
                     <Ionicons
@@ -439,25 +442,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: theme.spacing.xl,
   },
-  headerSection: {
-    alignItems: "center",
-    marginBottom: theme.spacing.xl,
-  },
-  logoContainer: {
-    marginBottom: theme.spacing.lg,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.white,
-    justifyContent: "center",
-    alignItems: "center",
-    ...theme.shadows.lg,
-  },
-  logoIcon: {
-    fontSize: 40,
-  },
+  // headerSection, logoContainer, logoCircle, logoIcon removed
   welcomeTitle: {
     fontSize: theme.fontSize["3xl"],
     fontWeight: theme.fontWeight.bold,
@@ -491,7 +476,8 @@ const styles = StyleSheet.create({
   inputIcon: {
     position: "absolute",
     left: theme.spacing.md,
-    top: 44,
+    top: "40%",
+    transform: [{ translateY: -13 }], // adjust for better vertical centering
     zIndex: 1,
   },
   inputWithIcon: {
@@ -500,8 +486,11 @@ const styles = StyleSheet.create({
   passwordToggle: {
     position: "absolute",
     right: theme.spacing.md,
-    top: 44,
+    top: "50%",
+    transform: [{ translateY: -14 }], // adjust for better vertical centering
     padding: theme.spacing.xs,
+    alignItems: "center",
+    justifyContent: "center",
   },
   genderSection: {
     marginBottom: theme.spacing.md,

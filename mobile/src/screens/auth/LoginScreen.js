@@ -103,15 +103,16 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Background Gradient Effect */}
       <View style={styles.backgroundGradient} />
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { justifyContent: "flex-start", paddingTop: theme.spacing.lg },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -121,21 +122,14 @@ const LoginScreen = () => {
               {
                 opacity: fadeAnim,
                 transform: [{ translateY: slideAnim }],
+                paddingTop: theme.spacing.lg,
               },
             ]}
           >
-            {/* Header Section */}
-            <View style={styles.headerSection}>
-              <View style={styles.logoContainer}>
-                <View style={styles.logoCircle}>
-                  <Text style={styles.logoIcon}>🚭</Text>
-                </View>
-              </View>
-              <Text style={styles.welcomeTitle}>Welcome Back</Text>
-              <Text style={styles.welcomeSubtitle}>
-                Sign in to continue your journey
-              </Text>
-            </View>
+            <Text style={styles.welcomeTitle}>Welcome Back</Text>
+            <Text style={styles.welcomeSubtitle}>
+              Sign in to continue your journey
+            </Text>
 
             {/* Form Card */}
             <Card style={styles.formCard}>
@@ -250,7 +244,14 @@ const LoginScreen = () => {
                     style={styles.inputWithIcon}
                   />
                   <TouchableOpacity
-                    style={styles.passwordToggle}
+                    style={[
+                      styles.passwordToggle,
+                      {
+                        top: 44,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      },
+                    ]}
                     onPress={() => setShowPassword(!showPassword)}
                   >
                     <Ionicons
@@ -319,25 +320,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: theme.spacing.xl,
   },
-  headerSection: {
-    alignItems: "center",
-    marginBottom: theme.spacing.xl,
-  },
-  logoContainer: {
-    marginBottom: theme.spacing.lg,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: theme.colors.white,
-    justifyContent: "center",
-    alignItems: "center",
-    ...theme.shadows.lg,
-  },
-  logoIcon: {
-    fontSize: 40,
-  },
+  // headerSection, logoContainer, logoCircle, logoIcon removed
   welcomeTitle: {
     fontSize: theme.fontSize["3xl"],
     fontWeight: theme.fontWeight.bold,
@@ -408,7 +391,8 @@ const styles = StyleSheet.create({
   inputIcon: {
     position: "absolute",
     left: theme.spacing.md,
-    top: 44,
+    top: "40%",
+    transform: [{ translateY: -13 }],
     zIndex: 1,
   },
   inputWithIcon: {
@@ -417,8 +401,11 @@ const styles = StyleSheet.create({
   passwordToggle: {
     position: "absolute",
     right: theme.spacing.md,
-    top: 44,
+    top: "50%",
+    transform: [{ translateY: -10 }],
     padding: theme.spacing.xs,
+    alignItems: "center",
+    justifyContent: "center",
   },
   loginButton: {
     marginBottom: theme.spacing.md,
