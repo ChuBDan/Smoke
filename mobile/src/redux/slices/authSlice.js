@@ -114,8 +114,13 @@ const authSlice = createSlice({
       state.successMessage = null;
     },
     clearMessages: (state) => {
+      // Only clear messages, don't touch other state
       state.error = null;
       state.successMessage = null;
+    },
+    resetAuthState: (state) => {
+      // Full reset for debugging
+      return { ...initialState };
     },
   },
   extraReducers: (builder) => {
@@ -194,5 +199,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError, clearSuccess, clearMessages } = authSlice.actions;
+export const { clearError, clearSuccess, clearMessages, resetAuthState } =
+  authSlice.actions;
 export default authSlice.reducer;

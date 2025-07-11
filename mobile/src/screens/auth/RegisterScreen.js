@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Animated,
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,35 +32,9 @@ const RegisterScreen = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
 
-  // Animations
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
-
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { loading, error, successMessage } = useSelector((state) => state.auth);
-
-  useEffect(() => {
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  useEffect(() => {
-    if (error || successMessage) {
-      dispatch(clearMessages());
-    }
-  }, [error, successMessage, dispatch]);
 
   const updateFormData = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -125,10 +98,17 @@ const RegisterScreen = () => {
     };
 
     try {
+      console.log("Attempting registration with:", {
+        email: registrationData.email,
+        username: registrationData.username,
+      });
+
       await dispatch(registerUser(registrationData)).unwrap();
+      console.log("Registration successful");
       navigation.navigate("Login");
     } catch (error) {
       console.error("Registration failed:", error);
+      // Don't clear the form on error
     }
   };
 
@@ -166,16 +146,7 @@ const RegisterScreen = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View
-            style={[
-              styles.content,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                paddingTop: theme.spacing.lg,
-              },
-            ]}
-          >
+          <View style={[styles.content, { paddingTop: theme.spacing.lg }]}>
             <Text style={styles.welcomeTitle}>Join Us Today</Text>
             <Text style={styles.welcomeSubtitle}>
               Create your account to start your journey
@@ -409,7 +380,7 @@ const RegisterScreen = () => {
                 <Text style={styles.loginLink}>Sign In</Text>
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

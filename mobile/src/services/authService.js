@@ -29,7 +29,7 @@ export const authService = {
   loginCoach: async (coachData) => {
     try {
       console.log("Sending coach login request:", coachData);
-      const response = await api.post("/public/login-coach", coachData);
+      const response = await api.post("/api/public/login-coach", coachData);
       return response.data;
     } catch (error) {
       console.error("Coach login error:", error);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Animated,
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,39 +26,25 @@ const { width } = Dimensions.get("window");
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("MEMBER");
+  const [role, setRole] = useState("MEMBER"); // Removed useEffect for animations
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
-
-  // Animations
-  const fadeAnim = new Animated.Value(0);
-  const slideAnim = new Animated.Value(50);
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { loading, error, successMessage } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    // Start entrance animations
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
+  // Debug logging
+  console.log(
+    "LoginScreen render - errors:",
+    errors,
+    "auth error:",
+    error,
+    "loading:",
+    loading
+  );
 
-  useEffect(() => {
-    if (error || successMessage) {
-      dispatch(clearMessages());
-    }
-  }, [error, successMessage, dispatch]);
+  // Removed useEffect for handling error and success messages
 
   const validateForm = () => {
     const newErrors = {};
@@ -80,6 +65,22 @@ const LoginScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    // Clear email error when user starts typing
+    if (errors.email) {
+      setErrors((prev) => ({ ...prev, email: "" }));
+    }
+  };
+
+  const handlePasswordChange = (text) => {
+    setPassword(text);
+    // Clear password error when user starts typing
+    if (errors.password) {
+      setErrors((prev) => ({ ...prev, password: "" }));
+    }
+  };
+
   const handleLogin = async () => {
     if (!validateForm()) return;
 
@@ -90,14 +91,21 @@ const LoginScreen = () => {
     };
 
     try {
+      console.log("Attempting login with:", {
+        email: loginData.email,
+        role: loginData.role,
+      });
+
       if (role === "COACH") {
         await dispatch(loginCoach(loginData)).unwrap();
       } else {
         await dispatch(loginUser(loginData)).unwrap();
       }
+      console.log("Login successful");
       // Navigation will be handled by auth state change
     } catch (error) {
       console.error("Login failed:", error);
+      // Don't clear the form on error
     }
   };
 
@@ -116,16 +124,7 @@ const LoginScreen = () => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Animated.View
-            style={[
-              styles.content,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-                paddingTop: theme.spacing.lg,
-              },
-            ]}
-          >
+          <View style={[styles.content, { paddingTop: theme.spacing.lg }]}>
             <Text style={styles.welcomeTitle}>Welcome Back</Text>
             <Text style={styles.welcomeSubtitle}>
               Sign in to continue your journey
@@ -216,7 +215,7 @@ const LoginScreen = () => {
                     label="Email Address"
                     placeholder="Enter your email"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={handleEmailChange}
                     error={errors.email}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -236,7 +235,7 @@ const LoginScreen = () => {
                     label="Password"
                     placeholder="Enter your password"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={handlePasswordChange}
                     error={errors.password}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
@@ -287,7 +286,7 @@ const LoginScreen = () => {
                 <Text style={styles.signupLink}>Create Account</Text>
               </TouchableOpacity>
             </View>
-          </Animated.View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
