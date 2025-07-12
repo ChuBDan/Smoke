@@ -45,12 +45,10 @@ api.interceptors.response.use(
   (error) => {
     const { response, message, config } = error;
 
-    // 👉 BỎ QUA log nếu là 403 get‑daily‑progress (hoặc mọi 403 nếu bạn muốn)
     if (response?.status === 403 && config?.url?.includes("/get-daily-progress/")) {
-      return Promise.reject(error);      // Không log gì thêm
+      return Promise.reject(error);     
     }
 
-    /* ───── Phần còn lại giữ nguyên ───── */
     if (!response) {
       console.error("Network Error:", message);
     } else if (response.status === 401) {
