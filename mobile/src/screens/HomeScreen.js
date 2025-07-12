@@ -151,6 +151,16 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.quickActionsGrid}>
         <TouchableOpacity
           style={styles.quickActionItem}
+          onPress={() => navigation.navigate("SmokingStatusForm")}
+        >
+          <View style={styles.quickActionIconContainer}>
+            <Ionicons name="sparkles" size={24} color={theme.colors.success} />
+          </View>
+          <Text style={styles.quickActionText}>AI Plan</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.quickActionItem}
           onPress={() => navigation.navigate("Progress")}
         >
           <View style={styles.quickActionIconContainer}>

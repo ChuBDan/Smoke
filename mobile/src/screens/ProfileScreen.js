@@ -20,6 +20,8 @@ import {
   userApi,
   smokingCessationApi,
   membershipApi,
+  appointmentApi,
+  badgeApi,
   httpMethods,
 } from "../services/smokingCessationApi";
 import theme from "../theme";
@@ -51,9 +53,10 @@ const ProfileScreen = ({ navigation }) => {
       if (!user?.id || !token) return;
 
       // Fetch member data to get membership status and package info
-      const memberData = await userApi.getMemberById(user.id, token);
-      if (memberData.member) {
-        const member = memberData.member;
+      try {
+        const memberData = await userApi.getMemberById(user.id, token);
+        // userApi now returns member data directly (updated to match web-app)
+        const member = memberData || {};
         if (member.plans === "VIP") {
           setMembershipStatus("VIP Member");
         } else {
@@ -64,6 +67,10 @@ const ProfileScreen = ({ navigation }) => {
         if (member.membership_Package) {
           setMembershipPackage(member.membership_Package);
         }
+      } catch (memberError) {
+        console.error("Error fetching member data:", memberError);
+        // Set default values if member data is not accessible
+        setMembershipStatus("Free Member");
       }
 
       // Fetch smoking cessation progress for statistics
@@ -86,14 +93,10 @@ const ProfileScreen = ({ navigation }) => {
 
       // Fetch appointments count
       try {
-        const appointmentsResponse = await httpMethods.get(
-          `/api/user/get-appointments-by-member/${user.id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const appointmentsResponse =
+          await appointmentApi.getAppointmentsByMember(user.id, token);
         const appointmentCount =
-          appointmentsResponse.data.appointments?.length || 0;
+          appointmentsResponse.consultations?.length || 0;
         setProfileStats((prev) => ({
           ...prev,
           appointments: appointmentCount,
@@ -113,13 +116,9 @@ const ProfileScreen = ({ navigation }) => {
 
     try {
       setBadgeLoading(true);
-      const response = await httpMethods.get(
-        `/api/user/get-badge-by-member/${user.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setBadges(response.data.badges || []);
+      const badges = await badgeApi.getBadgesByMember(user.id, token);
+      // badgeApi now returns badges array directly (updated to match web-app)
+      setBadges(Array.isArray(badges) ? badges : []);
     } catch (error) {
       console.log("No badges found or API not available");
       setBadges([]);

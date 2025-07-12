@@ -39,8 +39,25 @@ api.interceptors.response.use(
       // Token expired, redirect to login
       await SecureStore.deleteItemAsync("token");
       await SecureStore.deleteItemAsync("user");
+      await SecureStore.deleteItemAsync("userId");
+      await SecureStore.deleteItemAsync("role");
       // You might want to dispatch a logout action here
     }
+
+    // Allow 403 errors for certain endpoints (user might not have access yet)
+    if (error.response?.status === 403) {
+      const url = error.config?.url || "";
+      if (
+        url.includes("/get-plans-by-member/") ||
+        url.includes("/get-progresses-by-member/") ||
+        url.includes("/get-badge-by-member/") ||
+        url.includes("/get-consultations-by-member/")
+      ) {
+        // These endpoints might return 403 if user doesn't have data yet
+        // Let the calling code handle this gracefully
+      }
+    }
+
     return Promise.reject(error);
   }
 );
@@ -62,12 +79,7 @@ export const smokingCessationApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-smoking-log/member/${memberId}`,
-        smokingData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        smokingData
       );
       return response.data;
     } catch (error) {
@@ -79,12 +91,7 @@ export const smokingCessationApi = {
   getSmokingLogByMemberId: async (userId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-smoking-logs-by-member/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `/api/user/get-smoking-logs-by-member/${userId}`
       );
       return response.data;
     } catch (error) {
@@ -97,12 +104,7 @@ export const smokingCessationApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-plan/member/${memberId}/smoking-log/${smokingLogId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        {}
       );
       return response.data;
     } catch (error) {
@@ -113,8 +115,7 @@ export const smokingCessationApi = {
 
   getPlanByUserId: async (userId, token) => {
     const res = await httpMethods.get(
-      `/api/user/get-plans-by-member/${userId}`,
-      { headers: { Authorization: `Bearer ${token}` } }
+      `/api/user/get-plans-by-member/${userId}`
     );
 
     const rawPlans = res.data?.plans ?? (res.data?.plan ? [res.data.plan] : []);
@@ -135,8 +136,7 @@ export const smokingCessationApi = {
 
       const { data } = await httpMethods.post(
         `/api/user/create-progress/member/${memberId}`,
-        { ...payload, date: today },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { ...payload, date: today }
       );
 
       return data;
@@ -149,12 +149,7 @@ export const smokingCessationApi = {
   getDailyProgressByMemberId: async (memberId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-progresses-by-member/${memberId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `/api/user/get-progresses-by-member/${memberId}`
       );
       return response.data;
     } catch (error) {
@@ -169,12 +164,7 @@ export const membershipApi = {
   getAllMembershipPackages: async (token) => {
     try {
       const response = await httpMethods.get(
-        "/api/user/get-all-membership-packages",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        "/api/user/get-all-membership-packages"
       );
       return response.data;
     } catch (error) {
@@ -186,13 +176,8 @@ export const membershipApi = {
   buyMembershipPackage: async (packageId, userId, token) => {
     try {
       const response = await httpMethods.post(
-        `/api/user/buy-membership-package/${packageId}/user/${userId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `/api/user/buy-membership-package/${packageId}/member/${userId}`,
+        {}
       );
       return response.data;
     } catch (error) {
@@ -206,12 +191,11 @@ export const membershipApi = {
 export const userApi = {
   getMemberById: async (userId, token) => {
     try {
-      const response = await httpMethods.get(`/api/user/get-member/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
+      const response = await httpMethods.get(
+        `/api/user/get-member-by-id/${userId}`
+      );
+      // Match web-app response structure: return res.data?.member
+      return response.data?.member || response.data;
     } catch (error) {
       console.error("Error fetching member by ID:", error);
       throw error;
@@ -222,12 +206,7 @@ export const userApi = {
     try {
       const response = await httpMethods.put(
         `/api/member/update-member/${userId}`,
-        userData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        userData
       );
       return response.data;
     } catch (error) {
@@ -258,12 +237,7 @@ export const userApi = {
   getAppointmentsByMember: async (memberId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-consultations-by-member/${memberId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `/api/user/get-consultations-by-member/${memberId}`
       );
       return response.data;
     } catch (error) {
@@ -277,12 +251,7 @@ export const userApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-consultation/coach/${coachId}/member/${memberId}`,
-        consultationData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        consultationData
       );
       return response.data;
     } catch (error) {
@@ -294,11 +263,7 @@ export const userApi = {
   // Get all coaches
   getAllCoaches: async (token) => {
     try {
-      const response = await httpMethods.get(`/api/user/get-all-coaches`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await httpMethods.get(`/api/user/get-all-coaches`);
       return response.data;
     } catch (error) {
       console.error("Error fetching coaches:", error);
@@ -313,12 +278,7 @@ export const appointmentApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-consultation/coach/${coachId}/member/${memberId}`,
-        appointmentData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        appointmentData
       );
       return response.data;
     } catch (error) {
@@ -330,14 +290,16 @@ export const appointmentApi = {
   getAppointmentsByMember: async (memberId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-consultations-by-member/${memberId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        `/api/user/get-consultations-by-member/${memberId}`
       );
-      return response.data;
+      // Match web-app response structure: return data?.consultations or data if array
+      const data = response.data;
+      const consultations = Array.isArray(data?.consultations)
+        ? data.consultations
+        : Array.isArray(data)
+        ? data
+        : [];
+      return { consultations };
     } catch (error) {
       console.error("Error fetching appointments by member:", error);
       throw error;
@@ -399,11 +361,7 @@ export const coachApi = {
 
   getCoachById: async (coachId, token) => {
     try {
-      const response = await httpMethods.get(`/api/user/get-coach/${coachId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await httpMethods.get(`/api/user/get-coach/${coachId}`);
       return response.data;
     } catch (error) {
       console.error("Error fetching coach by ID:", error);
@@ -412,4 +370,22 @@ export const coachApi = {
   },
 };
 
+// Badge API
+export const badgeApi = {
+  getBadgesByMember: async (userId, token) => {
+    try {
+      const response = await httpMethods.get(
+        `/api/user/get-badge-by-member/${userId}`
+      );
+      // Match web-app response structure: return res.data.badges || []
+      return response.data.badges || [];
+    } catch (error) {
+      console.error("Error fetching badges by member:", error);
+      throw error;
+    }
+  },
+};
+
 export default api;
+
+// All API endpoints updated to match web-app response structure and remove duplicate headers

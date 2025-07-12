@@ -39,59 +39,89 @@ const SmokingCessationScreen = ({ navigation }) => {
       if (!user?.id || !token) return;
 
       // Fetch user's smoking cessation plan
-      const planData = await smokingCessationApi.getPlanByUserId(
-        user.id,
-        token
-      );
+      try {
+        const planData = await smokingCessationApi.getPlanByUserId(
+          user.id,
+          token
+        );
 
-      if (planData.plans && planData.plans.length > 0) {
-        const currentPlan = planData.plans[0];
-        setPlan(currentPlan);
+        if (planData.plans && planData.plans.length > 0) {
+          const currentPlan = planData.plans[0];
+          // Add currentPhase property if missing
+          const planWithCurrentPhase = {
+            ...currentPlan,
+            currentPhase: currentPlan.currentPhase || 1,
+          };
+          setPlan(planWithCurrentPhase);
 
-        // Map phases from plan data
-        const mappedPhases =
-          planData.planPhases?.map((phase, index) => ({
-            id: phase.id,
-            number: phase.phaseNumber || index + 1,
-            title: `Phase ${phase.phaseNumber || index + 1}: ${
-              phase.weekRange || "Phase"
-            }`,
-            subtitle: phase.goal || "",
-            icon: ["🎯", "🚀", "💪", "🏆"][index % 4],
-            color: [
-              "from-blue-400 to-blue-600",
-              "from-green-400 to-green-600",
-              "from-purple-400 to-purple-600",
-              "from-yellow-400 to-yellow-600",
-            ][index % 4],
-            completed: false, // You can determine this based on progress
-          })) || [];
+          // Map phases from plan data
+          const mappedPhases =
+            planData.planPhases?.map((phase, index) => ({
+              id: phase.id,
+              number: phase.phaseNumber || index + 1,
+              title: `Phase ${phase.phaseNumber || index + 1}: ${
+                phase.weekRange || "Phase"
+              }`,
+              subtitle: phase.goal || "",
+              description:
+                phase.description || `Phase ${index + 1} description`,
+              duration: phase.duration || "7 days",
+              icon: ["🎯", "🚀", "💪", "🏆"][index % 4],
+              color: [
+                "from-blue-400 to-blue-600",
+                "from-green-400 to-green-600",
+                "from-purple-400 to-purple-600",
+                "from-yellow-400 to-yellow-600",
+              ][index % 4],
+              completed: (planWithCurrentPhase.currentPhase || 1) > index + 1,
+            })) || [];
 
-        setPhases(mappedPhases);
+          setPhases(mappedPhases);
+        } else {
+          // No plan found, set default structure
+          setPlan({
+            id: null,
+            title: "No Plan Available",
+            currentPhase: 1,
+          });
+          setPhases([]);
+        }
+      } catch (planError) {
+        console.log("No smoking cessation plan found for user");
+        // Set default structure when no plan exists
+        setPlan({
+          id: null,
+          title: "Start Your Journey",
+          currentPhase: 1,
+        });
+        setPhases([]);
       }
 
-      // Fetch progress data
-      const progress = await smokingCessationApi.getDailyProgressByMemberId(
-        user.id,
-        token
-      );
-      setProgressData(progress.progresses || []);
+      // Fetch progress data separately
+      try {
+        const progress = await smokingCessationApi.getDailyProgressByMemberId(
+          user.id,
+          token
+        );
+        setProgressData(progress.progresses || []);
 
-      // Calculate money saved and days smoke-free from progress data
-      if (progress.progresses && progress.progresses.length > 0) {
-        const latestProgress =
-          progress.progresses[progress.progresses.length - 1];
-        setMoneySaved(latestProgress.moneySaved || 0);
-        setDaysSmokeFree(latestProgress.daysSmokeFree || 0);
+        // Calculate money saved and days smoke-free from progress data
+        if (progress.progresses && progress.progresses.length > 0) {
+          const latestProgress =
+            progress.progresses[progress.progresses.length - 1];
+          setMoneySaved(latestProgress.moneySaved || 0);
+          setDaysSmokeFree(latestProgress.daysSmokeFree || 0);
+        }
+      } catch (progressError) {
+        console.log("No progress data found for user");
+        setProgressData([]);
+        setMoneySaved(0);
+        setDaysSmokeFree(0);
       }
     } catch (err) {
-      console.error("Error fetching smoking cessation data:", err);
-      // Don't show error for 403 - user might not have a plan yet
-      if (err.response?.status === 403) {
-        setError(""); // Clear error for 403, show empty state instead
-      } else {
-        setError("Failed to load smoking cessation program");
-      }
+      console.error("Error fetching data:", err);
+      // Only show error for unexpected failures
+      setError("Some features may not be available");
     } finally {
       setLoading(false);
     }
@@ -271,7 +301,7 @@ const SmokingCessationScreen = ({ navigation }) => {
             <View>
               <Text style={styles.overviewTitle}>Overall Progress</Text>
               <Text style={styles.overviewSubtitle}>
-                Phase {currentPhase} of {phases.length}
+                Phase {plan?.currentPhase || 1} of {phases.length || 4}
               </Text>
             </View>
           </View>
@@ -280,12 +310,19 @@ const SmokingCessationScreen = ({ navigation }) => {
               <View
                 style={[
                   styles.overallProgressFill,
-                  { width: `${(currentPhase / phases.length) * 100}%` },
+                  {
+                    width: `${
+                      ((plan?.currentPhase || 1) / (phases.length || 4)) * 100
+                    }%`,
+                  },
                 ]}
               />
             </View>
             <Text style={styles.overallProgressText}>
-              {Math.round((currentPhase / phases.length) * 100)}% Complete
+              {Math.round(
+                ((plan?.currentPhase || 1) / (phases.length || 4)) * 100
+              )}
+              % Complete
             </Text>
           </View>
         </View>
@@ -297,8 +334,8 @@ const SmokingCessationScreen = ({ navigation }) => {
               key={index}
               phase={phase}
               index={index}
-              isActive={index + 1 === currentPhase}
-              isCompleted={index + 1 < currentPhase}
+              isActive={index + 1 === (plan?.currentPhase || 1)}
+              isCompleted={index + 1 < (plan?.currentPhase || 1)}
             />
           ))}
         </View>
@@ -310,16 +347,25 @@ const SmokingCessationScreen = ({ navigation }) => {
               size={64}
               color={theme.colors.gray400}
             />
-            <Text style={styles.emptyTitle}>No program available</Text>
+            <Text style={styles.emptyTitle}>Start Your AI-Powered Journey</Text>
             <Text style={styles.emptySubtitle}>
-              Please purchase a membership to access the smoking cessation
-              program
+              Tell us about your smoking habits and we'll create a personalized
+              AI plan to help you quit successfully
             </Text>
-            <Button
-              title="View Membership Plans"
-              onPress={() => navigation.navigate("Membership")}
-              style={styles.membershipButton}
-            />
+            <View style={styles.emptyActions}>
+              <Button
+                title="Create My AI Plan"
+                onPress={() => navigation.navigate("SmokingStatusForm")}
+                style={styles.createPlanButton}
+                textStyle={styles.createPlanButtonText}
+              />
+              <Button
+                title="View Membership Plans"
+                onPress={() => navigation.navigate("Membership")}
+                style={styles.membershipButton}
+                textStyle={styles.membershipButtonText}
+              />
+            </View>
           </View>
         )}
       </ScrollView>
@@ -555,8 +601,31 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: theme.spacing.lg,
   },
+  emptyActions: {
+    gap: theme.spacing.md,
+    width: "100%",
+  },
+  createPlanButton: {
+    backgroundColor: theme.colors.success,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+  },
+  createPlanButtonText: {
+    color: theme.colors.white,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+  },
   membershipButton: {
-    marginTop: theme.spacing.md,
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    paddingVertical: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+  },
+  membershipButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
   },
 });
 

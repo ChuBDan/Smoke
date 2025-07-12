@@ -14,6 +14,7 @@ import SplashScreens from "../screens/SplashScreens";
 import MembershipScreen from "../screens/member/MembershipScreen";
 import SmokingCessationScreen from "../screens/member/SmokingCessationScreen";
 import ProfileEditScreen from "../screens/ProfileEditScreen";
+import SmokingStatusFormScreen from "../screens/SmokingStatusFormScreen";
 import BookAppointmentScreen from "../screens/BookAppointmentScreen";
 
 const Stack = createStackNavigator();
@@ -60,6 +61,10 @@ const AppNavigator = () => {
               component={SmokingCessationScreen}
             />
             <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+            <Stack.Screen
+              name="SmokingStatusForm"
+              component={SmokingStatusFormScreen}
+            />
             <Stack.Screen
               name="BookAppointment"
               component={BookAppointmentScreen}

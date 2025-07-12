@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { Card, Button } from "../components";
-import { userApi } from "../services/smokingCessationApi";
+import { userApi, appointmentApi } from "../services/smokingCessationApi";
 import theme from "../theme";
 
 const AppointmentsScreen = ({ navigation }) => {
@@ -37,7 +37,10 @@ const AppointmentsScreen = ({ navigation }) => {
       if (!user?.id || !token) return;
 
       try {
-        const response = await userApi.getAppointmentsByMember(user.id, token);
+        const response = await appointmentApi.getAppointmentsByMember(
+          user.id,
+          token
+        );
         setAppointments(response.consultations || []);
       } catch (apiError) {
         // If API fails, show empty state instead of hardcoded data
