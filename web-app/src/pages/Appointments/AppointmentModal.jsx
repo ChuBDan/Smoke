@@ -1,215 +1,284 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "../../config/api";
 import { toast } from "react-toastify";
-import { format } from "date-fns";
+import { addHours, format, startOfWeek } from "date-fns";
 
-// Định nghĩa getCurrentWeek bên ngoài component để tránh vấn đề khởi tạo
-const getCurrentWeek = () => {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(now.setDate(diff));
+/* ------------------------------------------------------------------
+  Helpers
+-------------------------------------------------------------------*/
+const WEEK_DAYS = 7;
+const DISPLAY_LOCALE = "vi-VN";
+
+const buildWeekDays = (anchor) =>
+  Array.from({ length: WEEK_DAYS }, (_, i) => {
+    const d = addHours(anchor, i * 24);
+    return {
+      label: d.toLocaleDateString(DISPLAY_LOCALE, {
+        weekday: "long",
+      }),
+      short: d.toLocaleDateString(DISPLAY_LOCALE, {
+        day: "2-digit",
+        month: "2-digit",
+      }),
+      date: d,
+    };
+  });
+
+const SLOT_LABELS = [
+  "08AM-09AM",
+  "09AM-10AM",
+  "10AM-11AM",
+  "11AM-12PM",
+  "01PM-02PM",
+  "02PM-03PM",
+  "03PM-04PM",
+  "04PM-05PM",
+];
+
+const getStartHour24 = (slot) => {
+  const raw = slot.split("-")[0]; // 08AM
+  const hour = parseInt(raw.replace(/AM|PM/, ""), 10);
+  return raw.includes("PM") && hour < 12 ? hour + 12 : hour;
 };
 
+/* ------------------------------------------------------------------
+  Component
+-------------------------------------------------------------------*/
 const AppointmentCalendar = ({ open, onClose }) => {
+  /* ------------------------------ state -----------------------------*/
+  const memberId = String(localStorage.getItem("userId") || "");
   const [coaches, setCoaches] = useState([]);
   const [selectedCoach, setSelectedCoach] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null); 
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const memberId = localStorage.getItem("userId");
-  const [currentWeek, setCurrentWeek] = useState(getCurrentWeek());
+  const [appointments, setAppointments] = useState([]);
+
+  const weekAnchor = useMemo(() => startOfWeek(new Date(), { weekStartsOn: 1 }), []);
+  const weekDays = useMemo(() => buildWeekDays(weekAnchor), [weekAnchor]);
+
+  /* ----------------------------- effects ----------------------------*/
+  const fetchCoaches = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get("/api/user/get-all-coaches");
+      setCoaches((data.coaches || []).filter((c) => c.status === "ACTIVE"));
+    } catch (e) {
+      toast.error("Không thể tải danh sách coach");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchAppointments = useCallback(async () => {
+    if (!memberId) return;
+    try {
+      const { data } = await axios.get(`/api/user/get-consultations-by-member/${memberId}`);
+      const list = Array.isArray(data?.consultations) ? data.consultations : Array.isArray(data) ? data : [];
+      setAppointments(list);
+    } catch (e) {
+      console.error(e);
+      setAppointments([]);
+    }
+  }, [memberId]);
 
   useEffect(() => {
-    if (open) {
-      // Ngăn cuộn trang nền khi modal mở
-      document.body.style.overflow = "hidden";
-      setLoading(true);
-      axios
-        .get("/api/user/get-all-coaches")
-        .then((res) => {
-          const activeCoaches = (res.data?.coaches || []).filter(
-            (coach) => coach.status === "ACTIVE"
-          );
-          setCoaches(activeCoaches);
-        })
-        .catch((err) => {
-          console.error("Lỗi khi lấy danh sách coach:", err);
-          toast.error("Không thể tải danh sách coach.");
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      // Khôi phục cuộn trang nền khi modal đóng
-      document.body.style.overflow = "auto";
-    }
-    // Cleanup khi component unmount
+    if (!open) return;
+
+    /* lock scroll */
+    document.body.style.overflow = "hidden";
+    fetchCoaches();
+    fetchAppointments();
+
     return () => {
       document.body.style.overflow = "auto";
     };
-  }, [open]);
+  }, [open, fetchCoaches, fetchAppointments]);
 
-  const getWeekDays = () => {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(currentWeek);
-      date.setDate(currentWeek.getDate() + i);
-      days.push({
-        day: date.toLocaleDateString("vi-VN", { weekday: "long" }),
-        date: date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
-        fullDate: date,
-      });
-    }
-    return days;
-  };
+  /* --------------------------- utils -------------------------------*/
+  const isSlotBooked = (dateObj, slot, coachId, memberId) => {
+  const dayKey = format(dateObj, "dd-MM-yyyy");
+  const hour24 = getStartHour24(slot);
+  const hourKey = String(hour24).padStart(2, "0") + ":00:00";
 
-  const timeSlots = [
-    "06AM-07AM", "07AM-08AM", "08AM-09AM", "09AM-10AM",
-    "10AM-11AM", "11AM-12PM"
-  ];
+  return appointments.find(
+    (a) =>
+      a.coach?.id?.toString() === coachId?.toString() &&
+      a.member?.id?.toString() === memberId?.toString() &&
+      a.status === "ACTIVE" &&
+      a.consultationDate?.startsWith(dayKey) &&
+      a.consultationDate?.includes(hourKey)
+  );
+};
 
-  const handleSlotClick = (time, day) => {
-    setSelectedSlot({ time, day: day.fullDate });
-  };
 
-  const handleSubmit = async () => {
+  /* ------------------------ event handlers -------------------------*/
+  const handleConfirm = async () => {
     if (!selectedCoach || !selectedSlot) {
-      toast.warning("Vui lòng chọn coach và thời gian.");
+      toast.warning("Vui lòng chọn coach và thời gian");
       return;
     }
 
-    const startDateTime = new Date(selectedSlot.day);
-    const [startHour] = selectedSlot.time.split("-")[0].replace("AM", "").replace("PM", "").split("AM")[0].split(":");
-    startDateTime.setHours(parseInt(startHour) + (selectedSlot.time.includes("PM") ? 12 : 0), 0, 0, 0);
-    const endDateTime = new Date(startDateTime.getTime() + 60 * 60 * 1000);
-
-    if (startDateTime <= new Date()) {
-      toast.warning("Vui lòng chọn thời gian bắt đầu trong tương lai.");
+    const { date, time } = selectedSlot;
+    const start = new Date(date);
+    start.setHours(getStartHour24(time), 0, 0, 0);
+    if (start <= new Date()) {
+      toast.warning("Vui lòng chọn thời gian bắt đầu trong tương lai");
       return;
     }
 
     const payload = {
-      consultationDate: format(startDateTime, "dd-MM-yyyy HH:mm:ss"),
-      startDate: format(startDateTime, "dd-MM-yyyy HH:mm:ss"),
-      endDate: format(endDateTime, "dd-MM-yyyy HH:mm:ss"),
+      consultationDate: format(start, "dd-MM-yyyy HH:mm:ss"),
+      startDate: format(start, "dd-MM-yyyy HH:mm:ss"),
+      endDate: format(addHours(start, 1), "dd-MM-yyyy HH:mm:ss"),
       notes: notes.trim() || "Tư vấn sức khỏe tâm lý",
     };
 
-    setSubmitting(true);
     try {
-      await axios.post(
-        `/api/user/create-consultation/coach/${selectedCoach}/member/${memberId}`,
-        payload
-      );
+      setSubmitting(true);
+      await axios.post(`/api/user/create-consultation/coach/${selectedCoach}/member/${memberId}`, payload);
       toast.success("Đặt lịch hẹn thành công!");
       setSelectedSlot(null);
       setNotes("");
-      onClose();
-    } catch (error) {
-      console.error("Lỗi đặt lịch hẹn:", error);
+      await fetchAppointments(); // refresh grid
+    } catch (e) {
       toast.error("Đặt lịch thất bại. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    setSelectedCoach("");
-    setSelectedSlot(null);
-    setNotes("");
-    onClose();
-  };
-
-  // Xử lý nhấp ra ngoài để đóng modal
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
-
+  /* ---------------------------- render -----------------------------*/
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4" onClick={handleBackdropClick}>
-      <div className="rounded-3xl w-full max-w-4xl shadow-2xl border border-gray-100">
-        <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-t-3xl p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                🏥 Đặt lịch hẹn
-              </h2>
-              <p className="text-emerald-100 text-sm mt-1">
-                Tư vấn với chuyên gia của chúng tôi
-              </p>
-            </div>
-            <button
-              onClick={handleClose}
-              className="text-white hover:text-red-200 text-2xl w-10 h-10 flex items-center justify-center rounded-full hover:bg-white hover:bg-opacity-20"
-            >
-              ×
-            </button>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300" 
+         onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="rounded-2xl w-full max-w-5xl shadow-2xl border border-white/10 bg-white/95 backdrop-blur-lg flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-4 duration-300">
+        {/* header */}
+        <header className="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-t-2xl p-8 flex justify-between items-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 backdrop-blur-sm"></div>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+              <span className="text-4xl">🏥</span>
+              Đặt lịch hẹn
+            </h2>
+            <p className="text-emerald-100 text-base mt-1">Tư vấn với chuyên gia của chúng tôi</p>
           </div>
-        </div>
-        <div className="p-6 bg-gradient-to-b from-gray-50 to-white space-y-6 max-h-[70vh] overflow-y-auto">
-          <div>
-            <label className="block mb-3 text-sm font-bold text-gray-700">
-              👨‍⚕️ Chọn Coach <span className="text-red-500">*</span>
+          <button 
+            onClick={onClose} 
+            className="relative z-10 text-white text-3xl w-12 h-12 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 transition-all duration-200 hover:scale-110"
+          >
+            ×
+          </button>
+        </header>
+
+        {/* body */}
+        <section className="p-8 overflow-y-auto flex-1 space-y-8 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+          {/* coach select */}
+          <div className="space-y-4">
+            <label className="block text-lg font-semibold text-gray-800  items-center gap-2">
+              <span className="text-2xl">👨‍⚕️</span>
+              Chọn Coach 
+              <span className="text-red-500 text-xl">*</span>
             </label>
-            <select
-              className="w-full border-2 rounded-xl px-4 py-4 font-medium"
-              value={selectedCoach}
-              onChange={(e) => setSelectedCoach(e.target.value)}
-            >
-              <option value="">-- Chọn coach phù hợp --</option>
-              {coaches.map((coach) => (
-                <option key={coach.id} value={coach.id}>
-                  {coach.name} {coach.expertise && `(${coach.expertise})`}
-                </option>
-              ))}
-            </select>
-            {coaches.length === 0 && (
-              <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-                ⚠️ Hiện tại không có coach nào khả dụng
-              </div>
-            )}
-          </div>
-          <div className="bg-white p-4 rounded-xl border border-gray-200">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">Lịch hẹn</h3>
-              <div className="flex space-x-2">
-                <span className="text-green-500">Lịch trống</span>
-                <span className="text-red-500">Đã đặt lịch</span>
-                <span className="text-blue-500">Hôm nay</span>
+            <div className="relative">
+              <select 
+                value={selectedCoach} 
+                onChange={(e) => setSelectedCoach(e.target.value)} 
+                className="w-full border-2 border-gray-200 rounded-xl px-6 py-4 text-lg font-medium bg-white/80 backdrop-blur-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200 hover:border-emerald-300 appearance-none cursor-pointer"
+              >
+                <option value="">-- Chọn coach phù hợp --</option>
+                {coaches.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}{c.expertise && ` (${c.expertise})`}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+          </div>
+
+          {/* calendar grid */}
+          <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200/50 shadow-lg">
+            <div className="flex justify-between items-center mb-6 text-base font-medium">
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 bg-emerald-500 rounded-full"></span>
+                <span className="text-emerald-600">Trống</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 bg-red-500 rounded-full"></span>
+                <span className="text-red-600">Đã đặt</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
+                <span className="text-blue-600">Hôm nay</span>
+              </div>
+            </div>
+            
+            <div className="overflow-x-auto rounded-xl border border-gray-200/50">
+              <table className="w-full border-collapse text-sm">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="border p-2"></th>
-                    {getWeekDays().map((day, index) => (
-                      <th key={index} className="border p-2 text-center">
-                        {day.day}<br/>{day.date}
+                  <tr className="bg-gradient-to-r from-gray-100 to-gray-200">
+                    <th className="border-b border-gray-300 p-4 text-left font-semibold text-gray-700"></th>
+                    {weekDays.map((d) => (
+                      <th key={d.short} className="border-b border-gray-300 p-4 text-center font-semibold text-gray-700 min-w-[120px]">
+                        <div className="space-y-1">
+                          <div className="text-sm">{d.label}</div>
+                          <div className="text-xs text-gray-500">{d.short}</div>
+                        </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody>
-                  {timeSlots.map((time, rowIndex) => (
-                    <tr key={rowIndex}>
-                      <td className="border p-2 bg-green-100">{time}</td>
-                      {getWeekDays().map((day, colIndex) => {
-                        const isToday = day.fullDate.toDateString() === new Date().toDateString();
-                        const isSelected = selectedSlot && selectedSlot.time === time && selectedSlot.day.toDateString() === day.fullDate.toDateString();
+                <tbody className="bg-white">
+                  {SLOT_LABELS.map((slot, index) => (
+                    <tr key={slot} className={index % 2 === 0 ? "bg-gray-50/50" : "bg-white"}>
+                      <td className="border-b border-gray-200 p-4 bg-emerald-50/80 font-semibold text-emerald-800 text-center">
+                        {slot}
+                      </td>
+                      {weekDays.map(({ date }) => {
+                        const booked = isSlotBooked(date, slot, selectedCoach, memberId);
+                        const isToday = date.toDateString() === new Date().toDateString();
+                        const isChosen = selectedSlot && selectedSlot.time === slot && selectedSlot.date.toDateString() === date.toDateString();
+
                         return (
                           <td
-                            key={colIndex}
-                            className={`border p-2 text-center cursor-pointer ${isToday ? 'bg-blue-100' : 'bg-green-50'} ${isSelected ? 'bg-green-200' : ''}`}
-                            onClick={() => handleSlotClick(time, day)}
+                            key={date + slot}
+                            className={`border-b border-gray-200 p-3 text-center cursor-pointer select-none transition-all duration-200 hover:scale-105 ${
+                              isToday ? "bg-blue-50 border-blue-200" : "bg-white"
+                            } ${
+                              isChosen ? "bg-emerald-100 border-emerald-300 shadow-md" : ""
+                            } ${
+                              booked ? "bg-red-50 cursor-not-allowed" : "hover:bg-emerald-50"
+                            }`}
+                            onClick={() => {
+                              if (!booked) setSelectedSlot({ time: slot, date });
+                            }}
                           >
-                            {isSelected ? "Đã chọn" : "Trống"}
+                            {booked ? (
+                              <div className="space-y-2">
+                                <div className="text-red-600 font-semibold text-sm">Đã đặt</div>
+                                {booked.googleMeetLink && (
+                                  <a 
+                                    href={booked.googleMeetLink} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs font-medium transition-colors"
+                                  >
+                                    <span>🔗</span>
+                                    Link Meet
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <div className={`font-medium ${isChosen ? "text-emerald-700" : "text-gray-600"}`}>
+                                {isChosen ? "✓ Đã chọn" : "Trống"}
+                              </div>
+                            )}
                           </td>
                         );
                       })}
@@ -219,35 +288,52 @@ const AppointmentCalendar = ({ open, onClose }) => {
               </table>
             </div>
           </div>
-          {/* Thêm phần Ghi chú (tùy chọn) */}
-          <div>
-            <label className="block mb-3 text-sm font-bold text-gray-700">
-              📝 Ghi chú (tùy chọn)
+
+          {/* notes */}
+          <div className="space-y-4">
+            <label className="block text-lg font-semibold text-gray-800  items-center gap-2">
+              <span className="text-2xl">📝</span>
+              Ghi chú (tùy chọn)
             </label>
-            <textarea
-              className="w-full border-2 rounded-xl px-4 py-3 resize-none"
-              rows={3}
-              placeholder="Ví dụ: Tư vấn tâm lý, dinh dưỡng..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+            <textarea 
+              value={notes} 
+              onChange={(e) => setNotes(e.target.value)} 
+              rows={4} 
+              className="w-full border-2 border-gray-200 rounded-xl px-6 py-4 text-base resize-none bg-white/80 backdrop-blur-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200 hover:border-emerald-300" 
+              placeholder="Ví dụ: Tư vấn tâm lý, dinh dưỡng, vấn đề sức khỏe cần quan tâm..."
             />
           </div>
-        </div>
-        <div className="bg-gray-50 rounded-b-3xl p-6 flex gap-4">
-          <button
-            onClick={handleClose}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 py-3 px-4 rounded-xl font-bold"
+        </section>
+
+        {/* footer */}
+        <footer className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-2xl p-8 flex gap-6 border-t border-gray-200/50">
+          <button 
+            onClick={onClose} 
+            className="flex-1 bg-white border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 hover:scale-105"
           >
             Hủy
           </button>
           <button
-            onClick={handleSubmit}
+            onClick={handleConfirm}
             disabled={submitting || !selectedCoach || !selectedSlot}
-            className="flex-2 bg-emerald-500 hover:bg-emerald-600 text-white py-3 px-6 rounded-xl font-bold"
+            className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-4 px-8 rounded-xl font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2"
           >
-            {submitting ? "Đang xử lý..." : "📅 Xác nhận lịch hẹn"}
+            {submitting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                <span className="text-xl">📅</span>
+                Xác nhận lịch hẹn
+              </>
+            )}
           </button>
-        </div>
+        </footer>
       </div>
     </div>
   );

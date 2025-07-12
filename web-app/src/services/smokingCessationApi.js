@@ -96,35 +96,25 @@ export const smokingCessationApi = {
   },
 
   getPlanByUserId: async (userId, token) => {
-    try {
-      const response = await httpMethods.get(
-        `/api/user/get-plans-by-member/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching plan:", error);
-      throw error;
-    }
-  },
+  const res = await httpMethods.get(
+    `/api/user/get-plans-by-member/${userId}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
-  getPlan: async (planId, token) => {
-    try {
-      const response = await httpMethods.get(`/api/user/get-plan/${planId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching plan:", error);
-      throw error;
-    }
-  },
+  const rawPlans = res.data?.plans
+    ?? (res.data?.plan ? [res.data.plan] : []);
+
+  const normalizedPlans = rawPlans.map((plan) => ({
+    ...plan,
+    phases: res.data?.planPhases ?? [],
+    planWeeks: res.data?.planWeeks ?? [],
+    copingMechanisms: res.data?.copingMechanisms ?? [],
+  }));
+
+  return { ...res.data, plans: normalizedPlans };
+},
+
+
 
   deletePlan: async (planId) => {
     try {
@@ -156,23 +146,6 @@ export const smokingCessationApi = {
     }
   },
 
-  getProgress: async (progressId, token) => {
-    try {
-      const response = await httpMethods.get(
-        `/api/public/get-progress/${progressId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching progress:", error);
-      throw error;
-    }
-  },
-
   updateProgress: async (progressId, progressData, token) => {
     try {
       const response = await httpMethods.put(
@@ -191,176 +164,29 @@ export const smokingCessationApi = {
     }
   },
 
-  getAllProgresses: async (token) => {
-    try {
-      const response = await httpMethods.get("/api/public/get-all-progresses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching all progresses:", error);
-      throw error;
-    }
-  },
+  submitDailyProgress: async (memberId, payload, token) => {
+  /**
+   * payload gồm:
+   * { daysSmokeFree: number, healthImprovement: 'GOOD'|'NORMAL'|'BAD', completed: true }
+   */
+  try {
+    const today = new Date().toISOString().split("T")[0];
 
-  deleteProgress: async (progressId) => {
-    try {
-      const response = await httpMethods.delete(
-        `/api/public/delete-progress/${progressId}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error deleting progress:", error);
-      throw error;
-    }
-  },
+    // gọi BE
+    const { data } = await httpMethods.post(
+      `/api/user/create-progress/member/${memberId}`,
+      { ...payload, date: today },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-  createConsultation: async (coachId, memberId, consultationData) => {
-    try {
-      const response = await httpMethods.post(
-        `/api/user/create-consultation/coach/${coachId}/member/${memberId}`,
-        consultationData
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error creating consultation:", error);
-      throw error;
-    }
-  },
+    // BE trả về { moneySaved: number, ... }
+    return data;
+  } catch (err) {
+    console.error("Error submit progress:", err);
+    throw err;
+  }
+},
 
-  getConsultation: async (consultationId) => {
-    try {
-      const response = await httpMethods.get(
-        `/api/user/get-consultation/${consultationId}`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching consultation:", error);
-      throw error;
-    }
-  },
-
-  createNotification: async (memberId, notificationData) => {
-    try {
-      const response = await httpMethods.post(
-        `/api/user/create-notification/member/${memberId}`,
-        notificationData
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error creating notification:", error);
-      throw error;
-    }
-  },
-
-  getAllNotifications: async () => {
-    try {
-      const response = await httpMethods.get("/api/user/get-all-notifications");
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-      throw error;
-    }
-  },
-
-  askAI: async (question, context = null) => {
-    try {
-      const response = await httpMethods.post("/api/public/ai/ask", {
-        question,
-        context,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error asking AI:", error);
-      throw error;
-    }
-  },
-
-  askAIWithSchema: async (question, schema) => {
-    try {
-      const response = await httpMethods.post("/api/public/ai/ask/schema", {
-        question,
-        schema,
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error asking AI with schema:", error);
-      throw error;
-    }
-  },
-
-  getAIPlan: async (token) => {
-    try {
-      const response = await httpMethods.get(`/api/public/ai/ask/schema`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching AI plan:", error);
-      throw error;
-    }
-  },
-
-  submitDailyProgress: async (memberId, progressData, token) => {
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const allProgresses = await smokingCessationApi.getAllProgresses(token);
-
-      const todayProgress = allProgresses.find(
-        (p) => p.memberId === memberId && p.date === today
-      );
-
-      if (todayProgress) {
-        const response = await httpMethods.put(
-          `/api/public/update-progress/${todayProgress.id}`,
-          {
-            ...progressData,
-            date: today,
-            memberId,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        return response.data;
-      } else {
-        const response = await httpMethods.post(
-          `/api/public/create-progress/member/${memberId}`,
-          {
-            ...progressData,
-            date: today,
-          }
-        );
-        return response.data;
-      }
-    } catch (error) {
-      console.error("Error submitting daily progress:", error);
-      throw error;
-    }
-  },
-
-  getDailyProgressStatus: async (memberId, token) => {
-    try {
-      const response = await httpMethods.get(
-        `/api/user/get-daily-progress/member/${memberId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching daily progress:", error);
-      throw error;
-    }
-  },
 
   getDailyProgressByMemberId: async (memberId, token) => {
     try {
@@ -378,6 +204,4 @@ export const smokingCessationApi = {
       throw error;
     }
   },
-
-
 };
