@@ -87,8 +87,11 @@ const ProfileScreen = ({ navigation }) => {
           }));
         }
       } catch (progressErr) {
-        // User might not have smoking cessation progress yet
-        console.log("No smoking cessation progress found");
+        if (progressErr.response?.status === 400) {
+          console.warn("No progress yet for user");
+        } else {
+          console.error("Error fetching progress:", progressErr);
+        }
       }
 
       // Fetch appointments count
@@ -102,7 +105,11 @@ const ProfileScreen = ({ navigation }) => {
           appointments: appointmentCount,
         }));
       } catch (appointmentErr) {
-        console.log("No appointments found or API not available");
+        if (appointmentErr.response?.status === 400) {
+          console.warn("No appointments yet for user");
+        } else {
+          console.error("Error fetching appointments:", appointmentErr);
+        }
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
@@ -120,7 +127,11 @@ const ProfileScreen = ({ navigation }) => {
       // badgeApi now returns badges array directly (updated to match web-app)
       setBadges(Array.isArray(badges) ? badges : []);
     } catch (error) {
-      console.log("No badges found or API not available");
+      if (error.response?.status === 400) {
+        console.warn("No badges yet for user");
+      } else {
+        console.error("Error fetching badges:", error);
+      }
       setBadges([]);
     } finally {
       setBadgeLoading(false);
@@ -278,7 +289,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>${profileStats.moneySaved}</Text>
+            <Text style={styles.statNumber}>
+              {Number(profileStats.moneySaved).toLocaleString()} ₫
+            </Text>
             <Text style={styles.statLabel}>Money Saved</Text>
           </View>
         </View>

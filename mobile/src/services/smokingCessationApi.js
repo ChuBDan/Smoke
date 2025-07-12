@@ -1,76 +1,4 @@
-import axios from "axios";
-import * as SecureStore from "expo-secure-store";
-
-// API configuration
-const API_BASE_URL = "https://deploy-smk.onrender.com";
-
-// Create axios instance
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request interceptor to add auth token
-api.interceptors.request.use(
-  async (config) => {
-    try {
-      const token = await SecureStore.getItemAsync("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.error("Error getting token:", error);
-    }
-    return config;
-  },
-  (error) => {
-    console.error("Request Error:", error);
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Token expired, redirect to login
-      await SecureStore.deleteItemAsync("token");
-      await SecureStore.deleteItemAsync("user");
-      await SecureStore.deleteItemAsync("userId");
-      await SecureStore.deleteItemAsync("role");
-      // You might want to dispatch a logout action here
-    }
-
-    // Allow 403 errors for certain endpoints (user might not have access yet)
-    if (error.response?.status === 403) {
-      const url = error.config?.url || "";
-      if (
-        url.includes("/get-plans-by-member/") ||
-        url.includes("/get-progresses-by-member/") ||
-        url.includes("/get-badge-by-member/") ||
-        url.includes("/get-consultations-by-member/")
-      ) {
-        // These endpoints might return 403 if user doesn't have data yet
-        // Let the calling code handle this gracefully
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-// HTTP Methods object for easy API calls
-export const httpMethods = {
-  get: (endpoint, config = {}) => api.get(endpoint, config),
-  post: (endpoint, data = {}, config = {}) => api.post(endpoint, data, config),
-  put: (endpoint, data = {}, config = {}) => api.put(endpoint, data, config),
-  patch: (endpoint, data = {}, config = {}) =>
-    api.patch(endpoint, data, config),
-  delete: (endpoint, config = {}) => api.delete(endpoint, config),
-};
+import { httpMethods } from "./api";
 
 // Smoking Cessation API (matching web-app patterns)
 export const smokingCessationApi = {
@@ -164,7 +92,12 @@ export const membershipApi = {
   getAllMembershipPackages: async (token) => {
     try {
       const response = await httpMethods.get(
-        "/api/user/get-all-membership-packages"
+        "/api/user/get-all-membership-packages",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -177,7 +110,12 @@ export const membershipApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/buy-membership-package/${packageId}/member/${userId}`,
-        {}
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -192,7 +130,12 @@ export const userApi = {
   getMemberById: async (userId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-member-by-id/${userId}`
+        `/api/user/get-member-by-id/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       // Match web-app response structure: return res.data?.member
       return response.data?.member || response.data;
@@ -237,7 +180,12 @@ export const userApi = {
   getAppointmentsByMember: async (memberId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-consultations-by-member/${memberId}`
+        `/api/user/get-consultations-by-member/${memberId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -251,7 +199,12 @@ export const userApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-consultation/coach/${coachId}/member/${memberId}`,
-        consultationData
+        consultationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -263,7 +216,11 @@ export const userApi = {
   // Get all coaches
   getAllCoaches: async (token) => {
     try {
-      const response = await httpMethods.get(`/api/user/get-all-coaches`);
+      const response = await httpMethods.get(`/api/user/get-all-coaches`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching coaches:", error);
@@ -278,7 +235,12 @@ export const appointmentApi = {
     try {
       const response = await httpMethods.post(
         `/api/user/create-consultation/coach/${coachId}/member/${memberId}`,
-        appointmentData
+        appointmentData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       return response.data;
     } catch (error) {
@@ -290,7 +252,12 @@ export const appointmentApi = {
   getAppointmentsByMember: async (memberId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-consultations-by-member/${memberId}`
+        `/api/user/get-consultations-by-member/${memberId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       // Match web-app response structure: return data?.consultations or data if array
       const data = response.data;
@@ -361,7 +328,11 @@ export const coachApi = {
 
   getCoachById: async (coachId, token) => {
     try {
-      const response = await httpMethods.get(`/api/user/get-coach/${coachId}`);
+      const response = await httpMethods.get(`/api/user/get-coach/${coachId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching coach by ID:", error);
@@ -375,7 +346,12 @@ export const badgeApi = {
   getBadgesByMember: async (userId, token) => {
     try {
       const response = await httpMethods.get(
-        `/api/user/get-badge-by-member/${userId}`
+        `/api/user/get-badge-by-member/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       // Match web-app response structure: return res.data.badges || []
       return response.data.badges || [];
@@ -386,6 +362,4 @@ export const badgeApi = {
   },
 };
 
-export default api;
-
-// All API endpoints updated to match web-app response structure and remove duplicate headers
+// No need to export api since we're using the centralized one from api.js

@@ -70,7 +70,10 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.userName}>{user?.fullName || "User"}</Text>
         <Text style={styles.subGreeting}>How are you feeling today?</Text>
       </View>
-      <TouchableOpacity onPress={handleLogout} style={styles.profileButton}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("Profile")}
+        style={styles.profileButton}
+      >
         <View style={styles.profileAvatar}>
           <Text style={styles.profileAvatarText}>
             {user?.fullName?.charAt(0)?.toUpperCase() || "U"}

@@ -43,12 +43,16 @@ const AppointmentsScreen = ({ navigation }) => {
         );
         setAppointments(response.consultations || []);
       } catch (apiError) {
-        // If API fails, show empty state instead of hardcoded data
-        console.log(
-          "Appointments API not available or user has no appointments"
-        );
-        setAppointments([]);
-        if (apiError.response?.status !== 404) {
+        // Handle 400 status as expected behavior for no appointments
+        if (apiError.response?.status === 400) {
+          console.warn("No appointments yet for user");
+          setAppointments([]);
+        } else if (apiError.response?.status === 404) {
+          console.log("User has no appointments");
+          setAppointments([]);
+        } else {
+          console.error("Error fetching appointments:", apiError);
+          setAppointments([]);
           setError("Unable to load appointments. Please try again later.");
         }
       }
