@@ -4,11 +4,17 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { useDispatch, useSelector } from "react-redux";
 import { loadUserFromStorage } from "../redux/slices/authSlice";
 
+// Import navigators
+import MainTabNavigator from "./MainTabNavigator";
+
 // Import screens
 import LoginScreen from "../screens/auth/LoginScreen";
 import RegisterScreen from "../screens/auth/RegisterScreen";
-import HomeScreen from "../screens/HomeScreen";
 import SplashScreens from "../screens/SplashScreens";
+import MembershipScreen from "../screens/member/MembershipScreen";
+import SmokingCessationScreen from "../screens/member/SmokingCessationScreen";
+import ProfileEditScreen from "../screens/ProfileEditScreen";
+import BookAppointmentScreen from "../screens/BookAppointmentScreen";
 
 const Stack = createStackNavigator();
 
@@ -46,7 +52,19 @@ const AppNavigator = () => {
       >
         {isAuthenticated ? (
           // Authenticated screens
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <>
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+            <Stack.Screen name="Membership" component={MembershipScreen} />
+            <Stack.Screen
+              name="SmokingCessation"
+              component={SmokingCessationScreen}
+            />
+            <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+            <Stack.Screen
+              name="BookAppointment"
+              component={BookAppointmentScreen}
+            />
+          </>
         ) : (
           // Auth screens
           <>

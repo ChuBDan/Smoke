@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
   View,
   Text,
@@ -31,6 +32,7 @@ const RegisterScreen = () => {
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -114,20 +116,22 @@ const RegisterScreen = () => {
 
   const formatDateInput = (text) => {
     const cleaned = text.replace(/\D/g, "");
-    let formatted = cleaned;
-
+    let formatted = "";
     if (cleaned.length >= 4) {
       formatted = cleaned.substring(0, 4);
       if (cleaned.length >= 6) {
         formatted += "-" + cleaned.substring(4, 6);
         if (cleaned.length >= 8) {
           formatted += "-" + cleaned.substring(6, 8);
+        } else if (cleaned.length > 6) {
+          formatted += "-" + cleaned.substring(6);
         }
       } else if (cleaned.length > 4) {
         formatted += "-" + cleaned.substring(4);
       }
+    } else {
+      formatted = cleaned;
     }
-
     return formatted.substring(0, 10);
   };
 
@@ -263,14 +267,15 @@ const RegisterScreen = () => {
                     style={styles.inputWithIcon}
                   />
                   <TouchableOpacity
-                    style={[
-                      styles.passwordToggle,
-                      {
-                        top: 44,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      },
-                    ]}
+                    style={{
+                      position: "absolute",
+                      right: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }], // half icon height for vertical centering
+                      padding: theme.spacing.xs,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                     onPress={() => setShowPassword(!showPassword)}
                   >
                     <Ionicons
@@ -282,12 +287,21 @@ const RegisterScreen = () => {
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={20}
-                    color={theme.colors.gray400}
-                    style={styles.inputIcon}
-                  />
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }],
+                      zIndex: 2,
+                    }}
+                  >
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={theme.colors.gray400}
+                    />
+                  </View>
                   <Input
                     label="Date of Birth"
                     placeholder="YYYY-MM-DD"
@@ -298,8 +312,52 @@ const RegisterScreen = () => {
                     error={errors.dob}
                     keyboardType="numeric"
                     maxLength={10}
-                    style={styles.inputWithIcon}
+                    style={[styles.inputWithIcon, { paddingLeft: 48 }]}
                   />
+                  <TouchableOpacity
+                    style={{
+                      position: "absolute",
+                      right: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }],
+                      padding: theme.spacing.xs,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    onPress={() => setShowDatePicker(true)}
+                  >
+                    <Ionicons
+                      name="calendar"
+                      size={22}
+                      color={theme.colors.primary}
+                    />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={
+                        formData.dob && /^\d{4}-\d{2}-\d{2}$/.test(formData.dob)
+                          ? new Date(formData.dob)
+                          : new Date()
+                      }
+                      mode="date"
+                      display="default"
+                      maximumDate={new Date()}
+                      onChange={(event, selectedDate) => {
+                        setShowDatePicker(false);
+                        if (selectedDate) {
+                          const year = selectedDate.getFullYear();
+                          const month = String(
+                            selectedDate.getMonth() + 1
+                          ).padStart(2, "0");
+                          const day = String(selectedDate.getDate()).padStart(
+                            2,
+                            "0"
+                          );
+                          updateFormData("dob", `${year}-${month}-${day}`);
+                        }
+                      }}
+                    />
+                  )}
                 </View>
 
                 <View style={styles.genderSection}>
@@ -454,6 +512,7 @@ const styles = StyleSheet.create({
   inputWithIcon: {
     paddingLeft: 48,
   },
+  // calendarPickerButton style removed
   passwordToggle: {
     position: "absolute",
     right: theme.spacing.md,

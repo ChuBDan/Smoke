@@ -31,15 +31,14 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for error handling
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Unauthorized - remove token and redirect to login
+      // Token expired, redirect to login
       await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("user");
       await SecureStore.deleteItemAsync("userId");
       await SecureStore.deleteItemAsync("role");
     }
@@ -47,6 +46,7 @@ api.interceptors.response.use(
   }
 );
 
+// HTTP Methods object for easy API calls
 export const httpMethods = {
   get: (endpoint, config = {}) => api.get(endpoint, config),
   post: (endpoint, data = {}, config = {}) => api.post(endpoint, data, config),

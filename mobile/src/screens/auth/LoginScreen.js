@@ -205,12 +205,21 @@ const LoginScreen = () => {
               {/* Form Fields */}
               <View style={styles.formFields}>
                 <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="mail-outline"
-                    size={20}
-                    color={theme.colors.gray400}
-                    style={styles.inputIcon}
-                  />
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }],
+                      zIndex: 2,
+                    }}
+                  >
+                    <Ionicons
+                      name="mail-outline"
+                      size={20}
+                      color={theme.colors.gray400}
+                    />
+                  </View>
                   <Input
                     label="Email Address"
                     placeholder="Enter your email"
@@ -220,17 +229,26 @@ const LoginScreen = () => {
                     keyboardType="email-address"
                     autoCapitalize="none"
                     autoCorrect={false}
-                    style={styles.inputWithIcon}
+                    style={[styles.inputWithIcon, { paddingLeft: 48 }]}
                   />
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={20}
-                    color={theme.colors.gray400}
-                    style={styles.inputIcon}
-                  />
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }],
+                      zIndex: 2,
+                    }}
+                  >
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={20}
+                      color={theme.colors.gray400}
+                    />
+                  </View>
                   <Input
                     label="Password"
                     placeholder="Enter your password"
@@ -240,17 +258,18 @@ const LoginScreen = () => {
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     autoCorrect={false}
-                    style={styles.inputWithIcon}
+                    style={[styles.inputWithIcon, { paddingLeft: 48 }]}
                   />
                   <TouchableOpacity
-                    style={[
-                      styles.passwordToggle,
-                      {
-                        top: 44,
-                        alignItems: "center",
-                        justifyContent: "center",
-                      },
-                    ]}
+                    style={{
+                      position: "absolute",
+                      right: theme.spacing.md,
+                      top: "50%",
+                      transform: [{ translateY: -11 }],
+                      padding: theme.spacing.xs,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
                     onPress={() => setShowPassword(!showPassword)}
                   >
                     <Ionicons
