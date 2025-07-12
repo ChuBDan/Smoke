@@ -37,51 +37,35 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    // Log responses in development
     if (ENABLE_API_LOGGING) {
       console.log("API Response:", response.status, response.config.url);
     }
-
-    // Validate JSON response
-    try {
-      if (response.data && typeof response.data === "string") {
-        response.data = JSON.parse(response.data);
-      }
-    } catch (jsonError) {
-      console.error("JSON Parse Error:", jsonError);
-      throw new Error("Invalid JSON response from server");
-    }
-
     return response;
   },
   (error) => {
-    // Handle network errors
-    if (!error.response) {
-      console.error("Network Error:", error.message);
-      error.message =
-        "Network connection failed. Please check your internet connection.";
+    const { response, message, config } = error;
+
+    // 👉 BỎ QUA log nếu là 403 get‑daily‑progress (hoặc mọi 403 nếu bạn muốn)
+    if (response?.status === 403 && config?.url?.includes("/get-daily-progress/")) {
+      return Promise.reject(error);      // Không log gì thêm
     }
-    // Handle common errors
-    else if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
+
+    /* ───── Phần còn lại giữ nguyên ───── */
+    if (!response) {
+      console.error("Network Error:", message);
+    } else if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("role");
       window.location.href = "/login";
+    } else if (response.status >= 500) {
+      console.error("Server Error:", response.data || message);
+    } else if (response.status >= 400) {
+      console.error("Client Error:", response.data || message);
     }
-    // Handle server errors
-    else if (error.response?.status >= 500) {
-      console.error("Server Error:", error.response?.data || error.message);
-      error.message = "Server error occurred. Please try again later.";
-    }
-    // Handle client errors
-    else if (error.response?.status >= 400) {
-      console.error("Client Error:", error.response?.data || error.message);
-    }
-
-    console.error("Response Error:", error.response?.data || error.message);
     return Promise.reject(error);
   }
 );
+
 
 // HTTP Methods object for easy API calls
 export const httpMethods = {
