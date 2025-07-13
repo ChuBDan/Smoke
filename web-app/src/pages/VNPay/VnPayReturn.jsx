@@ -6,7 +6,7 @@ import { useDispatch } from "react-redux";
 import { getMemberInfo } from "@/features/auth/services/getMemberInfo";
 import { updateMemberPackage } from "@/redux/slices/authSlice";
 
-const VnPayReturn = () => {
+const VNPayReturn = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -187,4 +187,4 @@ const InfoRow = ({ label, value, bold, badge }) => (
   </div>
 );
 
-export default VnPayReturn;
+export default VNPayReturn;
