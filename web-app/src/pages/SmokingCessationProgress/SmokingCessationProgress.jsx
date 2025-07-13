@@ -163,8 +163,6 @@ const SmokingCessationProgress = () => {
   };
 
   const handlePuzzleComplete = () => {
-      console.log("pendingProgress:", pendingProgress); // 👈 Thêm dòng này
-
     if (pendingProgress) {
       submitProgress(pendingProgress);
       setPendingProgress(null);
