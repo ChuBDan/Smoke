@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axios from "@/config/api";
 import { useSelector } from "react-redux";
 import { Table, Tag, Typography, Spin } from "antd";
 
@@ -14,7 +14,7 @@ const PaymentHistory = () => {
     const fetchTransactions = async () => {
       try {
         const response = await axios.get(
-          `https://deploy-smk.onrender.com/api/user/get-transactions-by-member/${userId}`,
+          `api/user/get-transactions-by-member/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
