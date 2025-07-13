@@ -7,7 +7,7 @@ import AboutUs from "@/common/About";
 import Contact from "@/common/Contact";
 import LoginForm from "@/features/auth/components/LoginForm";
 import MyProfile from "@/features/auth/components/pages/UserProfile";
-import MyAppointments from "@/pages/Appointments/AppointmentsBooked";
+import PaymentHistory from "@/pages/Appointments/PaymentHistory";
 import NotFound from "@/pages/NotFound";
 import MembershipPage from "@/pages/Membership/Membership";
 import SmokingStatusForm from "@/pages/SmokingStatusForm/SmokingStatusForm";
@@ -43,7 +43,7 @@ const routes = (
       <Route path="contact" element={<Contact />} />
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
-      <Route path="my-appointments" element={<MyAppointments />} />
+      <Route path="paymenthistory" element={<PaymentHistory/>} />
       <Route path="membership" element={<MembershipPage />} />
       <Route path="smokingstatusform" element={<SmokingStatusForm />} />
       <Route path="smokingcessation" element={<SmokingCessation />} />
