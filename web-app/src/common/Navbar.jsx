@@ -21,7 +21,6 @@ const Navbar = () => {
 
   // Fetch notifications + add click‑outside listener ------------------------
   useEffect(() => {
-    // gọi API
     const fetchNotifications = async () => {
       if (!token || !userId) return;
       try {
@@ -31,14 +30,13 @@ const Navbar = () => {
         );
         const notifications = res.data.notifications || [];
         setNotiList(notifications);
-        setUnread(notifications.length); // nếu có trường read thì filter ở đây
+        setUnread(notifications.length); 
       } catch (err) {
         console.error("Failed to fetch notifications:", err);
       }
     };
     fetchNotifications();
 
-    // click outside
     const handleClickOutside = (e) => {
       if (notiRef.current && !notiRef.current.contains(e.target)) {
         setOpenNoti(false);
@@ -46,7 +44,6 @@ const Navbar = () => {
     };
     document.addEventListener("mousedown", handleClickOutside);
 
-    // cleanup
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [token, userId]);
 
