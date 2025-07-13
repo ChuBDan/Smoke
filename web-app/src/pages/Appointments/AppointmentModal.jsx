@@ -140,7 +140,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
       toast.success("Appointment booked successfully!");
       setSelectedSlot(null);
       setNotes("");
-      await fetchAppointments(); // refresh grid
+      await fetchAppointments(); 
     } catch (e) {
       toast.error("Booking failed. Please try again.");
     } finally {

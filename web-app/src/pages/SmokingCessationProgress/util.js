@@ -18,9 +18,6 @@ export const buildCalendar = (plan) => {
         dayNumber: dayIndex + 1,
         date,
       };
-
-      console.log(`📅 Week ${wIdx + 1} - Day ${dIdx + 1}:`, result);
-
       dayIndex++;
       return result;
     })
