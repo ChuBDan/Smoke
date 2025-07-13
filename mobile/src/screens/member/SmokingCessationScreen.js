@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import { parse, format } from "date-fns";
 import { Button, Card, DayCard } from "../../components";
 import {
   smokingCessationApi,
@@ -170,6 +171,91 @@ const SmokingCessationScreen = ({ navigation }) => {
     }
   };
 
+  // Helper function to render days organized by weeks
+  const renderWeeksView = (phaseDays) => {
+    // Group days into weeks (7 days each)
+    const weeks = [];
+    for (let i = 0; i < phaseDays.length; i += 7) {
+      weeks.push(phaseDays.slice(i, i + 7));
+    }
+
+    return weeks.map((weekDays, weekIndex) => {
+      // Calculate current date to highlight current week
+      const today = new Date().toISOString().split("T")[0];
+      const isCurrentWeek = weekDays.some((day) => day.date === today);
+
+      return (
+        <View key={weekIndex} style={styles.weekContainer}>
+          <View
+            style={[
+              styles.weekHeader,
+              isCurrentWeek && styles.currentWeekHeader,
+            ]}
+          >
+            <View style={styles.weekHeaderLeft}>
+              <Text
+                style={[
+                  styles.weekTitle,
+                  isCurrentWeek && styles.currentWeekTitle,
+                ]}
+              >
+                📅 Week {weekIndex + 1}
+                {isCurrentWeek && " (Current)"}
+              </Text>
+              <Text
+                style={[
+                  styles.weekSubtitle,
+                  isCurrentWeek && styles.currentWeekSubtitle,
+                ]}
+              >
+                Days {weekIndex * 7 + 1} -{" "}
+                {Math.min((weekIndex + 1) * 7, phaseDays.length)}
+              </Text>
+            </View>
+            {isCurrentWeek && (
+              <View style={styles.currentWeekIndicator}>
+                <Text style={styles.currentWeekBadge}>●</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.weekDaysContainer}>
+            {weekDays.map((day, dayIndex) => {
+              const globalIndex = weekIndex * 7 + dayIndex;
+
+              // Show VIP lock for non-VIP users after day 3 in phase 1
+              if (!isVIP && activePhase === 0 && globalIndex >= 3) {
+                return (
+                  <Card key={globalIndex} style={styles.lockedDayCard}>
+                    <View style={styles.lockedDayContent}>
+                      <Text style={styles.lockedIcon}>🔒</Text>
+                      <Text style={styles.lockedText}>VIP Only</Text>
+                      <Text style={styles.lockedSubtext}>
+                        Day {globalIndex + 1}
+                      </Text>
+                    </View>
+                  </Card>
+                );
+              }
+
+              return (
+                <View key={globalIndex} style={styles.dayCardWrapper}>
+                  <DayCard
+                    day={day}
+                    allProgresses={allProgresses}
+                    todayProgress={progressToday}
+                    moneySaved={moneySaved}
+                    onSubmit={submitDailyProgress}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      );
+    });
+  };
+
   const PhaseTab = ({ phase, index, isActive, isLocked }) => (
     <TouchableOpacity
       style={[
@@ -305,19 +391,58 @@ const SmokingCessationScreen = ({ navigation }) => {
         {/* Phase Tabs */}
         {phaseInfo.length > 0 && (
           <View style={styles.phaseTabsContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.phaseTabsScrollContent}
+            >
               <View style={styles.phaseTabs}>
                 {phaseInfo.map((phase, index) => {
                   const isActive = activePhase === index;
                   const isLocked = !isVIP && index > 0;
+
+                  // Calculate progress for the current active phase
+                  const currentPhaseData = calendar[activePhase] || [];
+                  const completedDays = currentPhaseData.filter((day) => {
+                    return allProgresses.some((progress) => {
+                      const progressDate = format(
+                        parse(progress.dateCreated, "dd-MM-yyyy", new Date()),
+                        "yyyy-MM-dd"
+                      );
+                      return progressDate === day.date;
+                    });
+                  }).length;
+
                   return (
-                    <PhaseTab
-                      key={index}
-                      phase={phase}
-                      index={index}
-                      isActive={isActive}
-                      isLocked={isLocked}
-                    />
+                    <View key={index} style={styles.phaseTabWrapper}>
+                      <PhaseTab
+                        phase={phase}
+                        index={index}
+                        isActive={isActive}
+                        isLocked={isLocked}
+                      />
+                      {isActive && (
+                        <View style={styles.progressIndicator}>
+                          <Text style={styles.progressText}>
+                            {completedDays}/{currentPhaseData.length} days
+                            completed
+                          </Text>
+                          <View style={styles.progressBar}>
+                            <View
+                              style={[
+                                styles.progressFill,
+                                {
+                                  width: `${
+                                    (completedDays / currentPhaseData.length) *
+                                    100
+                                  }%`,
+                                },
+                              ]}
+                            />
+                          </View>
+                        </View>
+                      )}
+                    </View>
                   );
                 })}
               </View>
@@ -342,34 +467,10 @@ const SmokingCessationScreen = ({ navigation }) => {
               </View>
             </View>
 
-            <FlatList
-              data={calendar[activePhase] || []}
-              renderItem={({ item, index }) => {
-                if (!isVIP && activePhase === 0 && index >= 3) {
-                  return (
-                    <Card style={styles.lockedDayCard}>
-                      <View style={styles.lockedDayContent}>
-                        <Text style={styles.lockedIcon}>🔒</Text>
-                        <Text style={styles.lockedText}>VIP Only</Text>
-                      </View>
-                    </Card>
-                  );
-                }
-                return (
-                  <DayCard
-                    day={item}
-                    allProgresses={allProgresses}
-                    todayProgress={progressToday}
-                    moneySaved={moneySaved}
-                    onSubmit={submitDailyProgress}
-                  />
-                );
-              }}
-              keyExtractor={(item, index) => `${activePhase}-${index}`}
-              numColumns={2}
-              columnWrapperStyle={styles.dayRow}
-              scrollEnabled={false}
-            />
+            {/* Week-by-week view for better organization */}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {calendar[activePhase] && renderWeeksView(calendar[activePhase])}
+            </ScrollView>
           </Card>
         )}
 
@@ -483,25 +584,55 @@ const styles = StyleSheet.create({
     color: theme.colors.success,
   },
   phaseTabsContainer: {
+    marginTop: theme.spacing.xl, // Further increase top margin to prevent clipping
     marginBottom: theme.spacing.lg,
   },
   phaseTabs: {
     flexDirection: "row",
     paddingHorizontal: theme.spacing.sm,
   },
+  phaseTabsScrollContent: {
+    paddingVertical: theme.spacing.md, // Add vertical padding to prevent clipping
+  },
+  phaseTabWrapper: {
+    alignItems: "center",
+  },
   phaseTab: {
     marginHorizontal: theme.spacing.xs,
     backgroundColor: theme.colors.white,
     borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
-    minWidth: 160,
+    minWidth: 180, // Increased width to show more text
     alignItems: "center",
     borderWidth: 2,
     borderColor: theme.colors.gray200,
   },
+  progressIndicator: {
+    marginTop: theme.spacing.sm,
+    minWidth: 180,
+    alignItems: "center",
+  },
+  progressText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+  },
+  progressBar: {
+    width: "100%",
+    height: 4,
+    backgroundColor: theme.colors.gray200,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: theme.colors.primary,
+    borderRadius: 2,
+  },
   activePhaseTab: {
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primary + "10",
+    transform: [{ scale: 1.05 }], // Slightly scale up active tab
   },
   lockedPhaseTab: {
     opacity: 0.5,
@@ -510,14 +641,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   phaseIcon: {
-    fontSize: 24,
-    marginBottom: theme.spacing.xs,
+    fontSize: 28, // Larger icon
+    marginBottom: theme.spacing.sm,
   },
   phaseTabTitle: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.bold, // Made bolder
     color: theme.colors.textPrimary,
     textAlign: "center",
+    lineHeight: 18, // Better line spacing for multi-line text
   },
   activePhaseTabTitle: {
     color: theme.colors.primary,
@@ -550,6 +682,57 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
   },
+  // New week-based layout styles
+  weekContainer: {
+    marginBottom: theme.spacing.xl,
+  },
+  weekHeader: {
+    backgroundColor: theme.colors.gray50,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    marginBottom: theme.spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: theme.colors.primary,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  currentWeekHeader: {
+    backgroundColor: theme.colors.primary + "15",
+    borderLeftColor: theme.colors.primary,
+  },
+  weekHeaderLeft: {
+    flex: 1,
+  },
+  weekTitle: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.xs,
+  },
+  currentWeekTitle: {
+    color: theme.colors.primary,
+  },
+  weekSubtitle: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  currentWeekSubtitle: {
+    color: theme.colors.primary,
+  },
+  currentWeekIndicator: {
+    marginLeft: theme.spacing.md,
+  },
+  currentWeekBadge: {
+    fontSize: 20,
+    color: theme.colors.primary,
+  },
+  weekDaysContainer: {
+    gap: theme.spacing.md,
+  },
+  dayCardWrapper: {
+    marginBottom: theme.spacing.md,
+  },
   dayRow: {
     justifyContent: "space-between",
   },
@@ -561,6 +744,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.colors.gray300,
     backgroundColor: theme.colors.gray50,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 120,
   },
   lockedDayContent: {
     alignItems: "center",
@@ -573,6 +759,11 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.gray400,
+  },
+  lockedSubtext: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.gray400,
+    marginTop: theme.spacing.xxs,
   },
   vipBanner: {
     marginBottom: theme.spacing.lg,

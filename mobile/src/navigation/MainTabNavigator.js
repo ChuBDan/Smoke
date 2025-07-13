@@ -1,4 +1,5 @@
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import HomeScreen from "../screens/HomeScreen";
@@ -11,12 +12,12 @@ import theme from "../theme";
 const Tab = createBottomTabNavigator();
 
 const MainTabNavigator = () => {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
           if (route.name === "Home") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "Appointments") {
@@ -28,7 +29,6 @@ const MainTabNavigator = () => {
           } else if (route.name === "Profile") {
             iconName = focused ? "person" : "person-outline";
           }
-
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: theme.colors.primary,
@@ -37,9 +37,9 @@ const MainTabNavigator = () => {
           backgroundColor: theme.colors.white,
           borderTopWidth: 1,
           borderTopColor: theme.colors.gray200,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 70,
+          paddingBottom: 4 + insets.bottom,
+          paddingTop: 6,
+          height: 60 + insets.bottom, // Adjust height for safe area
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -60,7 +60,7 @@ const MainTabNavigator = () => {
         name="Appointments"
         component={AppointmentsScreen}
         options={{
-          tabBarLabel: "Appointments",
+          tabBarLabel: "Appts",
         }}
       />
       <Tab.Screen

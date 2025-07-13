@@ -187,10 +187,43 @@ export const userApi = {
           },
         }
       );
-      return response.data;
+
+      // Match web-app response structure exactly
+      const data = response.data;
+      const consultations = Array.isArray(data?.consultations)
+        ? data.consultations
+        : Array.isArray(data)
+        ? data
+        : [];
+
+      return {
+        consultations,
+        success: true,
+        message: "Appointments fetched successfully",
+      };
     } catch (error) {
       console.error("Error fetching appointments by member:", error);
-      throw error;
+
+      // Handle specific error cases like web-app - don't throw, return empty
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        console.warn(
+          "No appointments found for member (this is normal for new users)"
+        );
+        return {
+          consultations: [],
+          success: true,
+          message: "No appointments found",
+        };
+      }
+
+      // For other errors, still return empty but log the error
+      console.error("Unexpected error fetching appointments:", error.message);
+      return {
+        consultations: [],
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to fetch appointments",
+      };
     }
   },
 
@@ -221,7 +254,15 @@ export const userApi = {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+
+      // Match web-app response structure
+      const responseData = response.data;
+      return {
+        success: true,
+        coaches: responseData?.coaches || responseData || [],
+        data: responseData,
+        message: "Coaches fetched successfully",
+      };
     } catch (error) {
       console.error("Error fetching coaches:", error);
       throw error;
@@ -259,17 +300,43 @@ export const appointmentApi = {
           },
         }
       );
-      // Match web-app response structure: return data?.consultations or data if array
+
+      // Match web-app response structure exactly
       const data = response.data;
       const consultations = Array.isArray(data?.consultations)
         ? data.consultations
         : Array.isArray(data)
         ? data
         : [];
-      return { consultations };
+
+      return {
+        consultations,
+        success: true,
+        message: "Appointments fetched successfully",
+      };
     } catch (error) {
       console.error("Error fetching appointments by member:", error);
-      throw error;
+
+      // Handle specific error cases like web-app - don't throw, return empty
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        console.warn(
+          "No appointments found for member (this is normal for new users)"
+        );
+        return {
+          consultations: [],
+          success: true,
+          message: "No appointments found",
+        };
+      }
+
+      // For other errors, still return empty but log the error
+      console.error("Unexpected error fetching appointments:", error.message);
+      return {
+        consultations: [],
+        success: false,
+        message:
+          error.response?.data?.message || "Failed to fetch appointments",
+      };
     }
   },
 
@@ -319,9 +386,27 @@ export const coachApi = {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data;
+
+      // Match web-app response structure and error handling pattern
+      const responseData = response.data;
+      return {
+        success: true,
+        coaches: responseData?.coaches || responseData || [],
+        data: responseData,
+        message: "Coaches fetched successfully",
+      };
     } catch (error) {
       console.error("Error fetching coaches:", error);
+
+      // Enhanced error handling like web-app
+      if (error.response?.status === 400) {
+        throw new Error("No coaches available");
+      } else if (error.response?.status === 404) {
+        throw new Error("Coaches endpoint not found");
+      } else if (error.response?.status >= 500) {
+        throw new Error("Server error occurred");
+      }
+
       throw error;
     }
   },
@@ -358,6 +443,50 @@ export const badgeApi = {
     } catch (error) {
       console.error("Error fetching badges by member:", error);
       throw error;
+    }
+  },
+};
+
+// Payment API
+export const paymentApi = {
+  // Get payment transactions by member ID
+  getTransactionsByMember: async (memberId, token) => {
+    try {
+      const response = await httpMethods.get(
+        `/api/user/get-transactions-by-member/${memberId}`
+      );
+
+      // Handle the response structure similar to web-app
+      const transactions = response.data?.transactions || response.data || [];
+
+      return {
+        success: true,
+        transactions: Array.isArray(transactions) ? transactions : [],
+        message: "Transactions fetched successfully",
+      };
+    } catch (error) {
+      console.error("Error fetching payment transactions:", error);
+
+      // Handle specific error cases gracefully
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        console.warn(
+          "No transactions found for member (this is normal for new users)"
+        );
+        return {
+          success: true,
+          transactions: [],
+          message: "No transactions found",
+        };
+      }
+
+      // For other errors, still return empty but log the error
+      console.error("Unexpected error fetching transactions:", error.message);
+      return {
+        success: false,
+        transactions: [],
+        message: "Unable to load payment history",
+        error: error.message,
+      };
     }
   },
 };

@@ -22,6 +22,7 @@ import {
   membershipApi,
   appointmentApi,
   badgeApi,
+  paymentApi,
   httpMethods,
 } from "../services/smokingCessationApi";
 import theme from "../theme";
@@ -57,15 +58,19 @@ const ProfileScreen = ({ navigation }) => {
         const memberData = await userApi.getMemberById(user.id, token);
         // userApi now returns member data directly (updated to match web-app)
         const member = memberData || {};
-        if (member.plans === "VIP") {
+
+        // Check if user has an active membership package
+        if (member.membership_Package) {
+          // Store both package info and member's subscription date
+          setMembershipPackage({
+            ...member.membership_Package,
+            subscriptionDate: member.dateCreated, // Use member's dateCreated as subscription date
+          });
+          setMembershipStatus("VIP Member");
+        } else if (member.plans === "VIP") {
           setMembershipStatus("VIP Member");
         } else {
           setMembershipStatus("Free Member");
-        }
-
-        // Set membership package info
-        if (member.membership_Package) {
-          setMembershipPackage(member.membership_Package);
         }
       } catch (memberError) {
         console.error("Error fetching member data:", memberError);
@@ -98,18 +103,27 @@ const ProfileScreen = ({ navigation }) => {
       try {
         const appointmentsResponse =
           await appointmentApi.getAppointmentsByMember(user.id, token);
+
+        // Use the new response structure
         const appointmentCount =
           appointmentsResponse.consultations?.length || 0;
+
         setProfileStats((prev) => ({
           ...prev,
           appointments: appointmentCount,
         }));
+
+        console.log("Appointments count:", appointmentCount);
       } catch (appointmentErr) {
-        if (appointmentErr.response?.status === 400) {
-          console.warn("No appointments yet for user");
-        } else {
-          console.error("Error fetching appointments:", appointmentErr);
-        }
+        // This should rarely happen now since API handles errors gracefully
+        console.warn(
+          "Error fetching appointment count:",
+          appointmentErr.message
+        );
+        setProfileStats((prev) => ({
+          ...prev,
+          appointments: 0,
+        }));
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
@@ -124,6 +138,7 @@ const ProfileScreen = ({ navigation }) => {
     try {
       setBadgeLoading(true);
       const badges = await badgeApi.getBadgesByMember(user.id, token);
+      console.log("Fetched badges:", badges); // Debug log
       // badgeApi now returns badges array directly (updated to match web-app)
       setBadges(Array.isArray(badges) ? badges : []);
     } catch (error) {
@@ -186,6 +201,13 @@ const ProfileScreen = ({ navigation }) => {
     },
     {
       id: 5,
+      title: "Payment History",
+      subtitle: "View your payment transactions",
+      icon: "card-outline",
+      action: () => navigation.navigate("PaymentHistory"),
+    },
+    {
+      id: 6,
       title: "Help & Support",
       subtitle: "Get help or contact support",
       icon: "help-circle-outline",
@@ -193,7 +215,7 @@ const ProfileScreen = ({ navigation }) => {
         Alert.alert("Help & Support", "Contact us at support@prescripto.com"),
     },
     {
-      id: 6,
+      id: 7,
       title: "About",
       subtitle: "App version and information",
       icon: "information-circle-outline",
@@ -285,14 +307,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{profileStats.daysSmokeFree}</Text>
-            <Text style={styles.statLabel}>Days Smoke-Free</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {Number(profileStats.moneySaved).toLocaleString()} ₫
-            </Text>
-            <Text style={styles.statLabel}>Money Saved</Text>
+            <Text style={styles.statLabel}>Today's cigarettes</Text>
           </View>
         </View>
       )}
@@ -303,13 +318,6 @@ const ProfileScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons
-            name="settings-outline"
-            size={24}
-            color={theme.colors.gray600}
-          />
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -343,17 +351,73 @@ const ProfileScreen = ({ navigation }) => {
               showsHorizontalScrollIndicator={false}
               style={styles.badgesContainer}
             >
-              {badges.map((badge) => (
-                <View key={badge.id} style={styles.badgeItem}>
-                  <View style={styles.badgeIcon}>
-                    <Text style={styles.badgeEmoji}>🏅</Text>
+              {badges.map((badge) => {
+                console.log("Badge debug:", badge); // Debug log
+                return (
+                  <View key={badge.id} style={styles.badgeItem}>
+                    <View style={styles.badgeIcon}>
+                      <Text style={styles.badgeEmoji}>🏅</Text>
+                    </View>
+                    <Text style={styles.badgeName}>{badge.badgeName}</Text>
+                    <Text style={styles.badgeDate}>
+                      {(() => {
+                        // Prefer sentDate, fallback to dateCreated
+                        const dateString = badge.sentDate || badge.dateCreated;
+                        console.log(
+                          "Date string for badge:",
+                          badge.badgeName,
+                          dateString
+                        ); // Debug log
+                        if (!dateString) return "N/A";
+
+                        // Try DD-MM-YYYY HH:mm:ss format first
+                        let match = dateString.match(
+                          /^(\d{2})-(\d{2})-(\d{4})[ T](\d{2}):(\d{2}):(\d{2})$/
+                        );
+                        let date;
+                        if (match) {
+                          const [_, day, month, year, hour, minute, second] =
+                            match;
+                          date = new Date(
+                            Number(year),
+                            Number(month) - 1,
+                            Number(day),
+                            Number(hour),
+                            Number(minute),
+                            Number(second)
+                          );
+                        } else {
+                          // Try DD-MM-YYYY format (without time)
+                          match = dateString.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+                          if (match) {
+                            const [_, day, month, year] = match;
+                            date = new Date(
+                              Number(year),
+                              Number(month) - 1,
+                              Number(day)
+                            );
+                          } else {
+                            // Try native Date parsing as fallback
+                            date = new Date(dateString);
+                          }
+                        }
+
+                        if (
+                          !isNaN(date.getTime()) &&
+                          date.getFullYear() >= 1970
+                        ) {
+                          return date.toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "2-digit",
+                          });
+                        }
+                        return "N/A";
+                      })()}
+                    </Text>
                   </View>
-                  <Text style={styles.badgeName}>{badge.badgeName}</Text>
-                  <Text style={styles.badgeDate}>
-                    {new Date(badge.dateCreated).toLocaleDateString()}
-                  </Text>
-                </View>
-              ))}
+                );
+              })}
             </ScrollView>
           ) : (
             <View style={styles.noBadges}>
@@ -385,8 +449,23 @@ const ProfileScreen = ({ navigation }) => {
                 Price: {Number(membershipPackage.price).toLocaleString()} VND
               </Text>
               <Text style={styles.packageDate}>
-                Created:{" "}
-                {new Date(membershipPackage.dateCreated).toLocaleDateString()}
+                Subscribed:{" "}
+                {membershipPackage.subscriptionDate
+                  ? (() => {
+                      // Parse DD-MM-YYYY format from API
+                      const [day, month, year] =
+                        membershipPackage.subscriptionDate.split("-");
+                      const date = new Date(year, month - 1, day);
+                      if (!isNaN(date.getTime())) {
+                        return date.toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "2-digit",
+                        });
+                      }
+                      return membershipPackage.subscriptionDate;
+                    })()
+                  : ""}
               </Text>
             </View>
           </Card>
@@ -394,21 +473,21 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Account</Text>
-          {menuItems.slice(0, 5).map((item) => (
+          {menuItems.slice(0, 6).map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Preferences</Text>
-          {menuItems.slice(5, 7).map((item) => (
+          {menuItems.slice(6, 8).map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
         </View>
 
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Support</Text>
-          {menuItems.slice(7).map((item) => (
+          {menuItems.slice(8).map((item) => (
             <MenuItem key={item.id} item={item} />
           ))}
         </View>
@@ -455,12 +534,13 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: theme.colors.text,
   },
-  settingsButton: {
+  editButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: theme.colors.primary + "20",
   },
   content: {
     flex: 1,

@@ -149,8 +149,26 @@ const Dashboard = () => {
   const activeSessions =
     packagesState.packages?.filter((pkg) => pkg.status === "active").length ||
     0;
-  // Appointments placeholder (replace with real data if available)
-  const appointments = 0;
+  // Appointments: fetch from consultations API
+  const [appointments, setAppointments] = useState(0);
+
+  // Fetch appointments data
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const response = await fetch("/api/user/get-all-consultations");
+        if (response.ok) {
+          const data = await response.json();
+          setAppointments(data.consultations?.length || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+        setAppointments(0);
+      }
+    };
+
+    fetchAppointments();
+  }, []);
 
   // Active Badges: total count for display
   const activeBadges = (badgesState.badges || []).filter(

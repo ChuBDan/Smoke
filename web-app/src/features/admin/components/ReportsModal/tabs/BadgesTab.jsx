@@ -1,7 +1,6 @@
 import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
 import styles from "./BadgesTab.module.css";
-import { isThisMonth } from "@/utils/dateHelpers";
 
 const BadgesTab = () => {
   const [selectedView, setSelectedView] = useState("overview");
@@ -14,23 +13,10 @@ const BadgesTab = () => {
     [badgesState.badges]
   );
 
-  // Badge analytics
+  // Badge analytics (removed memberCount references since not available)
   const analytics = useMemo(() => {
     const totalBadges = badges.length;
     const activeBadges = badges.filter((b) => b.status === "active").length;
-    const totalAwarded = badges.reduce(
-      (sum, badge) => sum + (badge.memberCount || 0),
-      0
-    );
-    const awardedThisMonth = badges
-      .filter((b) => isThisMonth(b.dateUpdated || b.updatedAt || b.dateCreated))
-      .reduce((sum, badge) => sum + (badge.memberCount || 0), 0);
-
-    // Most popular badges
-    const popularBadges = badges
-      .filter((b) => b.memberCount > 0)
-      .sort((a, b) => (b.memberCount || 0) - (a.memberCount || 0))
-      .slice(0, 5);
 
     // Badge categories analysis
     const categoryStats = badges.reduce((acc, badge) => {
@@ -38,12 +24,10 @@ const BadgesTab = () => {
       if (!acc[category]) {
         acc[category] = {
           count: 0,
-          awarded: 0,
           active: 0,
         };
       }
       acc[category].count++;
-      acc[category].awarded += badge.memberCount || 0;
       if (badge.status === "active") acc[category].active++;
       return acc;
     }, {});
@@ -51,9 +35,6 @@ const BadgesTab = () => {
     return {
       totalBadges,
       activeBadges,
-      totalAwarded,
-      awardedThisMonth,
-      popularBadges,
       categoryStats,
     };
   }, [badges]);
@@ -74,11 +55,8 @@ const BadgesTab = () => {
         return badgeDate >= monthStart && badgeDate <= monthEnd;
       });
 
-      // Calculate actual awards for this month from filtered badges
-      const monthAwards = monthBadges.reduce(
-        (sum, badge) => sum + (badge.memberCount || 0),
-        0
-      );
+      // Calculate badges created in this month (no award counting since memberCount not available)
+      const monthAwards = 0; // Disabled since memberCount not available
 
       const activeBadges = monthBadges.filter(
         (b) => b.status === "active"
@@ -554,78 +532,58 @@ const BadgesTab = () => {
                       />
                     </svg>
                   </div>
-                  <div className={styles.statsTitle}>Top Badge</div>
+                  <div className={styles.statsTitle}>Active Badges</div>
                 </div>
                 <div className={styles.statsValue}>
-                  {analytics.popularBadges[0]?.memberCount || 0}
+                  {analytics.activeBadges}
                 </div>
                 <div className={styles.statsSubtext}>
-                  {analytics.popularBadges[0]?.badgeName ||
-                    analytics.popularBadges[0]?.name ||
-                    "No badges"}{" "}
-                  awards
+                  Currently active badges
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Popular View */}
+        {/* Categories View (replacing popular since memberCount not available) */}
         {selectedView === "popular" && (
           <div className={styles.viewContent}>
-            <div className={styles.popularSection}>
-              <h4>Most Popular Badges</h4>
-              <div className={styles.popularList}>
-                {analytics.popularBadges.map((badge, index) => (
-                  <div key={badge.id || index} className={styles.popularBadge}>
-                    <div className={styles.badgeRank}>#{index + 1}</div>
-                    <div className={styles.badgeIcon}>
-                      {getBadgeIcon(
-                        badge.badgeName || badge.name || badge.type
-                      )}
+            <div className={styles.categoriesSection}>
+              <h4>Badge Categories</h4>
+              <div className={styles.categoriesGrid}>
+                {Object.entries(analytics.categoryStats).map(
+                  ([category, stats]) => (
+                    <div key={category} className={styles.categoryCard}>
+                      <div className={styles.categoryIcon}>
+                        {category === "Achievement"
+                          ? "🏆"
+                          : category === "Progress"
+                          ? "📈"
+                          : category === "Milestone"
+                          ? "🎯"
+                          : "🏅"}
+                      </div>
+                      <div className={styles.categoryDetails}>
+                        <div className={styles.categoryName}>{category}</div>
+                        <div className={styles.categoryStats}>
+                          <div className={styles.categoryStat}>
+                            <span className={styles.statNumber}>
+                              {stats.count}
+                            </span>
+                            <span className={styles.statLabel}>Total</span>
+                          </div>
+                          <div className={styles.categoryStat}>
+                            <span className={styles.statNumber}>
+                              {stats.active}
+                            </span>
+                            <span className={styles.statLabel}>Active</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className={styles.badgeDetails}>
-                      <div className={styles.badgeName}>
-                        {badge.badgeName ||
-                          badge.name ||
-                          badge.title ||
-                          `Badge #${badge.id || index + 1}`}
-                      </div>
-                      <div className={styles.badgeDescription}>
-                        {badge.description ||
-                          badge.criteria ||
-                          "Achievement badge for smoking cessation progress"}
-                      </div>
-                      <div className={styles.badgeCategory}>
-                        Category:{" "}
-                        {badge.category ||
-                          badge.type ||
-                          badge.badgeType ||
-                          "Progress"}
-                      </div>
-                      <div className={styles.badgeCategory}>
-                        Category: {badge.category || badge.type || "General"}
-                      </div>
-                    </div>
-                    <div className={styles.badgeStats}>
-                      <div className={styles.awardCount}>
-                        {badge.memberCount || 0}
-                      </div>
-                      <div className={styles.awardLabel}>awards</div>
-                    </div>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
-
-              {analytics.popularBadges.length === 0 && (
-                <div className={styles.emptyState}>
-                  <div className={styles.emptyIcon}>🏅</div>
-                  <div className={styles.emptyTitle}>No badges awarded yet</div>
-                  <div className={styles.emptyText}>
-                    Badges will appear here once members start earning them.
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className={styles.allBadgesSection}>
@@ -642,22 +600,15 @@ const BadgesTab = () => {
                       {badge.badgeName ||
                         badge.name ||
                         badge.title ||
-                        badge.type ||
-                        "Unnamed Badge"}
+                        `Badge #${badge.id || index + 1}`}
                     </div>
-                    <div className={styles.badgeCardStats}>
-                      <span className={styles.badgeCardCount}>
-                        {badge.memberCount || 0} awarded
-                      </span>
-                      <span
-                        className={styles.badgeCardStatus}
-                        style={{
-                          color:
-                            badge.status === "active" ? "#10b981" : "#64748b",
-                        }}
-                      >
-                        {badge.status || "active"}
-                      </span>
+                    <div className={styles.badgeCardDescription}>
+                      {badge.description ||
+                        badge.criteria ||
+                        "Achievement badge"}
+                    </div>
+                    <div className={styles.badgeCardCategory}>
+                      {badge.category || badge.type || "General"}
                     </div>
                   </div>
                 ))}

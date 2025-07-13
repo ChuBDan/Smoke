@@ -276,6 +276,7 @@ const styles = StyleSheet.create({
   card: {
     margin: theme.spacing.xs,
     padding: theme.spacing.md,
+    minHeight: 200, // Ensure minimum height for better content display
   },
   header: {
     flexDirection: "row",
@@ -287,43 +288,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dayNumber: {
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.semibold,
+    fontSize: theme.fontSize.lg, // Increased font size
+    fontWeight: theme.fontWeight.bold, // Made bolder
     color: theme.colors.textPrimary,
   },
   date: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textSecondary,
+    marginTop: theme.spacing.xxs,
   },
   statusBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32, // Slightly larger
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
   },
   content: {
     marginBottom: theme.spacing.md,
+    flex: 1, // Allow content to expand
   },
   section: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: theme.spacing.md, // Increased spacing between sections
+    padding: theme.spacing.sm, // Added padding to sections
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.sm,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: theme.spacing.xs,
+    marginBottom: theme.spacing.sm, // Increased spacing
   },
   sectionTitle: {
-    fontSize: theme.fontSize.xs,
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.textSecondary,
+    fontSize: theme.fontSize.sm, // Slightly larger
+    fontWeight: theme.fontWeight.semibold, // Made more prominent
+    color: theme.colors.textPrimary, // Changed to primary text color
     marginLeft: theme.spacing.xs,
     textTransform: "uppercase",
   },
   sectionText: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.textPrimary,
-    lineHeight: 18,
+    lineHeight: 20, // Increased line height for better readability
+    flexWrap: "wrap", // Allow text wrapping
   },
   actionArea: {
     marginTop: "auto",

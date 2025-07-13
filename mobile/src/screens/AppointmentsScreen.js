@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -34,31 +35,83 @@ const AppointmentsScreen = ({ navigation }) => {
       setLoading(true);
       setError("");
 
-      if (!user?.id || !token) return;
+      if (!user?.id || !token) {
+        console.warn("No user ID or token available");
+        return;
+      }
 
-      try {
-        const response = await appointmentApi.getAppointmentsByMember(
-          user.id,
-          token
+      console.log("Fetching appointments for member:", user.id);
+
+      // Use the improved API call that matches web-app pattern
+      const response = await appointmentApi.getAppointmentsByMember(
+        user.id,
+        token
+      );
+
+      console.log("Appointments API response:", response);
+
+      // The API now returns { consultations, success, message }
+      const consultations = response.consultations || [];
+
+      // Map the API response to match the expected format
+      const mappedAppointments = consultations.map((consultation) => {
+        // Parse the consultation date to extract date and time
+        const consultationDate = new Date(
+          consultation.consultationDate.replace(
+            /(\d{2})-(\d{2})-(\d{4})/,
+            "$3-$2-$1"
+          )
         );
-        setAppointments(response.consultations || []);
-      } catch (apiError) {
-        // Handle 400 status as expected behavior for no appointments
-        if (apiError.response?.status === 400) {
-          console.warn("No appointments yet for user");
-          setAppointments([]);
-        } else if (apiError.response?.status === 404) {
-          console.log("User has no appointments");
-          setAppointments([]);
-        } else {
-          console.error("Error fetching appointments:", apiError);
-          setAppointments([]);
-          setError("Unable to load appointments. Please try again later.");
-        }
+
+        return {
+          id: consultation.id,
+          date: consultationDate.toISOString(),
+          time: consultationDate.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
+          doctor:
+            consultation.coach?.name ||
+            consultation.coach?.fullName ||
+            "Unknown Coach",
+          doctorName:
+            consultation.coach?.name ||
+            consultation.coach?.fullName ||
+            "Unknown Coach",
+          specialty:
+            consultation.coach?.expertise ||
+            consultation.coach?.specialty ||
+            "Health Coach",
+          speciality:
+            consultation.coach?.expertise ||
+            consultation.coach?.specialty ||
+            "Health Coach",
+          status:
+            consultation.status === "ACTIVE"
+              ? "confirmed"
+              : consultation.status.toLowerCase(),
+          notes: consultation.notes || "",
+          googleMeetLink: consultation.googleMeetLink || "",
+          image: consultation.coach?.profileImage || consultation.coach?.avatar,
+          // Keep original data for reference
+          originalData: consultation,
+        };
+      });
+
+      setAppointments(mappedAppointments);
+
+      if (!response.success && consultations.length === 0) {
+        console.warn(
+          "API reported failure but no error thrown:",
+          response.message
+        );
       }
     } catch (err) {
-      console.error("Error fetching appointments:", err);
-      setError("Failed to load appointments");
+      // This should rarely happen now since API handles errors gracefully
+      console.error("Unexpected error fetching appointments:", err);
+      setAppointments([]);
+      setError("Unable to load appointments. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -70,21 +123,86 @@ const AppointmentsScreen = ({ navigation }) => {
     setRefreshing(false);
   };
 
+  const handleJoinMeeting = async (meetLink, appointmentData) => {
+    try {
+      Alert.alert(
+        "Join Video Call",
+        `Join your appointment with ${appointmentData.doctor}?`,
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
+          },
+          {
+            text: "Join",
+            onPress: async () => {
+              try {
+                const supported = await Linking.canOpenURL(meetLink);
+                if (supported) {
+                  await Linking.openURL(meetLink);
+                } else {
+                  Alert.alert(
+                    "Unable to open link",
+                    "Please copy the link and open it in your browser.",
+                    [
+                      {
+                        text: "Copy Link",
+                        onPress: () => {
+                          // You can add clipboard functionality here if needed
+                          console.log("Copy link:", meetLink);
+                        },
+                      },
+                      { text: "OK" },
+                    ]
+                  );
+                }
+              } catch (error) {
+                console.error("Error opening Google Meet link:", error);
+                Alert.alert(
+                  "Error",
+                  "Unable to open the meeting link. Please try again."
+                );
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error handling meeting join:", error);
+      Alert.alert("Error", "Unable to join the meeting. Please try again.");
+    }
+  };
+
   // Filter appointments based on active tab and date
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+  const now = new Date();
 
   const upcomingAppointments = appointments.filter((apt) => {
-    const appointmentDate = new Date(apt.date);
-    appointmentDate.setHours(0, 0, 0, 0);
-    return appointmentDate >= today && apt.status !== "completed";
+    const appointmentDateTime = new Date(apt.date);
+    // Upcoming: appointment datetime is in the future and not completed
+    const isUpcoming = appointmentDateTime > now && apt.status !== "completed";
+    console.log(
+      `Appointment ${
+        apt.id
+      }: ${appointmentDateTime.toISOString()} vs ${now.toISOString()}, upcoming: ${isUpcoming}`
+    );
+    return isUpcoming;
   });
 
   const pastAppointments = appointments.filter((apt) => {
-    const appointmentDate = new Date(apt.date);
-    appointmentDate.setHours(0, 0, 0, 0);
-    return appointmentDate < today || apt.status === "completed";
+    const appointmentDateTime = new Date(apt.date);
+    // Past: appointment datetime is in the past or status is completed
+    const isPast = appointmentDateTime <= now || apt.status === "completed";
+    console.log(
+      `Appointment ${
+        apt.id
+      }: ${appointmentDateTime.toISOString()} vs ${now.toISOString()}, past: ${isPast}`
+    );
+    return isPast;
   });
+
+  console.log(
+    `Total appointments: ${appointments.length}, Upcoming: ${upcomingAppointments.length}, Past: ${pastAppointments.length}`
+  );
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -112,68 +230,92 @@ const AppointmentsScreen = ({ navigation }) => {
     }
   };
 
-  const AppointmentCard = ({ appointment }) => (
-    <Card style={styles.appointmentCard}>
-      <View style={styles.appointmentContent}>
-        <Image
-          source={{
-            uri:
-              appointment.image ||
-              "https://via.placeholder.com/80x80/4F46E5/FFFFFF?text=DR",
-          }}
-          style={styles.doctorImage}
-        />
-        <View style={styles.appointmentInfo}>
-          <Text style={styles.doctorName}>
-            {appointment.doctor || appointment.doctorName}
-          </Text>
-          <Text style={styles.doctorSpecialty}>
-            {appointment.specialty || appointment.speciality}
-          </Text>
-          <View style={styles.appointmentDateTime}>
-            <Ionicons
-              name="calendar-outline"
-              size={16}
-              color={theme.colors.gray500}
-            />
-            <Text style={styles.appointmentDate}>
-              {new Date(appointment.date).toLocaleDateString()}
+  const AppointmentCard = ({ appointment }) => {
+    console.log("Rendering appointment card:", appointment);
+
+    return (
+      <Card style={styles.appointmentCard}>
+        <View style={styles.appointmentContent}>
+          <Image
+            source={{
+              uri:
+                appointment.image ||
+                "https://via.placeholder.com/80x80/4F46E5/FFFFFF?text=DR",
+            }}
+            style={styles.doctorImage}
+          />
+          <View style={styles.appointmentInfo}>
+            <Text style={styles.doctorName}>
+              {appointment.doctor || appointment.doctorName || "Unknown Doctor"}
             </Text>
-          </View>
-          <View style={styles.appointmentDateTime}>
-            <Ionicons
-              name="time-outline"
-              size={16}
-              color={theme.colors.gray500}
-            />
-            <Text style={styles.appointmentTime}>{appointment.time}</Text>
-          </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: getStatusColor(appointment.status) },
-            ]}
-          >
-            <Text style={styles.statusText}>
-              {getStatusText(appointment.status)}
+            <Text style={styles.doctorSpecialty}>
+              {appointment.specialty ||
+                appointment.speciality ||
+                "Health Coach"}
             </Text>
-          </View>
-        </View>
-        <View style={styles.appointmentActions}>
-          {appointment.status === "confirmed" && (
-            <View style={styles.statusIndicator}>
+            <View style={styles.appointmentDateTime}>
               <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={theme.colors.success}
+                name="calendar-outline"
+                size={16}
+                color={theme.colors.gray500}
               />
-              <Text style={styles.confirmedText}>Confirmed</Text>
+              <Text style={styles.appointmentDate}>
+                {new Date(appointment.date).toLocaleDateString()}
+              </Text>
             </View>
-          )}
+            <View style={styles.appointmentDateTime}>
+              <Ionicons
+                name="time-outline"
+                size={16}
+                color={theme.colors.gray500}
+              />
+              <Text style={styles.appointmentTime}>{appointment.time}</Text>
+            </View>
+            {appointment.notes && (
+              <View style={styles.appointmentDateTime}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={16}
+                  color={theme.colors.gray500}
+                />
+                <Text style={styles.appointmentNotes} numberOfLines={2}>
+                  {appointment.notes}
+                </Text>
+              </View>
+            )}
+            {/* Status and Actions Row */}
+            <View style={styles.statusActionsRow}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: getStatusColor(appointment.status) },
+                ]}
+              >
+                <Text style={styles.statusText}>
+                  {getStatusText(appointment.status)}
+                </Text>
+              </View>
+              {appointment.googleMeetLink && (
+                <TouchableOpacity
+                  style={styles.meetButton}
+                  onPress={() =>
+                    handleJoinMeeting(appointment.googleMeetLink, appointment)
+                  }
+                >
+                  <Ionicons
+                    name="videocam-outline"
+                    size={16}
+                    color={theme.colors.primary}
+                  />
+                  <Text style={styles.meetButtonText}>Join</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
         </View>
-      </View>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   const EmptyState = ({ type }) => (
     <View style={styles.emptyState}>
@@ -391,6 +533,12 @@ const styles = StyleSheet.create({
     color: theme.colors.gray500,
     marginLeft: theme.spacing.xs,
   },
+  appointmentNotes: {
+    fontSize: 12,
+    color: theme.colors.gray500,
+    marginLeft: theme.spacing.xs,
+    flex: 1,
+  },
   statusBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: theme.spacing.sm,
@@ -403,22 +551,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: theme.colors.white,
   },
-  appointmentActions: {
-    alignItems: "center",
-  },
-  statusIndicator: {
+  statusActionsRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.colors.success + "20",
+    marginTop: theme.spacing.sm,
+    gap: theme.spacing.sm,
+  },
+  meetButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.primary + "20",
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: 12,
+    marginTop: theme.spacing.xs,
   },
-  confirmedText: {
+  meetButtonText: {
     marginLeft: theme.spacing.xs,
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.medium,
-    color: theme.colors.success,
+    color: theme.colors.primary,
   },
   emptyState: {
     flex: 1,

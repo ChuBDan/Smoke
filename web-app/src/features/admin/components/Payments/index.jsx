@@ -14,6 +14,8 @@ import {
   setFilterStatus,
 } from "@/redux/slices/paymentsSlice";
 import ConfirmModal from "@/components/ConfirmModal";
+import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/Pagination";
 
 const PaymentHistoryPage = () => {
   const dispatch = useDispatch();
@@ -118,6 +120,21 @@ const PaymentHistoryPage = () => {
       return matchesSearch && matchesStatus;
     });
   }, [transactions, searchTerm, filterStatus]);
+
+  // Pagination setup
+  const ITEMS_PER_PAGE = 10;
+  const {
+    currentPage,
+    getPaginationData,
+    handlePageChange,
+    handlePreviousPage,
+    handleNextPage,
+    handleFirstPage,
+    handleLastPage,
+  } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
+
+  // Get pagination data
+  const pagination = getPaginationData(filteredTransactions);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -468,136 +485,162 @@ const PaymentHistoryPage = () => {
             </p>
           </div>
         ) : (
-          <div className={styles.tableWrapper}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>Transaction ID</th>
-                  <th>Member ID</th>
-                  <th>Package ID</th>
-                  <th>Order Info</th>
-                  <th>Bank Code</th>
-                  <th>Amount</th>
-                  <th>Response Code</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTransactions.map((transaction) => (
-                  <tr key={transaction.id}>
-                    <td>
-                      <span className={styles.transactionId}>
-                        #{transaction.id}
-                      </span>
-                    </td>
-                    <td>{transaction.memberId}</td>
-                    <td>{transaction.packageId || "N/A"}</td>
-                    <td className={styles.orderInfo}>
-                      {transaction.orderInfo || "N/A"}
-                    </td>
-                    <td>{transaction.bankCode || "N/A"}</td>
-                    <td className={styles.amount}>
-                      {formatVND(transaction.amount)}
-                    </td>
-                    <td>{transaction.responseCode || "N/A"}</td>
-                    <td className={styles.date}>
-                      {formatDate(transaction.transactionDate)}
-                    </td>
-                    <td>
-                      <span
-                        className={`${styles.statusBadge} ${getStatusBadge(
-                          transaction.status
-                        )}`}
-                      >
-                        {transaction.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className={styles.actions}>
-                        <button
-                          style={{
-                            marginRight: "0.5rem",
-                            padding: "0.5rem",
-                            borderRadius: "0.375rem",
-                            border: "1px solid #e2e8f0",
-                            background: "white",
-                            color: "#0284c7",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          title="Edit transaction"
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#f0f9ff";
-                            e.target.style.borderColor = "#0284c7";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "white";
-                            e.target.style.borderColor = "#e2e8f0";
-                          }}
-                          onClick={() => handleEdit(transaction)}
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          style={{
-                            padding: "0.5rem",
-                            borderRadius: "0.375rem",
-                            border: "1px solid #e2e8f0",
-                            background: "white",
-                            color: "#ef4444",
-                            cursor: "pointer",
-                            transition: "all 0.2s ease",
-                          }}
-                          title="Delete transaction"
-                          onMouseEnter={(e) => {
-                            e.target.style.background = "#fef2f2";
-                            e.target.style.borderColor = "#ef4444";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.background = "white";
-                            e.target.style.borderColor = "#e2e8f0";
-                          }}
-                          onClick={() =>
-                            handleDeleteTransaction(transaction.id)
-                          }
-                        >
-                          <svg
-                            width="16"
-                            height="16"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Transaction ID</th>
+                    <th>Member ID</th>
+                    <th>Package ID</th>
+                    <th>Order Info</th>
+                    <th>Bank Code</th>
+                    <th>Amount</th>
+                    <th>Response Code</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pagination.currentItems.map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>
+                        <span className={styles.transactionId}>
+                          #{transaction.id}
+                        </span>
+                      </td>
+                      <td>{transaction.memberId}</td>
+                      <td>{transaction.packageId || "N/A"}</td>
+                      <td className={styles.orderInfo}>
+                        {transaction.orderInfo || "N/A"}
+                      </td>
+                      <td>{transaction.bankCode || "N/A"}</td>
+                      <td className={styles.amount}>
+                        {formatVND(transaction.amount)}
+                      </td>
+                      <td>{transaction.responseCode || "N/A"}</td>
+                      <td className={styles.date}>
+                        {formatDate(transaction.transactionDate)}
+                      </td>
+                      <td>
+                        <span
+                          className={`${styles.statusBadge} ${getStatusBadge(
+                            transaction.status
+                          )}`}
+                        >
+                          {transaction.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={styles.actions}>
+                          <button
+                            style={{
+                              marginRight: "0.5rem",
+                              padding: "0.5rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              color: "#0284c7",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                            title="Edit transaction"
+                            onMouseEnter={(e) => {
+                              e.target.style.background = "#f0f9ff";
+                              e.target.style.borderColor = "#0284c7";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = "white";
+                              e.target.style.borderColor = "#e2e8f0";
+                            }}
+                            onClick={() => handleEdit(transaction)}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            style={{
+                              padding: "0.5rem",
+                              borderRadius: "0.375rem",
+                              border: "1px solid #e2e8f0",
+                              background: "white",
+                              color: "#ef4444",
+                              cursor: "pointer",
+                              transition: "all 0.2s ease",
+                            }}
+                            title="Delete transaction"
+                            onMouseEnter={(e) => {
+                              e.target.style.background = "#fef2f2";
+                              e.target.style.borderColor = "#ef4444";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.background = "white";
+                              e.target.style.borderColor = "#e2e8f0";
+                            }}
+                            onClick={() =>
+                              handleDeleteTransaction(transaction.id)
+                            }
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Controls */}
+            {filteredTransactions.length > ITEMS_PER_PAGE && (
+              <div
+                style={{
+                  marginTop: "2rem",
+                  display: "flex",
+                  justifyContent: "center",
+                }}
+              >
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={pagination.totalPages}
+                  totalItems={pagination.totalItems}
+                  onPageChange={handlePageChange}
+                  onPreviousPage={handlePreviousPage}
+                  onNextPage={handleNextPage}
+                  onFirstPage={handleFirstPage}
+                  onLastPage={handleLastPage}
+                  hasNextPage={pagination.hasNextPage}
+                  hasPreviousPage={pagination.hasPreviousPage}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 

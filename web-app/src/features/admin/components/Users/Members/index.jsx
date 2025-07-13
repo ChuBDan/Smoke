@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./Members.module.css";
 import ConfirmModal from "@/components/ConfirmModal";
+import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/Pagination";
 import {
   fetchAllMembers,
   deleteMember,
@@ -29,6 +31,19 @@ const MembersPage = () => {
   const dispatch = useDispatch();
   const { members, loading, error } = useSelector((state) => state.members);
   const { loading: authLoading } = useSelector((state) => state.auth);
+
+  // Pagination setup
+  const ITEMS_PER_PAGE = 10;
+  const {
+    currentPage,
+    getPaginationData,
+    handlePageChange,
+    handlePreviousPage,
+    handleNextPage,
+    handleFirstPage,
+    handleLastPage,
+  } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
+
   // Function to load API data using Redux
   const loadApiData = () => {
     dispatch(fetchAllMembers());
@@ -163,6 +178,10 @@ const MembersPage = () => {
       filterStatus === "all" || member.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  // Set up pagination with filtered data
+  const pagination = getPaginationData(filteredMembers);
+  const paginatedMembers = pagination.currentItems;
   return (
     <div className={styles.container}>
       <style>{`
@@ -387,7 +406,7 @@ const MembersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredMembers.map((member, index) => (
+                {paginatedMembers.map((member, index) => (
                   <tr
                     key={member.id}
                     style={{
@@ -684,6 +703,31 @@ const MembersPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && filteredMembers.length > ITEMS_PER_PAGE && (
+          <div
+            style={{
+              marginTop: "2rem",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={(page) => handlePageChange(page, filteredMembers)}
+              onPreviousPage={handlePreviousPage}
+              onNextPage={() => handleNextPage(filteredMembers)}
+              onFirstPage={handleFirstPage}
+              onLastPage={() => handleLastPage(filteredMembers)}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </div>
         )}
       </div>

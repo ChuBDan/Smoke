@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ConfirmModal from "@/components/ConfirmModal";
+import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/Pagination";
 import styles from "./Coaches.module.css";
 import {
   fetchAllCoaches,
@@ -29,6 +31,18 @@ const CoachesPage = () => {
   });
   const dispatch = useDispatch();
   const { coaches, loading, error } = useSelector((state) => state.coaches);
+
+  // Pagination setup
+  const ITEMS_PER_PAGE = 10;
+  const {
+    currentPage,
+    getPaginationData,
+    handlePageChange,
+    handlePreviousPage,
+    handleNextPage,
+    handleFirstPage,
+    handleLastPage,
+  } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
 
   // ConfirmModal state for delete
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -156,6 +170,10 @@ const CoachesPage = () => {
       filterStatus === "all" || coach.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  // Set up pagination with filtered data
+  const pagination = getPaginationData(filteredCoaches);
+  const paginatedCoaches = pagination.currentItems;
 
   return (
     <div className={styles.container}>
@@ -299,8 +317,8 @@ const CoachesPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredCoaches.length > 0 ? (
-                  filteredCoaches.map((coach) => (
+                {paginatedCoaches.length > 0 ? (
+                  paginatedCoaches.map((coach) => (
                     <tr key={coach.id}>
                       <td>
                         <div className={styles.userInfo}>
@@ -433,6 +451,31 @@ const CoachesPage = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && filteredCoaches.length > ITEMS_PER_PAGE && (
+          <div
+            style={{
+              marginTop: "2rem",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={(page) => handlePageChange(page, filteredCoaches)}
+              onPreviousPage={handlePreviousPage}
+              onNextPage={() => handleNextPage(filteredCoaches)}
+              onFirstPage={handleFirstPage}
+              onLastPage={() => handleLastPage(filteredCoaches)}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </div>
         )}
       </div>{" "}

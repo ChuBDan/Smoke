@@ -36,19 +36,32 @@ const ProfileEditScreen = ({ navigation }) => {
       if (!user?.id || !token) return;
 
       const memberData = await userApi.getMemberById(user.id, token);
-      if (memberData.member) {
-        const member = memberData.member;
-        setFormData({
-          fullName: member.fullName || "",
-          email: member.email || "",
-          phoneNumber: member.phoneNumber || "",
-          gender: member.gender || "",
-          dob: member.dob || "",
-        });
-      }
+      console.log("Member data for edit:", memberData);
+
+      // Handle different response structures
+      const member = memberData?.member || memberData || {};
+
+      setFormData({
+        fullName: member.fullName || user?.fullName || "",
+        email: member.email || user?.email || "",
+        phoneNumber: member.phoneNumber || user?.phoneNumber || "",
+        gender: member.gender || user?.gender || "",
+        dob: member.dob || user?.dob || "",
+      });
     } catch (error) {
       console.error("Error fetching user data:", error);
-      Alert.alert("Error", "Failed to load user information");
+      // Fallback to user data from Redux if API fails
+      setFormData({
+        fullName: user?.fullName || "",
+        email: user?.email || "",
+        phoneNumber: user?.phoneNumber || "",
+        gender: user?.gender || "",
+        dob: user?.dob || "",
+      });
+      Alert.alert(
+        "Warning",
+        "Could not load latest profile data. Showing cached information."
+      );
     } finally {
       setLoading(false);
     }

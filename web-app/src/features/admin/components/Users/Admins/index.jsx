@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ConfirmModal from "@/components/ConfirmModal";
+import usePagination from "@/hooks/usePagination";
+import Pagination from "@/components/Pagination";
 import styles from "./Admins.module.css";
 import {
   fetchAllAdmins,
@@ -22,6 +24,18 @@ const AdminsPage = () => {
 
   const dispatch = useDispatch();
   const { admins, loading, error } = useSelector((state) => state.admins);
+
+  // Pagination setup
+  const ITEMS_PER_PAGE = 10;
+  const {
+    currentPage,
+    getPaginationData,
+    handlePageChange,
+    handlePreviousPage,
+    handleNextPage,
+    handleFirstPage,
+    handleLastPage,
+  } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
 
   // ConfirmModal state for delete
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -105,6 +119,10 @@ const AdminsPage = () => {
       filterStatus === "all" || admin.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
+  // Set up pagination with filtered data
+  const pagination = getPaginationData(filteredAdmins);
+  const paginatedAdmins = pagination.currentItems;
 
   return (
     <div className={styles.container}>
@@ -248,8 +266,8 @@ const AdminsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredAdmins.length > 0 ? (
-                  filteredAdmins.map((admin) => (
+                {paginatedAdmins.length > 0 ? (
+                  paginatedAdmins.map((admin) => (
                     <tr key={admin.id}>
                       <td>
                         <div className={styles.userInfo}>
@@ -415,6 +433,31 @@ const AdminsPage = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && filteredAdmins.length > ITEMS_PER_PAGE && (
+          <div
+            style={{
+              marginTop: "2rem",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              onPageChange={handlePageChange}
+              onPreviousPage={handlePreviousPage}
+              onNextPage={handleNextPage}
+              onFirstPage={handleFirstPage}
+              onLastPage={handleLastPage}
+              hasNextPage={pagination.hasNextPage}
+              hasPreviousPage={pagination.hasPreviousPage}
+              itemsPerPage={ITEMS_PER_PAGE}
+            />
           </div>
         )}
       </div>{" "}
