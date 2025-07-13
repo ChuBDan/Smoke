@@ -31,7 +31,7 @@ const DayCard = ({ day, allProgresses = [], onSubmit }) => {
 
   const isToday = formattedDay === formattedToday;
   const isPastDay = new Date(formattedDay) < new Date(formattedToday);
-const isCompleted = !!dayProgress;
+  const isCompleted = !!dayProgress;
 
   const getStatus = () => {
     if (isCompleted) return "completed";
@@ -57,9 +57,7 @@ const isCompleted = !!dayProgress;
         "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200 ring-2 ring-blue-200",
       headerClass: "bg-blue-100 text-blue-800",
       badgeClass: "bg-blue-500",
-      icon: (
-        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-      ),
+      icon: <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>,
     },
     missed: {
       bgClass: "bg-gradient-to-br from-red-50 to-rose-50 border-red-200",
@@ -159,7 +157,11 @@ const isCompleted = !!dayProgress;
             className="space-y-2"
             onSubmit={(e) => {
               e.preventDefault();
-              onSubmit({ daysSmokeFree, healthImprovement });
+              onSubmit({
+                daysSmokeFree: parseInt(daysSmokeFree, 10),
+                healthImprovement,
+                date: formattedDay,
+              });
             }}
           >
             <div className="space-y-1">
@@ -170,7 +172,7 @@ const isCompleted = !!dayProgress;
                 type="number"
                 min="0"
                 required
-                placeholder="Enter days"
+                placeholder="Enter number of cigarettes"
                 value={daysSmokeFree}
                 onChange={(e) => setDaysSmokeFree(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
