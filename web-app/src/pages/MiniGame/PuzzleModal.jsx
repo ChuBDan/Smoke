@@ -89,4 +89,4 @@ const PuzzleModal = ({ open, onClose, onComplete }) => {
   );
 };
 
-export default App;
+export default PuzzleModal;
