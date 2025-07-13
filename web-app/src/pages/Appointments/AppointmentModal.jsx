@@ -7,7 +7,7 @@ import { addHours, format, startOfWeek } from "date-fns";
   Helpers
 -------------------------------------------------------------------*/
 const WEEK_DAYS = 7;
-const DISPLAY_LOCALE = "vi-VN";
+const DISPLAY_LOCALE = "en-US";
 
 const buildWeekDays = (anchor) =>
   Array.from({ length: WEEK_DAYS }, (_, i) => {
@@ -65,7 +65,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
       const { data } = await axios.get("/api/user/get-all-coaches");
       setCoaches((data.coaches || []).filter((c) => c.status === "ACTIVE"));
     } catch (e) {
-      toast.error("Không thể tải danh sách coach");
+      toast.error("Unable to load coach list");
     } finally {
       setLoading(false);
     }
@@ -98,25 +98,24 @@ const AppointmentCalendar = ({ open, onClose }) => {
 
   /* --------------------------- utils -------------------------------*/
   const isSlotBooked = (dateObj, slot, coachId, memberId) => {
-  const dayKey = format(dateObj, "dd-MM-yyyy");
-  const hour24 = getStartHour24(slot);
-  const hourKey = String(hour24).padStart(2, "0") + ":00:00";
+    const dayKey = format(dateObj, "dd-MM-yyyy");
+    const hour24 = getStartHour24(slot);
+    const hourKey = String(hour24).padStart(2, "0") + ":00:00";
 
-  return appointments.find(
-    (a) =>
-      a.coach?.id?.toString() === coachId?.toString() &&
-      a.member?.id?.toString() === memberId?.toString() &&
-      a.status === "ACTIVE" &&
-      a.consultationDate?.startsWith(dayKey) &&
-      a.consultationDate?.includes(hourKey)
-  );
-};
-
+    return appointments.find(
+      (a) =>
+        a.coach?.id?.toString() === coachId?.toString() &&
+        a.member?.id?.toString() === memberId?.toString() &&
+        a.status === "ACTIVE" &&
+        a.consultationDate?.startsWith(dayKey) &&
+        a.consultationDate?.includes(hourKey)
+    );
+  };
 
   /* ------------------------ event handlers -------------------------*/
   const handleConfirm = async () => {
     if (!selectedCoach || !selectedSlot) {
-      toast.warning("Vui lòng chọn coach và thời gian");
+      toast.warning("Please select a coach and time slot");
       return;
     }
 
@@ -124,7 +123,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
     const start = new Date(date);
     start.setHours(getStartHour24(time), 0, 0, 0);
     if (start <= new Date()) {
-      toast.warning("Vui lòng chọn thời gian bắt đầu trong tương lai");
+      toast.warning("Please select a future start time");
       return;
     }
 
@@ -132,18 +131,18 @@ const AppointmentCalendar = ({ open, onClose }) => {
       consultationDate: format(start, "dd-MM-yyyy HH:mm:ss"),
       startDate: format(start, "dd-MM-yyyy HH:mm:ss"),
       endDate: format(addHours(start, 1), "dd-MM-yyyy HH:mm:ss"),
-      notes: notes.trim() || "Tư vấn sức khỏe tâm lý",
+      notes: notes.trim() || "Mental health consultation",
     };
 
     try {
       setSubmitting(true);
       await axios.post(`/api/user/create-consultation/coach/${selectedCoach}/member/${memberId}`, payload);
-      toast.success("Đặt lịch hẹn thành công!");
+      toast.success("Appointment booked successfully!");
       setSelectedSlot(null);
       setNotes("");
       await fetchAppointments(); // refresh grid
     } catch (e) {
-      toast.error("Đặt lịch thất bại. Vui lòng thử lại.");
+      toast.error("Booking failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -162,9 +161,9 @@ const AppointmentCalendar = ({ open, onClose }) => {
           <div className="relative z-10">
             <h2 className="text-3xl font-bold text-white flex items-center gap-3">
               <span className="text-4xl">🏥</span>
-              Đặt lịch hẹn
+              Book Appointment
             </h2>
-            <p className="text-emerald-100 text-base mt-1">Tư vấn với chuyên gia của chúng tôi</p>
+            <p className="text-emerald-100 text-base mt-1">Consult with our experts</p>
           </div>
           <button 
             onClick={onClose} 
@@ -178,9 +177,9 @@ const AppointmentCalendar = ({ open, onClose }) => {
         <section className="p-8 overflow-y-auto flex-1 space-y-8 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
           {/* coach select */}
           <div className="space-y-4">
-            <label className="block text-lg font-semibold text-gray-800  items-center gap-2">
+            <label className="block text-lg font-semibold text-gray-800 items-center gap-2">
               <span className="text-2xl">👨‍⚕️</span>
-              Chọn Coach 
+              Select Coach 
               <span className="text-red-500 text-xl">*</span>
             </label>
             <div className="relative">
@@ -189,7 +188,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
                 onChange={(e) => setSelectedCoach(e.target.value)} 
                 className="w-full border-2 border-gray-200 rounded-xl px-6 py-4 text-lg font-medium bg-white/80 backdrop-blur-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200 hover:border-emerald-300 appearance-none cursor-pointer"
               >
-                <option value="">-- Chọn coach phù hợp --</option>
+                <option value="">-- Select a suitable coach --</option>
                 {coaches.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}{c.expertise && ` (${c.expertise})`}</option>
                 ))}
@@ -207,15 +206,15 @@ const AppointmentCalendar = ({ open, onClose }) => {
             <div className="flex justify-between items-center mb-6 text-base font-medium">
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-emerald-500 rounded-full"></span>
-                <span className="text-emerald-600">Trống</span>
+                <span className="text-emerald-600">Available</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-red-500 rounded-full"></span>
-                <span className="text-red-600">Đã đặt</span>
+                <span className="text-red-600">Booked</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-blue-500 rounded-full"></span>
-                <span className="text-blue-600">Hôm nay</span>
+                <span className="text-blue-600">Today</span>
               </div>
             </div>
             
@@ -261,7 +260,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
                           >
                             {booked ? (
                               <div className="space-y-2">
-                                <div className="text-red-600 font-semibold text-sm">Đã đặt</div>
+                                <div className="text-red-600 font-semibold text-sm">Booked</div>
                                 {booked.googleMeetLink && (
                                   <a 
                                     href={booked.googleMeetLink} 
@@ -270,13 +269,13 @@ const AppointmentCalendar = ({ open, onClose }) => {
                                     className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs font-medium transition-colors"
                                   >
                                     <span>🔗</span>
-                                    Link Meet
+                                    Meet Link
                                   </a>
                                 )}
                               </div>
                             ) : (
                               <div className={`font-medium ${isChosen ? "text-emerald-700" : "text-gray-600"}`}>
-                                {isChosen ? "✓ Đã chọn" : "Trống"}
+                                {isChosen ? "✓ Selected" : "Available"}
                               </div>
                             )}
                           </td>
@@ -291,27 +290,27 @@ const AppointmentCalendar = ({ open, onClose }) => {
 
           {/* notes */}
           <div className="space-y-4">
-            <label className="block text-lg font-semibold text-gray-800  items-center gap-2">
+            <label className="block text-lg font-semibold text-gray-800 items-center gap-2">
               <span className="text-2xl">📝</span>
-              Ghi chú (tùy chọn)
+              Notes (optional)
             </label>
             <textarea 
               value={notes} 
               onChange={(e) => setNotes(e.target.value)} 
               rows={4} 
               className="w-full border-2 border-gray-200 rounded-xl px-6 py-4 text-base resize-none bg-white/80 backdrop-blur-sm focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 transition-all duration-200 hover:border-emerald-300" 
-              placeholder="Ví dụ: Tư vấn tâm lý, dinh dưỡng, vấn đề sức khỏe cần quan tâm..."
+              placeholder="E.g., mental health consultation, nutrition, health concerns..."
             />
           </div>
         </section>
 
-        {/* footer */}
+       {/* footer */}
         <footer className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-b-2xl p-8 flex gap-6 border-t border-gray-200/50">
           <button 
             onClick={onClose} 
             className="flex-1 bg-white border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-gray-700 py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 hover:scale-105"
           >
-            Hủy
+            Cancel
           </button>
           <button
             onClick={handleConfirm}
@@ -324,12 +323,12 @@ const AppointmentCalendar = ({ open, onClose }) => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Đang xử lý...
+                Processing...
               </>
             ) : (
               <>
                 <span className="text-xl">📅</span>
-                Xác nhận lịch hẹn
+                Confirm Appointment
               </>
             )}
           </button>
