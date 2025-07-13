@@ -3,18 +3,14 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { parse, format, subDays } from "date-fns";
+import { parse, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 
 import { smokingCessationApi } from "@/services/smokingCessationApi";
 import DayCard from "./DayCard";
 import { buildCalendar } from "./util";
 import AppointmentCalendar from "../Appointments/AppointmentModal";
-import PuzzleModal from "@/pages/MiniGame/PuzzleModal";
 
-/**
- * Map plan phases to UI‑friendly objects
- */
 const mapPhases = (planPhases = []) =>
   planPhases.map((p, idx) => ({
     number: p.phaseNumber ?? idx + 1,
@@ -31,36 +27,21 @@ const mapPhases = (planPhases = []) =>
   }));
 
 const SmokingCessationProgress = () => {
-  /** --------------------------------------------------------------------
-   * Redux & Router
-   * ------------------------------------------------------------------ */
   const { userId, token, memberPackage } = useSelector((s) => s.auth);
   const navigate = useNavigate();
   const isVIP = memberPackage?.packageName === "VIP";
 
-  /** --------------------------------------------------------------------
-   * Local state
-   * ------------------------------------------------------------------ */
   const [plan, setPlan] = useState(null);
   const [calendar, setCalendar] = useState([]);
   const [phaseInfo, setPhaseInfo] = useState([]);
   const [activePhase, setActivePhase] = useState(0);
-
   const [progressToday, setProgressToday] = useState(null);
   const [allProgresses, setAllProgresses] = useState([]);
   const [moneySaved, setMoneySaved] = useState(0);
-
   const [loadingPlan, setLoadingPlan] = useState(true);
   const [loadingSubmit, setLoadingSubmit] = useState(false);
-
-  // Modals
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
-  const [showPuzzleModal, setShowPuzzleModal] = useState(false);
-  const [pendingProgress, setPendingProgress] = useState(null);
 
-  /** --------------------------------------------------------------------
-   * Fetch helpers
-   * ------------------------------------------------------------------ */
   const fetchPlan = useCallback(async () => {
     if (!userId || !token) return;
     try {
@@ -120,28 +101,18 @@ const SmokingCessationProgress = () => {
     fetchTodayProgress();
   }, [fetchPlan, fetchTodayProgress]);
 
-  /** --------------------------------------------------------------------
-   * Submit logic with puzzle‑gate
-   * ------------------------------------------------------------------ */
-  const shouldGateWithPuzzle = (todaySmoke) => {
-    const yesterdayStr = format(subDays(new Date(), 1), "yyyy-MM-dd");
-    const yesterdayProg = allProgresses.find((p) => {
-      const date = format(parse(p.dateCreated, "dd-MM-yyyy", new Date()), "yyyy-MM-dd");
-      return date === yesterdayStr;
-    });
-
-    const yesterdaySmoke = parseInt(yesterdayProg?.daysSmokeFree || "0", 10);
-    return todaySmoke > yesterdaySmoke; // more cigarettes today ⇒ gate
-  };
-
   const submitProgress = async ({ daysSmokeFree, healthImprovement }) => {
     setLoadingSubmit(true);
     try {
-      const res = await smokingCessationApi.submitDailyProgress(userId, {
-        completed: true,
-        daysSmokeFree,
-        healthImprovement,
-      }, token);
+      const res = await smokingCessationApi.submitDailyProgress(
+        userId,
+        {
+          completed: true,
+          daysSmokeFree,
+          healthImprovement,
+        },
+        token
+      );
       toast.success(`Progress saved! 💰 Money saved: $${res.moneySaved}`);
       await fetchTodayProgress();
     } catch (err) {
@@ -153,26 +124,9 @@ const SmokingCessationProgress = () => {
   };
 
   const handleSubmitProgress = (day, { daysSmokeFree, healthImprovement }) => {
-    const todaySmoke = parseInt(daysSmokeFree || "0", 10);
-    if (shouldGateWithPuzzle(todaySmoke)) {
-      setPendingProgress({ daysSmokeFree, healthImprovement });
-      setShowPuzzleModal(true);
-    } else {
-      submitProgress({ daysSmokeFree, healthImprovement });
-    }
+    submitProgress({ daysSmokeFree, healthImprovement });
   };
 
-  const handlePuzzleComplete = () => {
-    if (pendingProgress) {
-      submitProgress(pendingProgress);
-      setPendingProgress(null);
-    }
-    setShowPuzzleModal(false);
-  };
-
-  /** --------------------------------------------------------------------
-   * Render branches
-   * ------------------------------------------------------------------ */
   if (loadingPlan) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
@@ -198,12 +152,8 @@ const SmokingCessationProgress = () => {
     );
   }
 
-  /** --------------------------------------------------------------------
-   * Main UI
-   * ------------------------------------------------------------------ */
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      {/* Header */}
       <div className="bg-white shadow-sm border-b relative">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="text-center relative">
@@ -226,7 +176,6 @@ const SmokingCessationProgress = () => {
         </div>
       </div>
 
-      {/* Money saved */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
           <div className="text-center">
@@ -238,7 +187,6 @@ const SmokingCessationProgress = () => {
           </div>
         </div>
 
-        {/* Phase selector */}
         <div className="mb-8">
           <div className="flex flex-wrap justify-center gap-2 mb-6">
             {phaseInfo.map((phase, index) => {
@@ -269,7 +217,6 @@ const SmokingCessationProgress = () => {
           </div>
         </div>
 
-        {/* Calendar */}
         {!!calendar.length && (
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="flex items-center mb-6">
@@ -308,7 +255,6 @@ const SmokingCessationProgress = () => {
         )}
       </div>
 
-      {/* Preview banner for non‑VIP users */}
       {!isVIP && (
         <div className="py-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">
@@ -331,9 +277,7 @@ const SmokingCessationProgress = () => {
         </div>
       )}
 
-      {/* Modals */}
       <AppointmentCalendar open={showAppointmentModal} onClose={() => setShowAppointmentModal(false)} />
-      <PuzzleModal open={showPuzzleModal} onClose={() => setShowPuzzleModal(false)} onComplete={handlePuzzleComplete} />
     </div>
   );
 };
