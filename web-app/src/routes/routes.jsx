@@ -31,9 +31,9 @@ import {
 import CoachLayout from "@/layouts/CoachLayout";
 import CoachDashBoard from "@/pages/Coach/CoachesDBPage/CoachDashBoard";
 import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
-import CoachProfile from "@/pages/Coach/CoachesAppoimentPage/CoachProfile";
 import SmokingCessationProgress from "@/pages/SmokingCessationProgress/SmokingCessationProgress";
 import VNPayReturn from "@/pages/VNPay/VNPayReturn";
+import CoachMemberPlan from "@/pages/Coach/Plan/CoachMemberPlan";
 
 const routes = (
   <Routes>
@@ -44,7 +44,7 @@ const routes = (
       <Route path="contact" element={<Contact />} />
       <Route path="login" element={<LoginForm />} />
       <Route path="profile" element={<MyProfile />} />
-      <Route path="paymenthistory" element={<PaymentHistory/>} />
+      <Route path="paymenthistory" element={<PaymentHistory />} />
       <Route path="membership" element={<MembershipPage />} />
       <Route path="smokingstatusform" element={<SmokingStatusForm />} />
       <Route path="smokingcessation" element={<SmokingCessation />} />
@@ -69,8 +69,8 @@ const routes = (
     <Route path="/coach" element={<CoachLayout />}>
       <Route index element={<CoachDashBoard />} />
       <Route path="dashboard" element={<CoachDashBoard />} />
-      <Route path="appointments" element={<CoachAppoiment />} />
-      <Route path="profile" element={<CoachProfile />} />
+      <Route path="plan" element={<CoachMemberPlan />} />
+      <Route path="plan/:memberId" element={<CoachMemberPlan />} />
     </Route>
     {/* 404 Not Found */}
     <Route path="*" element={<NotFound />} />
