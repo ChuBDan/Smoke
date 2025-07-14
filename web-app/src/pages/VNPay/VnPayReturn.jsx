@@ -37,7 +37,7 @@ const VNPayReturn = () => {
               const member = await getMemberInfo(userId, token);
               dispatch(updateMemberPackage(member.membership_Package));
             } catch (err) {
-              console.error("❌ Lỗi cập nhật gói thành viên:", err);
+              console.error("❌ Lỗi cập nhật gói thành viên: ", err);
             }
           }
         } else {

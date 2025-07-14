@@ -30,7 +30,6 @@ import {
 // Coach Pages
 import CoachLayout from "@/layouts/CoachLayout";
 import CoachDashBoard from "@/pages/Coach/CoachesDBPage/CoachDashBoard";
-import CoachAppoiment from "@/pages/Coach/CoachesAppoimentPage/CoachAppoiment";
 import SmokingCessationProgress from "@/pages/SmokingCessationProgress/SmokingCessationProgress";
 import VNPayReturn from "@/pages/VNPay/VNPayReturn";
 import CoachMemberPlan from "@/pages/Coach/Plan/CoachMemberPlan";
