@@ -30,7 +30,6 @@ const VNPayReturn = () => {
         if (isSuccess) {
           toast.success("Thanh toán thành công!");
 
-          // ✅ Cập nhật memberPackage trong Redux + localStorage
           const userId = localStorage.getItem("userId");
           const token = localStorage.getItem("token");
           if (userId && token) {
