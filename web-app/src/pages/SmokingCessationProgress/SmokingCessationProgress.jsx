@@ -31,7 +31,7 @@ const mapPhases = (planPhases = []) =>
 const SmokingCessationProgress = () => {
   const { userId, token, memberPackage } = useSelector((s) => s.auth);
   const navigate = useNavigate();
-  const isVIP = memberPackage?.packageName === "VIP";
+  const isVIP = memberPackage?.status === "ACTIVE";
 
   const [plan, setPlan] = useState(null);
   const [calendar, setCalendar] = useState([]);
