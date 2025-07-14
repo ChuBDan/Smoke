@@ -5,19 +5,22 @@ import { toast } from "react-toastify";
 const MembershipPage = () => {
   const [packages, setPackages] = useState([]);
   const memberId = localStorage.getItem("userId");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("/api/user/get-all-membership-packages")
-      .then((res) => {
-        const rawPackages = res.data.membership_Packages || [];
-        const activePackages = rawPackages.filter(
-          (pkg) => pkg.status === "ACTIVE"
-        );
-        setPackages(activePackages);
-      })
-      .catch((err) => console.error("Lỗi lấy gói thành viên:", err));
-  }, []);
+  axios
+    .get("/api/user/get-all-membership-packages")
+    .then((res) => {
+      const rawPackages = res.data.membership_Packages || [];
+      const activePackages = rawPackages.filter(pkg => pkg.status === "ACTIVE");
+      setPackages(activePackages);
+      setIsLoading(false); // Đã load xong
+    })
+    .catch((err) => {
+      console.error("Lỗi lấy gói thành viên:", err);
+      setIsLoading(false);
+    });
+}, []);
 
   const handleBuyPackage = async (packageId) => {
     try {
@@ -38,149 +41,79 @@ const MembershipPage = () => {
   };
 
   return (
-    <div
-      className="pb-3 mt-12 font-medium text-zinc-800"
-      style={{
-        maxWidth: "100%",
-        margin: "0 auto",
-        padding: "60px 20px",
-        minHeight: "100vh",
-      }}
-    >
-      <div className="flex flex-col gap-6 items-center">
-        <div
-          className="membership-container"
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "30px",
-            justifyContent: "center",
-          }}
-        >
-          {/* FREE PLAN */}
-          <div
-            className="plan-card"
-            style={{
-              background: "#fff",
-              color: "#333",
-              borderRadius: "10px",
-              width: "350px",
-              padding: "40px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-            }}
+  <div className="pb-10 pt-20 px-4 bg-gray-50 min-h-screen">
+    <h1 className="text-3xl font-bold text-center text-gray-800 mb-10">💎 Choose Your Membership Plan</h1>
+
+    {isLoading ? (
+      <div className="text-center text-gray-500">Loading membership plans...</div>
+    ) : (
+      <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+
+        {/* GÓI FREE */}
+        <div className="bg-white border rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition">
+          <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">Free Plan</h3>
+          <div className="text-3xl font-bold text-center text-blue-500 mb-6">0₫</div>
+          <ul className="space-y-3 text-gray-600 mb-8 text-sm">
+            <li>✔ Track your daily cigarette count</li>
+            <li>✔ View statistics for the past 7 days</li>
+            <li>✔ Receive 5 sample tips per day</li>
+            <li className="text-gray-400">✖ No expert support</li>
+            <li className="text-gray-400">✖ Limited to 3 basic badges</li>
+          </ul>
+          <button
+            className="w-full bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded cursor-not-allowed"
+            disabled
           >
-            <h2 className="text-xl font-semibold text-blue-600">Miễn phí</h2>
-            <p className="price text-4xl font-bold mt-2">
-              $0 <span style={{ fontSize: "20px" }}>USD</span>
-            </p>
-            <p className="text-sm mt-2">
-              Cùng khám phá sức mạnh của AI trong các công việc hàng ngày cuộc
-              sống
-            </p>
-            <button
-              style={{
-                backgroundColor: "#d1d5db",
-                color: "#333",
-                padding: "12px 25px",
-                borderRadius: "6px",
-                border: "none",
-                cursor: "not-allowed",
-                marginTop: "20px",
-                width: "100%",
-              }}
-              disabled
-            >
-              Đã chọn tài khoản
-            </button>
-            <ul className="mt-4 text-sm">
-              <li className="mb-2">
-                ✔ Truy cập GPT-4o mini với tính năng suy luận
-              </li>
-              <li className="mb-2">✔ Chế độ thoại tiếng chuông</li>
-              <li className="mb-2">
-                ✔ Dữ liệu được lưu trữ trên web qua tính năng thời kiêm
-              </li>
-              <li className="mb-2">✔ Truy cập giới hạn GPT-4o với 0-4 mini</li>
-              <li className="mb-2">
-                ✔ Hỗ trợ quyên góp với các tính năng thông tin, phần tích dữ
-                liệu nâng cao với toán học
-              </li>
-              <li className="mb-2">✔ Sử dụng GPT tư vấn</li>
-            </ul>
-          </div>
-
-          {/* VIP / PREMIUM PLANS từ API */}
-          {packages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className="plan-card"
-              style={{
-                background: "#fff",
-                color: "#333",
-                borderRadius: "10px",
-                width: "350px",
-                padding: "40px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                position: "relative",
-              }}
-            >
-              <h2 className="text-xl font-semibold text-blue-600 relative">
-                {pkg.packageName}
-                <span
-                  style={{
-                    position: "absolute",
-                    top: "-15px",
-                    right: "-15px",
-                    background: "#28a745",
-                    color: "#fff",
-                    padding: "5px 10px",
-                    fontSize: "12px",
-                    borderRadius: "5px",
-                  }}
-                >
-                  PREMIUM
-                </span>
-              </h2>
-              <p className="price text-4xl font-bold mt-2">
-                ${pkg.price} <span style={{ fontSize: "20px" }}>VND</span>
-              </p>
-              <p
-                className="text-sm mt-2"
-                style={{
-                  maxHeight: "60px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {pkg.description}
-              </p>
-              <button
-                style={{
-                  backgroundColor: "#28a745",
-                  color: "#fff",
-                  padding: "12px 25px",
-                  borderRadius: "6px",
-                  border: "none",
-                  cursor: "pointer",
-                  marginTop: "20px",
-                  width: "100%",
-                }}
-                onClick={() => handleBuyPackage(pkg.id)}
-              >
-                Chuyển sang {pkg.packageName}
-              </button>
-              <ul className="mt-4 text-sm">
-                <li className="mb-2">✔ Truy cập không giới hạn với GPT</li>
-                <li className="mb-2">✔ Ưu tiên hỗ trợ</li>
-                <li className="mb-2">✔ Quyền truy cập bản xem trước</li>
-                <li className="mb-2">✔ Truy cập dữ liệu AI nâng cao</li>
-              </ul>
-            </div>
-          ))}
+            Currently Selected
+          </button>
         </div>
-      </div>
-    </div>
-  );
-};
 
+        {/* GÓI VIP / PREMIUM */}
+        {packages.map((pkg, index) => (
+          <div
+            key={pkg.id}
+            className={`bg-white border-2 ${index === packages.length - 1 ? 'border-blue-500' : 'border-gray-300'} rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition`}
+          >
+            {index === packages.length - 1 && (
+              <div className="absolute top-0 right-6 transform -translate-y-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                Most Popular
+              </div>
+            )}
+            <h3 className="text-xl font-semibold text-center text-gray-800 mb-4">{pkg.packageName}</h3>
+            <div className="text-3xl font-bold text-center text-blue-500 mb-6">
+              {pkg.price.toLocaleString()}₫<span className="text-base text-gray-500">/month</span>
+            </div>
+            <ul className="space-y-3 text-gray-600 mb-8 text-sm">
+              {pkg.packageName.toLowerCase().includes("48") ? (
+                <>
+                  <li>✔ Includes all Free Plan features</li>
+                  <li>✔ 14-day progress tracking</li>
+                  <li>✔ Daily motivational messages & challenges</li>
+                  <li>✔ Unlock up to 10 achievement badges</li>
+                  <li className="text-gray-400">✖ No expert consultation</li>
+                </>
+              ) : (
+                <>
+                  <li>✔ Includes all Standard Plan features</li>
+                  <li>✔ 1-on-1 consultation with a quit-smoking expert</li>
+                  <li>✔ Personalized plans & daily tips</li>
+                  <li>✔ Full badge system (20+ types)</li>
+                  <li>✔ Weekly reports & 24/7 support community</li>
+                </>
+              )}
+            </ul>
+            <button
+              onClick={() => handleBuyPackage(pkg.id)}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-300"
+            >
+              Choose {pkg.packageName}
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+
+}
 export default MembershipPage;

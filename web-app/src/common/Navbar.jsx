@@ -5,6 +5,7 @@ import { logout, clearMessages } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "@/config/api";
 import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -62,7 +63,9 @@ const Navbar = () => {
   // -------------------------------------------------------------------------
   return (
     <div className="flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray-400">
-      <img className="w-44 cursor-pointer" src={assets.logo} alt="Logo" />
+      <Link to="/">
+  <img className="w-44 cursor-pointer" src={assets.logo} alt="Logo" />
+</Link>
 
       <ul className="hidden md:flex items-start gap-4 font-medium">
         <NavLink to="/"><li className="py-1">Home</li></NavLink>

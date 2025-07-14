@@ -166,8 +166,7 @@ const SmokingCessationProgress = () => {
                 onClick={() => setShowAppointmentModal(true)}
                 className="absolute right-0 top-0 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md"
               >
-                📅 Đặt lịch hẹn
-              </button>
+                📅 Book Appointments             </button>
             </div>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Your personalized path to a smoke‑free life. Each phase is designed to support your journey with daily goals, tasks, and tips.
