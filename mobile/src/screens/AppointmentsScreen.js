@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Alert,
   Linking,
+  Clipboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -148,8 +149,11 @@ const AppointmentsScreen = ({ navigation }) => {
                       {
                         text: "Copy Link",
                         onPress: () => {
-                          // You can add clipboard functionality here if needed
-                          console.log("Copy link:", meetLink);
+                          Clipboard.setString(meetLink);
+                          Alert.alert(
+                            "Link Copied",
+                            "The meeting link has been copied to your clipboard."
+                          );
                         },
                       },
                       { text: "OK" },
@@ -173,30 +177,60 @@ const AppointmentsScreen = ({ navigation }) => {
     }
   };
 
+  const handleCancelAppointment = async (appointmentId, appointmentData) => {
+    Alert.alert(
+      "Cancel Appointment",
+      `Are you sure you want to cancel your appointment with ${appointmentData.doctor}?`,
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await appointmentApi.cancelAppointment(appointmentId, token);
+              Alert.alert("Success", "Appointment cancelled successfully");
+              fetchAppointments(); // Refresh appointments
+            } catch (error) {
+              console.error("Error cancelling appointment:", error);
+              Alert.alert(
+                "Error",
+                "Failed to cancel appointment. Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Filter appointments based on active tab and date
   const now = new Date();
 
   const upcomingAppointments = appointments.filter((apt) => {
     const appointmentDateTime = new Date(apt.date);
-    // Upcoming: appointment datetime is in the future and not completed
-    const isUpcoming = appointmentDateTime > now && apt.status !== "completed";
-    console.log(
-      `Appointment ${
-        apt.id
-      }: ${appointmentDateTime.toISOString()} vs ${now.toISOString()}, upcoming: ${isUpcoming}`
-    );
+    // Upcoming: appointment datetime is in the future and status is active/confirmed
+    const isUpcoming =
+      appointmentDateTime > now &&
+      (apt.status === "confirmed" ||
+        apt.status === "ACTIVE" ||
+        apt.status === "pending" ||
+        apt.status === "PENDING");
     return isUpcoming;
   });
 
   const pastAppointments = appointments.filter((apt) => {
     const appointmentDateTime = new Date(apt.date);
-    // Past: appointment datetime is in the past or status is completed
-    const isPast = appointmentDateTime <= now || apt.status === "completed";
-    console.log(
-      `Appointment ${
-        apt.id
-      }: ${appointmentDateTime.toISOString()} vs ${now.toISOString()}, past: ${isPast}`
-    );
+    // Past: appointment datetime is in the past OR status is completed/cancelled
+    const isPast =
+      appointmentDateTime <= now ||
+      apt.status === "completed" ||
+      apt.status === "COMPLETED" ||
+      apt.status === "cancelled" ||
+      apt.status === "CANCELLED";
     return isPast;
   });
 
@@ -207,11 +241,17 @@ const AppointmentsScreen = ({ navigation }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "confirmed":
+      case "ACTIVE":
         return theme.colors.success;
       case "pending":
+      case "PENDING":
         return theme.colors.warning;
       case "completed":
+      case "COMPLETED":
         return theme.colors.gray500;
+      case "cancelled":
+      case "CANCELLED":
+        return theme.colors.error;
       default:
         return theme.colors.gray500;
     }
@@ -220,19 +260,23 @@ const AppointmentsScreen = ({ navigation }) => {
   const getStatusText = (status) => {
     switch (status) {
       case "confirmed":
+      case "ACTIVE":
         return "Confirmed";
       case "pending":
+      case "PENDING":
         return "Pending";
       case "completed":
+      case "COMPLETED":
         return "Completed";
+      case "cancelled":
+      case "CANCELLED":
+        return "Cancelled";
       default:
         return "Unknown";
     }
   };
 
   const AppointmentCard = ({ appointment }) => {
-    console.log("Rendering appointment card:", appointment);
-
     return (
       <Card style={styles.appointmentCard}>
         <View style={styles.appointmentContent}>
@@ -245,14 +289,30 @@ const AppointmentsScreen = ({ navigation }) => {
             style={styles.doctorImage}
           />
           <View style={styles.appointmentInfo}>
-            <Text style={styles.doctorName}>
-              {appointment.doctor || appointment.doctorName || "Unknown Doctor"}
-            </Text>
-            <Text style={styles.doctorSpecialty}>
-              {appointment.specialty ||
-                appointment.speciality ||
-                "Health Coach"}
-            </Text>
+            <View style={styles.headerRow}>
+              <View style={styles.doctorInfoHeader}>
+                <Text style={styles.doctorName}>
+                  {appointment.doctor ||
+                    appointment.doctorName ||
+                    "Unknown Doctor"}
+                </Text>
+                <Text style={styles.doctorSpecialty}>
+                  {appointment.specialty ||
+                    appointment.speciality ||
+                    "Health Coach"}
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.statusBadgeTopRight,
+                  { backgroundColor: getStatusColor(appointment.status) },
+                ]}
+              >
+                <Text style={styles.statusText}>
+                  {getStatusText(appointment.status)}
+                </Text>
+              </View>
+            </View>
             <View style={styles.appointmentDateTime}>
               <Ionicons
                 name="calendar-outline"
@@ -269,7 +329,12 @@ const AppointmentsScreen = ({ navigation }) => {
                 size={16}
                 color={theme.colors.gray500}
               />
-              <Text style={styles.appointmentTime}>{appointment.time}</Text>
+              <Text style={styles.appointmentTime}>
+                {appointment.time}
+                {appointment.originalData?.endDate && (
+                  <Text style={styles.appointmentDuration}> (1 hour)</Text>
+                )}
+              </Text>
             </View>
             {appointment.notes && (
               <View style={styles.appointmentDateTime}>
@@ -283,18 +348,8 @@ const AppointmentsScreen = ({ navigation }) => {
                 </Text>
               </View>
             )}
-            {/* Status and Actions Row */}
-            <View style={styles.statusActionsRow}>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: getStatusColor(appointment.status) },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {getStatusText(appointment.status)}
-                </Text>
-              </View>
+            {/* Action Buttons */}
+            <View style={styles.actionButtonsOnly}>
               {appointment.googleMeetLink && (
                 <TouchableOpacity
                   style={styles.meetButton}
@@ -308,6 +363,22 @@ const AppointmentsScreen = ({ navigation }) => {
                     color={theme.colors.primary}
                   />
                   <Text style={styles.meetButtonText}>Join</Text>
+                </TouchableOpacity>
+              )}
+              {(appointment.status === "confirmed" ||
+                appointment.status === "ACTIVE") && (
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() =>
+                    handleCancelAppointment(appointment.id, appointment)
+                  }
+                >
+                  <Ionicons
+                    name="close-outline"
+                    size={16}
+                    color={theme.colors.error}
+                  />
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -507,6 +578,16 @@ const styles = StyleSheet.create({
   appointmentInfo: {
     flex: 1,
   },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: theme.spacing.sm,
+  },
+  doctorInfoHeader: {
+    flex: 1,
+    marginRight: theme.spacing.sm,
+  },
   doctorName: {
     fontSize: 18,
     fontWeight: "600",
@@ -516,7 +597,6 @@ const styles = StyleSheet.create({
   doctorSpecialty: {
     fontSize: 14,
     color: theme.colors.gray600,
-    marginBottom: theme.spacing.sm,
   },
   appointmentDateTime: {
     flexDirection: "row",
@@ -533,29 +613,32 @@ const styles = StyleSheet.create({
     color: theme.colors.gray500,
     marginLeft: theme.spacing.xs,
   },
+  appointmentDuration: {
+    fontSize: 12,
+    color: theme.colors.gray400,
+    fontStyle: "italic",
+  },
   appointmentNotes: {
     fontSize: 12,
     color: theme.colors.gray500,
     marginLeft: theme.spacing.xs,
     flex: 1,
   },
-  statusBadge: {
-    alignSelf: "flex-start",
+  statusBadgeTopRight: {
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: 12,
-    marginTop: theme.spacing.sm,
   },
   statusText: {
     fontSize: 12,
     fontWeight: "600",
     color: theme.colors.white,
   },
-  statusActionsRow: {
+  actionButtonsOnly: {
     flexDirection: "row",
     alignItems: "center",
+    gap: theme.spacing.xs,
     marginTop: theme.spacing.sm,
-    gap: theme.spacing.sm,
   },
   meetButton: {
     flexDirection: "row",
@@ -564,13 +647,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.sm,
     paddingVertical: theme.spacing.xs,
     borderRadius: 12,
-    marginTop: theme.spacing.xs,
   },
   meetButtonText: {
     marginLeft: theme.spacing.xs,
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.medium,
     color: theme.colors.primary,
+  },
+  cancelButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.error + "20",
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 12,
+  },
+  cancelButtonText: {
+    marginLeft: theme.spacing.xs,
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.error,
   },
   emptyState: {
     flex: 1,

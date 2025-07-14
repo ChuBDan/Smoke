@@ -14,7 +14,11 @@ import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { addDays, addHours, format, startOfWeek } from "date-fns";
 import { Input, Button, Card } from "../components";
-import { userApi, coachApi } from "../services/smokingCessationApi";
+import {
+  userApi,
+  coachApi,
+  appointmentApi,
+} from "../services/smokingCessationApi";
 import theme from "../theme";
 
 const WEEK_DAYS = 7;
@@ -58,6 +62,7 @@ const BookAppointmentScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [appointments, setAppointments] = useState([]);
+  const [coachConsultations, setCoachConsultations] = useState([]);
 
   const weekAnchor = useMemo(
     () => startOfWeek(new Date(), { weekStartsOn: 1 }),
@@ -115,12 +120,29 @@ const BookAppointmentScreen = ({ navigation }) => {
     }
   };
 
+  // Fetch coach consultations when coach is selected
+  const fetchCoachConsultations = async (coachId) => {
+    if (!coachId || !token) return;
+    try {
+      const response = await appointmentApi.getConsultationsByCoach(
+        coachId,
+        token
+      );
+      const consultationsList = response?.consultations || [];
+      setCoachConsultations(consultationsList);
+    } catch (error) {
+      console.error("Error fetching coach consultations:", error);
+      setCoachConsultations([]);
+    }
+  };
+
   const isSlotBooked = (dateObj, slot, coachId, memberId) => {
     const dayKey = format(dateObj, "dd-MM-yyyy");
     const hour24 = getStartHour24(slot);
     const hourKey = String(hour24).padStart(2, "0") + ":00:00";
 
-    return appointments.find(
+    // Check both member appointments and coach consultations
+    const memberBooking = appointments.find(
       (a) =>
         a.coach?.id?.toString() === coachId?.toString() &&
         a.member?.id?.toString() === memberId?.toString() &&
@@ -128,6 +150,15 @@ const BookAppointmentScreen = ({ navigation }) => {
         a.consultationDate?.startsWith(dayKey) &&
         a.consultationDate?.includes(hourKey)
     );
+
+    const coachBooking = coachConsultations.find(
+      (c) =>
+        c.status === "ACTIVE" &&
+        c.consultationDate?.startsWith(dayKey) &&
+        c.consultationDate?.includes(hourKey)
+    );
+
+    return memberBooking || coachBooking;
   };
 
   const getAvailableTimeSlotsForDate = (date) => {
@@ -238,7 +269,11 @@ const BookAppointmentScreen = ({ navigation }) => {
                       selectedCoach === coach.id.toString() &&
                         styles.selectedCoachCard,
                     ]}
-                    onPress={() => setSelectedCoach(coach.id.toString())}
+                    onPress={() => {
+                      setSelectedCoach(coach.id.toString());
+                      setSelectedSlot(null); // Reset time selection
+                      fetchCoachConsultations(coach.id); // Fetch coach consultations
+                    }}
                     activeOpacity={0.7}
                   >
                     <View style={styles.coachAvatar}>

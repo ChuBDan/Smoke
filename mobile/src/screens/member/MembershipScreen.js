@@ -47,18 +47,27 @@ const MembershipScreen = ({ navigation }) => {
       // Check current membership status
       if (user?.id) {
         const memberData = await userApi.getMemberById(user.id, token);
-        if (memberData.member) {
-          const member = memberData.member;
-          if (member.plans === "VIP") {
+        console.log("Full API response:", JSON.stringify(memberData, null, 2));
+
+        // Handle different API response structures
+        const member = memberData.member || memberData;
+        console.log("Extracted member:", JSON.stringify(member, null, 2));
+
+        if (member && member.membership_Package) {
+          console.log("Setting current package:", member.membership_Package);
+          setCurrentPackage(member.membership_Package);
+
+          // Check the package name to determine membership status
+          if (member.membership_Package.packageName === "VIP") {
+            console.log("Setting membership status to VIP");
             setMembershipStatus("vip");
           } else {
-            setMembershipStatus("free");
+            console.log("Setting membership status to premium");
+            setMembershipStatus("premium"); // They have a package but not VIP
           }
-
-          // Set current package info
-          if (member.membership_Package) {
-            setCurrentPackage(member.membership_Package);
-          }
+        } else {
+          console.log("No membership package found, setting to free");
+          setMembershipStatus("free");
         }
       }
     } catch (err) {
@@ -137,6 +146,14 @@ const MembershipScreen = ({ navigation }) => {
   const PackageCard = ({ pkg }) => {
     const isCurrentPackage = currentPackage && currentPackage.id === pkg.id;
     const isFreeUser = membershipStatus === "free";
+    const hasAnyPackage = membershipStatus !== "free";
+
+    console.log(
+      `Package: ${pkg.packageName}, isCurrentPackage: ${isCurrentPackage}, isFreeUser: ${isFreeUser}, hasAnyPackage: ${hasAnyPackage}`
+    );
+    console.log(`Current package state:`, currentPackage);
+    console.log(`Membership status:`, membershipStatus);
+    console.log(`Package ID comparison: ${currentPackage?.id} === ${pkg.id}`);
 
     return (
       <Card
@@ -146,58 +163,145 @@ const MembershipScreen = ({ navigation }) => {
         ]}
       >
         {isCurrentPackage && (
-          <View style={styles.currentBadge}>
-            <Text style={styles.currentBadgeText}>Current Plan</Text>
-          </View>
+          <>
+            <View style={styles.currentBadge}>
+              <Ionicons name="star" size={14} color={theme.colors.white} />
+              <Text style={styles.currentBadgeText}>Active Plan</Text>
+            </View>
+            <View style={styles.currentGlowEffect} />
+          </>
         )}
 
         <View style={styles.packageHeader}>
-          <Text style={styles.packageName}>{pkg.packageName || pkg.name}</Text>
+          <View style={styles.packageTitleRow}>
+            <Text
+              style={[
+                styles.packageName,
+                isCurrentPackage && styles.currentPackageName,
+              ]}
+            >
+              {pkg.packageName || pkg.name}
+            </Text>
+            {isCurrentPackage && (
+              <View style={styles.activeIndicator}>
+                <View style={styles.activeIndicatorDot} />
+                <Text style={styles.activeIndicatorText}>Active</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>
+            <Text
+              style={[styles.price, isCurrentPackage && styles.currentPrice]}
+            >
               {Number(pkg.price).toLocaleString()} VND
             </Text>
-            <Text style={styles.duration}>/{pkg.duration || "30"} days</Text>
+            <Text
+              style={[
+                styles.duration,
+                isCurrentPackage && styles.currentDuration,
+              ]}
+            >
+              /{pkg.duration || "30"} days
+            </Text>
           </View>
         </View>
 
-        <Text style={styles.packageDescription}>{pkg.description}</Text>
+        <Text
+          style={[
+            styles.packageDescription,
+            isCurrentPackage && styles.currentPackageDescription,
+          ]}
+        >
+          {pkg.description}
+        </Text>
 
         <View style={styles.featuresContainer}>
-          <View style={styles.featureItem}>
+          <View
+            style={[
+              styles.featureItem,
+              isCurrentPackage && styles.currentFeatureItem,
+            ]}
+          >
             <Ionicons
               name="checkmark-circle"
               size={20}
-              color={theme.colors.success}
+              color={
+                isCurrentPackage ? theme.colors.primary : theme.colors.success
+              }
             />
-            <Text style={styles.featureText}>
+            <Text
+              style={[
+                styles.featureText,
+                isCurrentPackage && styles.currentFeatureText,
+              ]}
+            >
               Access to smoking cessation programs
             </Text>
           </View>
-          <View style={styles.featureItem}>
+          <View
+            style={[
+              styles.featureItem,
+              isCurrentPackage && styles.currentFeatureItem,
+            ]}
+          >
             <Ionicons
               name="checkmark-circle"
               size={20}
-              color={theme.colors.success}
+              color={
+                isCurrentPackage ? theme.colors.primary : theme.colors.success
+              }
             />
-            <Text style={styles.featureText}>Priority appointment booking</Text>
+            <Text
+              style={[
+                styles.featureText,
+                isCurrentPackage && styles.currentFeatureText,
+              ]}
+            >
+              Priority appointment booking
+            </Text>
           </View>
-          <View style={styles.featureItem}>
+          <View
+            style={[
+              styles.featureItem,
+              isCurrentPackage && styles.currentFeatureItem,
+            ]}
+          >
             <Ionicons
               name="checkmark-circle"
               size={20}
-              color={theme.colors.success}
+              color={
+                isCurrentPackage ? theme.colors.primary : theme.colors.success
+              }
             />
-            <Text style={styles.featureText}>24/7 support access</Text>
+            <Text
+              style={[
+                styles.featureText,
+                isCurrentPackage && styles.currentFeatureText,
+              ]}
+            >
+              24/7 support access
+            </Text>
           </View>
           {pkg.packageName?.toLowerCase() === "vip" && (
-            <View style={styles.featureItem}>
+            <View
+              style={[
+                styles.featureItem,
+                isCurrentPackage && styles.currentFeatureItem,
+              ]}
+            >
               <Ionicons
                 name="checkmark-circle"
                 size={20}
-                color={theme.colors.success}
+                color={
+                  isCurrentPackage ? theme.colors.primary : theme.colors.success
+                }
               />
-              <Text style={styles.featureText}>
+              <Text
+                style={[
+                  styles.featureText,
+                  isCurrentPackage && styles.currentFeatureText,
+                ]}
+              >
                 Exclusive coach consultations
               </Text>
             </View>
@@ -208,14 +312,24 @@ const MembershipScreen = ({ navigation }) => {
           style={[
             styles.packageButton,
             isCurrentPackage && styles.currentPackageButton,
-            (isCurrentPackage || !isFreeUser) && styles.disabledButton,
+            (isCurrentPackage ||
+              (hasAnyPackage && pkg.packageName?.toLowerCase() !== "vip")) &&
+              styles.disabledButton,
           ]}
           onPress={() => handleBuyPackage(pkg.id, pkg.packageName || pkg.name)}
           disabled={
             isCurrentPackage ||
-            (!isFreeUser && pkg.packageName?.toLowerCase() !== "vip")
+            (hasAnyPackage && pkg.packageName?.toLowerCase() !== "vip")
           }
         >
+          {isCurrentPackage && (
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color={theme.colors.white}
+              style={styles.buttonIcon}
+            />
+          )}
           <Text
             style={[
               styles.packageButtonText,
@@ -223,10 +337,12 @@ const MembershipScreen = ({ navigation }) => {
             ]}
           >
             {isCurrentPackage
-              ? "Current Plan"
+              ? "Active Plan"
+              : hasAnyPackage && pkg.packageName?.toLowerCase() !== "vip"
+              ? "Already Subscribed"
               : isFreeUser
               ? "Purchase"
-              : "Upgrade"}
+              : "Upgrade to VIP"}
           </Text>
         </TouchableOpacity>
       </Card>
@@ -276,25 +392,6 @@ const MembershipScreen = ({ navigation }) => {
           />
         }
       >
-        {/* Current Package Section */}
-        {currentPackage && (
-          <Card style={styles.currentPackageSection}>
-            <Text style={styles.sectionTitle}>Current Plan</Text>
-            <View style={styles.currentPackageInfo}>
-              <Text style={styles.currentPackageName}>
-                {currentPackage.packageName}
-              </Text>
-              <Text style={styles.currentPackagePrice}>
-                {Number(currentPackage.price).toLocaleString()} VND
-              </Text>
-              <Text style={styles.currentPackageDate}>
-                Purchased:{" "}
-                {new Date(currentPackage.dateCreated).toLocaleDateString()}
-              </Text>
-            </View>
-          </Card>
-        )}
-
         <View style={styles.heroSection}>
           <Text style={styles.heroTitle}>
             {membershipStatus === "vip"
@@ -505,6 +602,15 @@ const styles = StyleSheet.create({
   currentPackageCard: {
     borderWidth: 2,
     borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primary + "05",
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
   currentBadge: {
     position: "absolute",
@@ -515,11 +621,86 @@ const styles = StyleSheet.create({
     paddingVertical: theme.spacing.xs,
     borderRadius: 12,
     zIndex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    shadowColor: theme.colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  currentGlowEffect: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+
+    backgroundColor: theme.colors.primary,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   currentBadgeText: {
     color: theme.colors.white,
     fontSize: 12,
     fontWeight: "600",
+  },
+  packageTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  currentPackageName: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSize["2xl"],
+    fontWeight: theme.fontWeight.bold,
+  },
+  activeIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: theme.colors.success + "20",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  activeIndicatorDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.success,
+  },
+  activeIndicatorText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: theme.colors.success,
+  },
+  currentPrice: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSize["3xl"],
+    fontWeight: theme.fontWeight.bold,
+  },
+  currentDuration: {
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
+  currentPackageDescription: {
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
+  },
+  currentFeatureItem: {
+    backgroundColor: theme.colors.primary + "10",
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: 8,
+    marginVertical: 2,
+  },
+  currentFeatureText: {
+    color: theme.colors.primary,
+    fontWeight: theme.fontWeight.medium,
   },
   packageButton: {
     backgroundColor: theme.colors.primary,
@@ -527,6 +708,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     marginTop: theme.spacing.md,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: theme.spacing.xs,
   },
   packageButtonText: {
     color: theme.colors.white,
@@ -534,10 +718,24 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   currentPackageButton: {
-    backgroundColor: theme.colors.gray200,
+    backgroundColor: theme.colors.success,
+    borderWidth: 1,
+    borderColor: theme.colors.success,
+    shadowColor: theme.colors.success,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   currentPackageButtonText: {
-    color: theme.colors.gray600,
+    color: theme.colors.white,
+    fontWeight: "700",
+  },
+  buttonIcon: {
+    marginRight: 4,
   },
   disabledButton: {
     backgroundColor: theme.colors.gray200,

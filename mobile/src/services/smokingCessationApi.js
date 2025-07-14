@@ -340,6 +340,42 @@ export const appointmentApi = {
     }
   },
 
+  // Get consultations by coach - NEW API method from web-app
+  getConsultationsByCoach: async (coachId, token) => {
+    try {
+      const response = await httpMethods.get(
+        `/api/user/get-consultations-by-coach/${coachId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      const consultations = Array.isArray(data?.consultations)
+        ? data.consultations
+        : Array.isArray(data)
+        ? data
+        : [];
+
+      return {
+        consultations,
+        success: true,
+        message: "Coach consultations fetched successfully",
+      };
+    } catch (error) {
+      console.error("Error fetching consultations by coach:", error);
+      return {
+        consultations: [],
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Failed to fetch coach consultations",
+      };
+    }
+  },
+
   cancelAppointment: async (appointmentId, token) => {
     try {
       const response = await httpMethods.put(
