@@ -13,7 +13,10 @@ const safeParseArray = (key) => {
   } catch {
     const raw = localStorage.getItem(key);
     return raw
-      ? raw.split(",").map(Number).filter((n) => !isNaN(n))
+      ? raw
+          .split(",")
+          .map(Number)
+          .filter((n) => !isNaN(n))
       : [];
   }
 };
@@ -22,6 +25,7 @@ const safeParseArray = (key) => {
 const initialState = {
   token: localStorage.getItem("token") || null,
   userId: localStorage.getItem("userId") || null,
+  coachId: localStorage.getItem("coachId") || null,
   planIds: safeParseArray("planIds"),
   smokingLogIds: safeParseArray("smokingLogIds"),
   memberPackage: localStorage.getItem("memberPackage")
@@ -33,22 +37,31 @@ const initialState = {
 };
 
 // Async Thunks
-export const login = createAsyncThunk("auth/login", async ({ email, password }) => {
-  const res = await loginUser({ email, password });
-  return res;
-});
+export const login = createAsyncThunk(
+  "auth/login",
+  async ({ email, password }) => {
+    const res = await loginUser({ email, password });
+    return res;
+  }
+);
 
 export const signup = createAsyncThunk("auth/signup", async (data) => {
   return await registerUser(data);
 });
 
-export const coachLogin = createAsyncThunk("auth/coachLogin", async ({ email, password }) => {
-  return await loginCoach({ email, password });
-});
+export const coachLogin = createAsyncThunk(
+  "auth/coachLogin",
+  async ({ email, password }) => {
+    return await loginCoach({ email, password });
+  }
+);
 
-export const adminLogin = createAsyncThunk("auth/adminLogin", async ({ username, password }) => {
-  return await loginAdmin({ username, password });
-});
+export const adminLogin = createAsyncThunk(
+  "auth/adminLogin",
+  async ({ username, password }) => {
+    return await loginAdmin({ username, password });
+  }
+);
 
 export const updateUserProfile = createAsyncThunk(
   "auth/updateUserProfile",
@@ -90,13 +103,17 @@ const authSlice = createSlice({
         smokingLogIds: [],
         memberPackage: null,
         successMessage: "",
+        coachId: null,
+        planId: [],
       });
 
       [
         "token",
+        "coachId",
         "userId",
         "role",
         "planIds",
+        "planId",
         "smokingLogIds",
         "latestPlanId",
         "memberPackage",
@@ -136,8 +153,14 @@ const authSlice = createSlice({
         localStorage.setItem("token", payload.token);
         localStorage.setItem("userId", state.userId);
         localStorage.setItem("planIds", JSON.stringify(state.planIds));
-        localStorage.setItem("smokingLogIds", JSON.stringify(state.smokingLogIds));
-        localStorage.setItem("memberPackage", JSON.stringify(state.memberPackage));
+        localStorage.setItem(
+          "smokingLogIds",
+          JSON.stringify(state.smokingLogIds)
+        );
+        localStorage.setItem(
+          "memberPackage",
+          JSON.stringify(state.memberPackage)
+        );
 
         if (state.planIds.length > 0) {
           const latest = state.planIds.at(-1);
@@ -169,12 +192,12 @@ const authSlice = createSlice({
       .addCase(coachLogin.fulfilled, (state, { payload }) => {
         state.status = "succeeded";
         state.token = payload.token;
-        state.userId = payload.member?.id || payload.id;
+        state.coachId = payload.coach?.id || payload.id;
         state.successMessage = "Coach login successful!";
 
         localStorage.setItem("role", "COACH");
         localStorage.setItem("token", payload.token);
-        localStorage.setItem("userId", state.userId);
+        localStorage.setItem("coachId", state.coachId);
       })
       .addCase(coachLogin.rejected, (state) => {
         state.status = "failed";

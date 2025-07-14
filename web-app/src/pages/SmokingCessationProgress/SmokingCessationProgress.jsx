@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 "use client";
+
 import { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -11,6 +12,7 @@ import DayCard from "./DayCard";
 import { buildCalendar } from "./util";
 import AppointmentCalendar from "../Appointments/AppointmentModal";
 
+// Helper
 const mapPhases = (planPhases = []) =>
   planPhases.map((p, idx) => ({
     number: p.phaseNumber ?? idx + 1,
@@ -34,6 +36,7 @@ const SmokingCessationProgress = () => {
   const [plan, setPlan] = useState(null);
   const [calendar, setCalendar] = useState([]);
   const [phaseInfo, setPhaseInfo] = useState([]);
+  const [copingList, setCopingList] = useState([]);
   const [activePhase, setActivePhase] = useState(0);
   const [progressToday, setProgressToday] = useState(null);
   const [allProgresses, setAllProgresses] = useState([]);
@@ -45,21 +48,19 @@ const SmokingCessationProgress = () => {
   const fetchPlan = useCallback(async () => {
     if (!userId || !token) return;
     try {
-      const { plans, planPhases } = await smokingCessationApi.getPlanByUserId(
-        userId,
-        token
-      );
+      const { plans, planPhases, copingMechanisms } =
+        await smokingCessationApi.getPlanByUserId(userId, token);
 
       if (!plans?.length) {
         toast.info("AI plan is still generating. Please wait …");
         return;
       }
+
       const activePlan = plans[0];
       setPlan(activePlan);
       setCalendar(buildCalendar(activePlan));
-      setPhaseInfo(
-        planPhases?.length ? mapPhases(planPhases) : mapPhases([{}, {}, {}, {}])
-      );
+      setPhaseInfo(planPhases?.length ? mapPhases(planPhases) : []);
+      setCopingList(copingMechanisms || []);
     } catch (err) {
       console.error("fetchPlan", err);
       toast.error("Cannot load plan");
@@ -73,8 +74,8 @@ const SmokingCessationProgress = () => {
     try {
       const { progresses, progressLog } =
         await smokingCessationApi.getDailyProgressByMemberId(userId, token);
-      const todayStr = format(new Date(), "yyyy-MM-dd");
 
+      const todayStr = format(new Date(), "yyyy-MM-dd");
       const todayData = progresses?.find((p) => {
         const formatted = format(
           parse(p.dateCreated, "dd-MM-yyyy", new Date()),
@@ -106,11 +107,7 @@ const SmokingCessationProgress = () => {
     try {
       const res = await smokingCessationApi.submitDailyProgress(
         userId,
-        {
-          completed: true,
-          daysSmokeFree,
-          healthImprovement,
-        },
+        { completed: true, daysSmokeFree, healthImprovement },
         token
       );
       toast.success(`Progress saved! 💰 Money saved: $${res.moneySaved}`);
@@ -123,8 +120,8 @@ const SmokingCessationProgress = () => {
     }
   };
 
-  const handleSubmitProgress = (day, { daysSmokeFree, healthImprovement }) => {
-    submitProgress({ daysSmokeFree, healthImprovement });
+  const handleSubmitProgress = (day, data) => {
+    submitProgress(data);
   };
 
   if (loadingPlan) {
@@ -144,7 +141,10 @@ const SmokingCessationProgress = () => {
         <div className="text-center bg-white p-8 rounded-2xl shadow-xl">
           <div className="text-6xl mb-4">🚭</div>
           <p className="text-gray-600 mb-4">No plan found. Go back & create one.</p>
-          <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+          <button
+            onClick={() => navigate("/onboarding")}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"
+          >
             Create New Plan
           </button>
         </div>
@@ -186,6 +186,7 @@ const SmokingCessationProgress = () => {
           </div>
         </div>
 
+        {/* Phase Selection Buttons */}
         <div className="mb-8">
           <div className="flex flex-wrap justify-center gap-2 mb-6">
             {phaseInfo.map((phase, index) => {
@@ -252,8 +253,21 @@ const SmokingCessationProgress = () => {
             </div>
           </div>
         )}
+
+        {/* Coping Mechanisms */}
+        {copingList.length > 0 && (
+          <div className="mt-12 bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-xl font-bold mb-4 flex items-center">🛠️ Coping Mechanisms</h2>
+            <ul className="list-disc ml-6 space-y-1 text-sm text-gray-700">
+              {copingList.map((item) => (
+                <li key={item.id}>{item.content}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
+      {/* Non-VIP Notice */}
       {!isVIP && (
         <div className="py-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6 mb-8">
           <div className="flex items-center justify-between">

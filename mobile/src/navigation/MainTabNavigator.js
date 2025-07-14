@@ -2,7 +2,6 @@ import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import HomeScreen from "../screens/HomeScreen";
 import AppointmentsScreen from "../screens/AppointmentsScreen";
 import MembershipScreen from "../screens/member/MembershipScreen";
 import SmokingCessationScreen from "../screens/member/SmokingCessationScreen";
@@ -49,13 +48,6 @@ const MainTabNavigator = () => {
         headerShown: false,
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          tabBarLabel: "Home",
-        }}
-      />
       <Tab.Screen
         name="Appointments"
         component={AppointmentsScreen}
