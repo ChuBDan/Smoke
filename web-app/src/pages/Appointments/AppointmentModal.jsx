@@ -272,7 +272,7 @@ const AppointmentCalendar = ({ open, onClose }) => {
             </div>
           </div>
 
-          {/* --- Notes --- */}
+          {/* -- Notes -- */}
           <div>
             <label className="block text-lg font-semibold mb-2">📝 Notes (optional)</label>
             <textarea
