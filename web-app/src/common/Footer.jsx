@@ -6,10 +6,13 @@ const Footer = () => {
     <footer className="bg-gray-100 py-10 mt-40">
       <div className="md:mx-10">
         <div className="flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 text-sm">
-          {/* Cột trái: Logo và văn bản */}
+          {/* Cột trái: Logo và mô tả */}
           <div>
             <img src={assets.logo} alt="" />
-            <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.</p>
+            <p>
+              Prescripto is your companion in the journey to quit smoking. Our platform offers tools,
+              expert support, and daily motivation to help you overcome nicotine addiction and live a healthier, smoke-free life.
+            </p>
           </div>
 
           {/* Cột giữa: COMPANY */}
@@ -27,14 +30,14 @@ const Footer = () => {
           <div>
             <p className="text-xl font-medium mb-5">GET IN TOUCH</p>
             <ul className="flex flex-col gap-2 text-gray-600">
-              <li>+1-212-456-7890</li>
-              <li>greatstackdev@gmail.com</li>
+              <li>0964 703 716</li>
+              <li>quitsmoking@gmail.com</li>
             </ul>
           </div>
         </div>
       </div>
       <div className="text-center text-gray-500 text-sm mt-10">
-        Copyright © 2024 Prescripto - All Right Reserved.
+        Copyright © 2024 Prescripto - Supporting Your Smoke-Free Journey.
       </div>
     </footer>
   );

@@ -59,31 +59,32 @@ export const assets = {
 }
 
 export const specialityData = [
-    {
-        speciality: 'General physician',
-        image: General_physician
-    },
-    {
-        speciality: 'Gynecologist',
-        image: Gynecologist
-    },
-    {
-        speciality: 'Dermatologist',
-        image: Dermatologist
-    },
-    {
-        speciality: 'Pediatricians',
-        image: Pediatricians
-    },
-    {
-        speciality: 'Neurologist',
-        image: Neurologist
-    },
-    {
-        speciality: 'Gastroenterologist',
-        image: Gastroenterologist
-    },
-]
+  {
+    speciality: 'Quit Smoking Counseling',
+    image: General_physician,
+  },
+  {
+    speciality: 'Support for Pregnant Women',
+    image: Gynecologist,
+  },
+  {
+    speciality: 'Skin Health & Smoking Effects',
+    image: Dermatologist,
+  },
+  {
+    speciality: 'Youth Smoking Awareness',
+    image: Pediatricians,
+  },
+  {
+    speciality: 'Mental Health & Stress',
+    image: Neurologist,
+  },
+  {
+    speciality: 'Digestive Impact of Smoking',
+    image: Gastroenterologist,
+  },
+];
+
 
 export const doctors = [
     {

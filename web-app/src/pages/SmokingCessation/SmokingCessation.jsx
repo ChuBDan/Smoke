@@ -80,55 +80,80 @@ const SmokingCessation = () => {
         </div>
 
         {/* Pricing Section */}
-        <div className='mb-24'>
-          <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>💎 Choose Your Plan</h2>
-          <div className='flex flex-col md:flex-row gap-8 justify-center items-stretch'>
-            {/* Free Plan */}
-            <div className='bg-white border rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
-              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Free Plan</h3>
-              <div className='text-3xl font-bold text-center text-blue-500 mb-6'>Free</div>
-              <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
-                <li>✔ Basic smoking habit tracking</li>
-                <li>✔ Last 7-day statistics</li>
-                <li>✔ 5 sample tips per day</li>
-                <li className='text-gray-400'>✖ No expert support</li>
-                <li className='text-gray-400'>✖ Limited to 3 basic badges</li>
-              </ul>
-              <button
-                onClick={handleTryNow}
-                className='w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition duration-300'
-              >
-                Try It Now
-              </button>
-            </div>
+        {/* Pricing Section */}
+<div className='mb-24'>
+  <h2 className='text-3xl font-bold text-center text-gray-800 mb-8'>💎 Choose Your Plan</h2>
+  <div className='flex flex-col md:flex-row gap-8 justify-center items-stretch'>
+    
+    {/* Free Plan */}
+    <div className='bg-white border rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
+      <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Free Plan</h3>
+      <div className='text-3xl font-bold text-center text-blue-500 mb-6'>Free</div>
+      <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
+        <li>✔ Basic smoking tracking</li>
+        <li>✔ View past 7 days progress</li>
+        <li>✔ Daily generic quit tips</li>
+        <li className='text-gray-400'>✖ No expert support</li>
+        <li className='text-gray-400'>✖ Limited badge access</li>
+      </ul>
+      <button
+        onClick={handleTryNow}
+        className='w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition duration-300'
+      >
+        Try It Now
+      </button>
+    </div>
 
-            {/* Premium Plan */}
-            <div className='bg-white border-2 border-blue-500 rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
-              <div className='absolute top-0 right-6 transform -translate-y-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full'>
-                Most Popular
-              </div>
-              <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Premium Plan</h3>
-              <div className='text-3xl font-bold text-center text-blue-500 mb-6'>
-                199,000₫<span className='text-base text-gray-500'>/month</span>
-              </div>
-              <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
-                <li>✔ All Free Plan features</li>
-                <li>✔ Unlimited time tracking</li>
-                <li>✔ Personalized daily tips</li>
-                <li>✔ 1-on-1 expert support</li>
-                <li>✔ Full badge system (20+ types)</li>
-                <li>✔ Weekly detailed reports</li>
-                <li>✔ 24/7 support community</li>
-              </ul>
-              <button
-                onClick={handleTryNow}
-                className='w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-300'
-              >
-                Try It Now
-              </button>
-            </div>
-          </div>
-        </div>
+    {/* Standard Plan */}
+    <div className='bg-white border border-gray-300 rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
+      <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Standard Plan</h3>
+      <div className='text-3xl font-bold text-center text-blue-500 mb-6'>
+        48,000₫<span className='text-base text-gray-500'>/month</span>
+      </div>
+      <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
+        <li>✔ All Free Plan features</li>
+        <li>✔ 14-day progress history</li>
+        <li>✔ Motivational messages & challenges</li>
+        <li>✔ Access to progress charts & graphs</li>
+        <li>✔ Unlock up to 10 badges</li>
+        <li className='text-gray-400'>✖ No expert consultation</li>
+      </ul>
+      <button
+        onClick={handleTryNow}
+        className='w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded transition duration-300'
+      >
+        Try It Now
+      </button>
+    </div>
+
+    {/* Premium Plan */}
+    <div className='bg-white border-2 border-blue-500 rounded-2xl p-8 shadow-sm md:w-1/3 max-w-md relative hover:shadow-md transition'>
+      <div className='absolute top-0 right-6 transform -translate-y-1/2 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full'>
+        Most Popular
+      </div>
+      <h3 className='text-xl font-semibold text-center text-gray-800 mb-4'>Premium Plan</h3>
+      <div className='text-3xl font-bold text-center text-blue-500 mb-6'>
+        50,000₫<span className='text-base text-gray-500'>/month</span>
+      </div>
+      <ul className='space-y-3 text-gray-600 mb-8 text-sm'>
+        <li>✔ All Standard Plan features</li>
+        <li>✔ Unlimited history tracking</li>
+        <li>✔ 1-on-1 coaching with expert</li>
+        <li>✔ Personalized quit plan & reminders</li>
+        <li>✔ Full badge system (20+ types)</li>
+        <li>✔ Weekly health reports</li>
+        <li>✔ 24/7 community support</li>
+      </ul>
+      <button
+        onClick={handleTryNow}
+        className='w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded transition duration-300'
+      >
+        Try It Now
+      </button>
+    </div>
+  </div>
+</div>
+
 
         {/* Testimonials Section */}
         <div className='mb-16'>
